@@ -55,3 +55,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Data, Images, tar
+*.png
+*.pdf
+*.txt
+*.tar
+*.gz
+*.p
