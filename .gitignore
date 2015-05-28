@@ -63,3 +63,6 @@ target/
 *.tar
 *.gz
 *.p
+
+# MSFT Files
+*.doc*
