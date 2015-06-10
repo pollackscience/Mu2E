@@ -26,8 +26,8 @@ class DataFileMaker:
     self.data_frame['Theta'] = self.data_frame.apply(self.make_theta, axis=1)
     #self.data_frame.sort(['Z','X','Y'],inplace=True)
     print 'num of columns end', len(self.data_frame.index)
-  def make_dump(self):
-    pkl.dump( self.data_frame, open( self.file_name+'.p', "wb" ),pkl.HIGHEST_PROTOCOL )
+  def make_dump(self,suffix=''):
+    pkl.dump( self.data_frame, open( self.file_name+suffix+'.p', "wb" ),pkl.HIGHEST_PROTOCOL )
 
   def make_r(self,row):
     return np.sqrt(row['X']**2+row['Y']**2)
@@ -45,7 +45,7 @@ class DataFileMaker:
 
 if __name__ == "__main__":
   data_maker = DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = False)
-  data_maker.do_basic_modifications()
-  data_maker.make_dump()
+  data_maker.do_basic_modifications(3905.5)
+  data_maker.make_dump('_-1.5mmOffset')
   print data_maker.data_frame.head()
 

@@ -10,9 +10,10 @@ from scipy import interpolate
 
 class Plotter:
   """Class that takes prepped datafile and produces all kinds of neat plots"""
-  def __init__(self, data_frame):
+  def __init__(self, data_frame,suffix=''):
     self.data_frame = data_frame
     self.plot_count = 0
+    self.suffix = '_'+suffix if suffix!='' else ''
 
   def plot_wrapper(func):
     def inner(self,*args,**kwargs):
@@ -113,7 +114,7 @@ class Plotter:
     plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig('plots/{0}_v_{1}_at_{2}.png'.format(A,B,'_'.join(conditions)))
+    plt.savefig('plots/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
 
   @plot_wrapper
   def plot_A_v_B_and_C(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
@@ -124,7 +125,8 @@ class Plotter:
     print data_frame.head()
 
     if interp:
-      data_frame_interp_grid = self.make_interp_grid(AB=[[B,500,1100],[C,-4000,-5000]],data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
+      data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
+          data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
       data_frame = self.interpolate_data(data_frame, data_frame_interp_grid, field = A, x_ax = B, y_ax =C, method='cubic')
 
     data_frame = data_frame.reindex(columns=[A,B,C])
@@ -151,9 +153,9 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont_interp.png'.format(A,B,C,'_'.join(conditions)))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont.png'.format(A,B,C,'_'.join(conditions)))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
@@ -167,39 +169,41 @@ class Plotter:
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat_interp.png'.format(A,B,C,'_'.join(conditions)))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat.png'.format(A,B,C,'_'.join(conditions)))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
+    return fig,data_frame
 
 
   @plot_wrapper
-  def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear',order=None):
+  def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear'):
     from scipy import interpolate
     """Plot A vs Theta for a given Z and R. The values are interpolated """
 
     print self.data_frame.head()
     data_frame = self.data_frame.query(z_cond)
+    if method!=None:
 
-    data_frame_interp_grid = self.make_interp_grid(r=r, data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
-    data_frame_interp = self.interpolate_data(data_frame, data_frame_interp_grid, A,method=method)
+      data_frame_interp_grid = self.make_interp_grid(r=r, data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
+      data_frame_interp = self.interpolate_data(data_frame, data_frame_interp_grid, A,method=method)
+      data_frame_interp = data_frame_interp.query('R=={0}'.format(r))
 
     data_frame = data_frame[(data_frame.R-r).abs()<0.05]
 
-    print data_frame.head()
-    data_frame_interp = data_frame_interp.query('R=={0}'.format(r))
-    print data_frame_interp.head()
+    #print data_frame.head()
+    #print data_frame_interp.head()
     #print data_frame.head()
     #raw_input()
 
     plt.figure(self.plot_count)
-    plt.plot(data_frame_interp.Theta,data_frame_interp[A],'b^')
+    if method!=None: plt.plot(data_frame_interp.Theta,data_frame_interp[A],'b^')
     plt.plot(data_frame.Theta,data_frame[A],'ro')
     plt.xlabel('Theta')
-    plt.ylabel('Bz')
-    plt.title('Bz vs Theta at {0} for R=={1}'.format(z_cond,r))
+    plt.ylabel(A)
+    plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig('plots/{0}_v_Theta_at_{1}_R=={2}.png'.format(A,z_cond,r))
+    plt.savefig('plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix))
 
   @plot_wrapper
   def plot_mag_field(self,step_size = 1,*conditions):
@@ -216,7 +220,7 @@ class Plotter:
     plt.grid(True)
     circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
     fig.gca().add_artist(circle2)
-    fig.savefig('plots/PsField_{0}.png'.format('_'.join(conditions)))
+    fig.savefig('plots/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
 
 
 
@@ -224,6 +228,10 @@ class Plotter:
 if __name__=="__main__":
   data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = True)
   plot_maker = Plotter(data_maker.data_frame)
+  data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_5mmOffset',use_pickle = True)
+  plot_maker_offset = Plotter(data_maker_offset.data_frame,'5mmOffset')
+  data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
+  plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
   #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==0')
   #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==400')
   #plot_maker.plot_mag_field(5,'Z==-4929','Y<1200','X<1075','Y>-1200','X>-1075')
@@ -232,11 +240,14 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
   #plot_maker.plot_A_v_B('Bz','X','Z==-4929','Y==0')
   #plot_maker.plot_mag_field(1,'Z==-4929')
-  plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
-  plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-5000','Z<-4000','X>500')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-5000','Z<-4000','X>500')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
   #data_frame, data_frame_interp,data_frame_grid = plot_maker.plot_Br_v_Theta(201.556444,'Z==-4929',300)
-  #plot_maker.plot_A_v_Theta('Bz',201.556444,'Z==-4929',30
   #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
+  #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
+  #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
 
 
   plt.show()
