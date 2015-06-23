@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import cPickle as pkl
+import RowTransformations as rt
 
 class DataFileMaker:
   """Convert Field Map plain text into pandas Data File"""
@@ -15,15 +16,14 @@ class DataFileMaker:
       self.data_frame = pd.read_csv(self.file_name+'.txt', header=None, names = header_names, delim_whitespace=True)
   def do_basic_modifications(self,offset=None):
     print 'num of columns start', len(self.data_frame.index)
-    self.data_frame['X'] = self.data_frame.apply(self.center_x, args = (offset,), axis=1)
-    self.data_frame['R'] = self.data_frame.apply(self.make_r, axis=1)
-    self.data_frame['Br'] = self.data_frame.apply(self.make_br, axis=1)
+    if offset: self.data_frame.eval('X = X-{0}'.format(offset))
+    self.data_frame['R'] = rt.apply_make_r(self.data_frame['X'].values, self.data_frame['Y'].values)
+    self.data_frame['Br'] = rt.apply_make_r(self.data_frame['Bx'].values, self.data_frame['By'].values)
     data_frame_lower = self.data_frame.query('Y >0')
-    #data_frame_lower['Y'] = data_frame_lower.apply(self.make_bottom_half, axis=1)
-    data_frame_lower['Y'] *= -1
-    data_frame_lower['By'] *= -1
+    data_frame_lower.eval('Y = Y*-1')
+    data_frame_lower.eval('By = By*-1')
     self.data_frame = pd.concat([self.data_frame, data_frame_lower])
-    self.data_frame['Theta'] = self.data_frame.apply(self.make_theta, axis=1)
+    self.data_frame['Theta'] = rt.apply_make_theta(self.data_frame['X'].values, self.data_frame['Y'].values)
     #self.data_frame.sort(['Z','X','Y'],inplace=True)
     print 'num of columns end', len(self.data_frame.index)
   def make_dump(self,suffix=''):
@@ -45,7 +45,7 @@ class DataFileMaker:
 
 if __name__ == "__main__":
   data_maker = DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = False)
-  data_maker.do_basic_modifications(3905.5)
-  data_maker.make_dump('_-1.5mmOffset')
+  data_maker.do_basic_modifications(3906.54)
+  data_maker.make_dump('_-2.54mmOffset')
   print data_maker.data_frame.head()
 

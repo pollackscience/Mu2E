@@ -1,11 +1,16 @@
 #! /usr/bin/env python
 
 from DataFileProducer import *
+import RowTransformations as rt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy import interpolate
+from scipy.optimize import curve_fit
+import statsmodels.api as sm
+from statsmodels.formula.api import wls
+from statsmodels.graphics.regressionplots import abline_plot
 
 
 class Plotter:
@@ -59,8 +64,8 @@ class Plotter:
       data_frame_interp_grid = pd.DataFrame({'X':x_array,'Y':y_array,val_name:val_array})
       #data_frame_interp = pd.DataFrame({'X':x_array,'Y':y_array,val_name:val_array})
       #data_frame_interp_grid = pd.concat([data_frame_interp,data_frame_orig])
-      data_frame_interp_grid = data_frame_interp_grid[abs(data_frame_interp_grid.X)<(r+50)]
-      data_frame_interp_grid = data_frame_interp_grid[abs(data_frame_interp_grid.Y)<(r+50)]
+      #data_frame_interp_grid = data_frame_interp_grid[abs(data_frame_interp_grid.X)<(r+50)]
+      #data_frame_interp_grid = data_frame_interp_grid[abs(data_frame_interp_grid.Y)<(r+50)]
       data_frame_interp_grid.sort(['X','Y'],inplace=True)
     else:
       a_array = np.linspace(AB[0][1],AB[0][2],interp_num)
@@ -90,13 +95,16 @@ class Plotter:
     data_interp = np.array([new_xx, new_yy, new_vals]).reshape(3, -1).T
     interp_frame = pd.DataFrame(data_interp, columns=[x_ax,y_ax,field])
 
-    print 'making new C'
     C = [c for c in ['X','Y','Z'] if c not in [x_ax,y_ax]][0]
-    interp_frame[C] = old_frame[C].unique()[0]
+    print 'making new',C
+    #interp_frame[C] = old_frame[C].unique()[0]
+    interp_frame.eval('{0}={1}'.format(C,old_frame[C].unique()[0]))
     print 'making new Theta'
-    interp_frame['Theta'] = interp_frame.apply(self.make_theta,axis=1)
+    #interp_frame['Theta'] = interp_frame.apply(self.make_theta,axis=1)
+    interp_frame['Theta'] = rt.apply_make_theta(interp_frame['X'].values, interp_frame['Y'].values)
     print 'making new R'
-    interp_frame['R'] = interp_frame.apply(self.make_r,axis=1)
+    #interp_frame['R'] = interp_frame.apply(self.make_r,axis=1)
+    interp_frame['R'] = rt.apply_make_r(interp_frame['X'].values, interp_frame['Y'].values)
     interp_frame = interp_frame[['X','Y','Z','R','Theta',field]]
     return interp_frame
 
@@ -107,14 +115,17 @@ class Plotter:
     data_frame = self.data_frame.query(' and '.join(conditions))
     print data_frame.head()
 
-    plt.figure(self.plot_count)
-    plt.plot(data_frame[B],data_frame[A],'ro')
+    fig = plt.figure(self.plot_count)
+    data_frame.eval('{0}err = 0.0001*{0}'.format(A))
+    #plt.plot(data_frame[B],data_frame[A],'ro')
+    plt.errorbar(data_frame[B],data_frame[A],yerr=data_frame[A+'err'],fmt='ro')
     plt.xlabel(B)
     plt.ylabel(A)
     plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
     plt.savefig('plots/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
+    return data_frame, fig
 
   @plot_wrapper
   def plot_A_v_B_and_C(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
@@ -153,9 +164,9 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
@@ -169,9 +180,9 @@ class Plotter:
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix))
+      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     return fig,data_frame
 
 
@@ -186,7 +197,8 @@ class Plotter:
 
       data_frame_interp_grid = self.make_interp_grid(r=r, data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
       data_frame_interp = self.interpolate_data(data_frame, data_frame_interp_grid, A,method=method)
-      data_frame_interp = data_frame_interp.query('R=={0}'.format(r))
+      #data_frame_interp = data_frame_interp.query('R=={0}'.format(r))
+      data_frame_interp = data_frame_interp[(data_frame_interp.R-r).abs()<0.0005]
 
     data_frame = data_frame[(data_frame.R-r).abs()<0.05]
 
@@ -195,15 +207,20 @@ class Plotter:
     #print data_frame.head()
     #raw_input()
 
-    plt.figure(self.plot_count)
-    if method!=None: plt.plot(data_frame_interp.Theta,data_frame_interp[A],'b^')
+    fig = plt.figure(self.plot_count)
+    if method!=None:
+      data_frame_interp.eval('{0}err = 0.0001*{0}'.format(A))
+      #plt.plot(data_frame_interp.Theta,data_frame_interp[A],'b^')
+      plt.errorbar(data_frame_interp.Theta,data_frame_interp[A],yerr=data_frame_interp[A+'err'],fmt='b^')
     plt.plot(data_frame.Theta,data_frame[A],'ro')
     plt.xlabel('Theta')
     plt.ylabel(A)
     plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig('plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix))
+    plt.savefig('plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix),bbox_inches='tight')
+    if method: return data_frame_interp,fig
+    else: return data_frame,fig
 
   @plot_wrapper
   def plot_mag_field(self,step_size = 1,*conditions):
@@ -222,16 +239,48 @@ class Plotter:
     fig.gca().add_artist(circle2)
     fig.savefig('plots/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
 
+  def fit_radial_plot(self, df, mag, fig=None,p0=(0.0001,0.0,0.05)):
+    """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""
+    def cos_func(x, A,p1,p2):
+      return A*np.cos(x+p1)+p2
+    popt, pcov = curve_fit(cos_func, df.Theta.values, df[mag].values, sigma=df[mag+'err'].values, p0=p0)
+
+    if fig==None:
+      fig = plt.gcf()
+    elif type(fig) == str and fig.lowercase() == 'new':
+      self.plot_count+=1
+      plt.figure(self.plot_count)
+
+    curvex=np.linspace(-np.pi,np.pi,500)
+    curvey=cos_func(curvex,popt[0],popt[1],popt[2])
+    plt.plot(curvex,curvey,color='lawngreen',linestyle='--',linewidth=3)
+    plt.figtext(0.13, 0.3,'Amplitude: {0:.4e}\nPhase: {1:.4e}\nY-Offset: {2:.4e}'.format(popt[0],popt[1],popt[2]))
+    plt.draw()
+    return popt,pcov
+
+  def fit_linear_regression(self, df,A,B,fig=None):
+    """Basic WLS for DataFrames"""
+    lm = wls(formula = '{0} ~ {1}'.format(A,B), data=df, weights=df[A+'err']).fit()
+    if fig==None:
+      fig = plt.gcf()
+    elif type(fig) == str and fig.lowercase() == 'new':
+      self.plot_count+=1
+      plt.figure(self.plot_count)
+
+    abline_plot(model_results=lm,ax=fig.axes[0])
+    plt.figtext(0.15, 0.4,'Intercept: {0:.4e}\nSlope: {1:.4e}'.format(lm.params[0], lm.params[1]))
+    plt.draw()
+    return lm
 
 
 
 if __name__=="__main__":
-  data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = True)
+  data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
   plot_maker = Plotter(data_maker.data_frame)
-  data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_5mmOffset',use_pickle = True)
-  plot_maker_offset = Plotter(data_maker_offset.data_frame,'5mmOffset')
-  data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
-  plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
+  #data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-2.52mmOffset',use_pickle = True)
+  #plot_maker_offset = Plotter(data_maker_offset.data_frame,'-2.52mmOffset')
+  #data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
+  #plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
   #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==0')
   #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==400')
   #plot_maker.plot_mag_field(5,'Z==-4929','Y<1200','X<1075','Y>-1200','X>-1075')
