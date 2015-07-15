@@ -128,6 +128,25 @@ class Plotter:
     return data_frame, fig
 
   @plot_wrapper
+  def plot_A_v_B_and_fit(self,A,B,*conditions):
+    """Plot A vs B given some set of comma seperated boolean conditions"""
+    data_frame = self.data_frame.query(' and '.join(conditions))
+    print data_frame.head()
+
+    fig = plt.figure(self.plot_count)
+    data_frame.eval('{0}err = 0.0001*{0}'.format(A))
+    #plt.plot(data_frame[B],data_frame[A],'ro')
+    plt.errorbar(data_frame[B],data_frame[A],yerr=data_frame[A+'err'],fmt='ro')
+    plt.xlabel(B)
+    plt.ylabel(A)
+    plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
+    #plt.axis([-0.1, 3.24,0.22,0.26])
+    plt.grid(True)
+    lm = self.fit_linear_regression(data_frame,A,B,fig)
+    plt.savefig('plots/{0}_v_{1}_at_{2}{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
+    return data_frame, fig, lm
+
+  @plot_wrapper
   def plot_A_v_B_and_C(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
     """Plot A vs B and C given some set of comma seperated boolean conditions.
     B and C are the independent, A is the dependent. A bit complicated right now to get
@@ -187,7 +206,7 @@ class Plotter:
 
 
   @plot_wrapper
-  def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear'):
+  def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear',do_fit = True):
     from scipy import interpolate
     """Plot A vs Theta for a given Z and R. The values are interpolated """
 
@@ -218,8 +237,18 @@ class Plotter:
     plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig('plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix),bbox_inches='tight')
-    if method: return data_frame_interp,fig
+    savename = 'plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix)
+    if not do_fit:
+      plt.savefig(savename,bbox_inches='tight')
+    else:
+      if method:
+        popt,pcov = self.fit_radial_plot(data_frame_interp, A, savename=savename,fig=fig,p0=(0.0001,0.0,0.05))
+      else:
+        popt,pcov = self.fit_radial_plot(data_frame, A, savename=savename,fig=fig,p0=(0.0001,0.0,0.05))
+
+    if (method and do_fit): return data_frame_interp,fig,popt,pcov
+    elif (method and not do_fit): return data_frame_interp,fig
+    elif (not method and do_fit): return data_frame,fig,popt,pcov
     else: return data_frame,fig
 
   @plot_wrapper
@@ -239,11 +268,16 @@ class Plotter:
     fig.gca().add_artist(circle2)
     fig.savefig('plots/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
 
-  def fit_radial_plot(self, df, mag, fig=None,p0=(0.0001,0.0,0.05)):
+  def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
     """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""
     def cos_func(x, A,p1,p2):
       return A*np.cos(x+p1)+p2
+    #popt, pcov = curve_fit(cos_func, df.Theta.values, df[mag].values, sigma=df[mag+'err'].values, absolute_sigma=True, p0=p0)
     popt, pcov = curve_fit(cos_func, df.Theta.values, df[mag].values, sigma=df[mag+'err'].values, p0=p0)
+    try:
+      std_devs = np.sqrt(np.diag(pcov))
+    except:
+      std_devs = [0,0,0]
 
     if fig==None:
       fig = plt.gcf()
@@ -254,8 +288,13 @@ class Plotter:
     curvex=np.linspace(-np.pi,np.pi,500)
     curvey=cos_func(curvex,popt[0],popt[1],popt[2])
     plt.plot(curvex,curvey,color='lawngreen',linestyle='--',linewidth=3)
-    plt.figtext(0.13, 0.3,'Amplitude: {0:.4e}\nPhase: {1:.4e}\nY-Offset: {2:.4e}'.format(popt[0],popt[1],popt[2]))
+    plt.figtext(0.33, 0.75,
+        'Amplitude: {0:.2e}$\pm${1:.1e}\nPhase: {2:.2e}$\pm${3:.1e}\nY-Offset: {4:.2e}$\pm${5:.1e}'.format(
+          popt[0],std_devs[0],popt[1],std_devs[1],popt[2],std_devs[2]),
+        size='large')
     plt.draw()
+    if '.' in savename: savename = savename.split('.')[0]
+    plt.savefig(savename+'_fit.png',bbox_inches='tight')
     return popt,pcov
 
   def fit_linear_regression(self, df,A,B,fig=None):
@@ -268,7 +307,9 @@ class Plotter:
       plt.figure(self.plot_count)
 
     abline_plot(model_results=lm,ax=fig.axes[0])
-    plt.figtext(0.15, 0.4,'Intercept: {0:.4e}\nSlope: {1:.4e}'.format(lm.params[0], lm.params[1]))
+    plt.figtext(0.15, 0.75,
+      'Intercept: {0:.3e}$\pm${1:.3e}\nSlope: {2:.3e}$\pm${3:.3e}'.format(lm.params[0], lm.bse[0], lm.params[1], lm.bse[1]),
+      size='large')
     plt.draw()
     return lm
 
@@ -297,6 +338,48 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
   #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
+  hall_probe_distances = [40,80,120,160]
+  #z_regions = [-6129,-6154,-6179,-6204,-6229]
+  z_regions = range(-6229,-4004,500)
+  df_fit_values = pd.DataFrame()
+  for z in z_regions:
+    df,fig,lm = plot_maker.plot_A_v_B_and_fit('Br','X','Z=={}'.format(z),'Y==0','X>=40','X<=160')
+    for r in hall_probe_distances:
+      df,fig,popt,pcov = plot_maker.plot_A_v_Theta('Br',r,'Z=={}'.format(z),18,'cubic')
+      Aerr = 0
+      try: Aerr = np.sqrt(np.diag(pcov)[0])
+      except: Aerr = df_fit_values.tail(1)['A err'].values[0]
+      offset = lm.params[0]/popt[0]
+      offset_err = abs(offset)*np.sqrt((Aerr/popt[0])**2+(lm.bse[0]/lm.params[0])**2)
+      df_fit_values = df_fit_values.append({'Z':z,'R':r,'A':popt[0],'A err':Aerr,'dBr/dr':lm.params[0],'dBr/dr err':lm.bse[0],
+        'Offset (mm)':offset, 'Offset err':offset_err},ignore_index=True)
+      #df,fig,popt,pcov = plot_maker.plot_A_v_Theta('Bz',r,'Z=={}'.format(z),300,'cubic')
+      #popt,pcov = plot_maker.fit_radial_plot(df,'Bz')
+      plt.close('all')
+
+  df_fit_values_indexed = df_fit_values.set_index(['Z','R'])
+  ax = df_fit_values_indexed.unstack().plot(y='Offset (mm)',yerr='Offset err',kind='line', style='^',linewidth=2)
+  ax.set_ylabel('Offset (mm)')
+  ax.set_xlabel('Z Position (mm)')
+  ax.set_title('Offset Calculation')
+  ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
+  plt.savefig('plots/offsets.png')
+
+
+  ax = df_fit_values_indexed.unstack().plot(y='A',yerr='A err',kind='line', style='^',linewidth=2)
+  ax.set_ylabel('Br Amplitude (T)')
+  ax.set_xlabel('Z Position (mm)')
+  ax.set_title('Amplitude of Sinusoid Fit')
+  ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
+  plt.savefig('plots/amplitude.png')
+
+  ax = df_fit_values_indexed.iloc[df_fit_values_indexed.index.get_level_values('R') == 40].unstack().plot(y='dBr/dr',yerr='dBr/dr err',kind='line', style='^',linewidth=2,legend=False)
+  ax.set_ylabel('dBr/dr')
+  ax.set_xlabel('Z Position (mm)')
+  ax.set_title('Change in Br as a Function of r')
+  ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
+  plt.savefig('plots/slope.png')
+
 
 
   plt.show()
