@@ -297,47 +297,23 @@ class Plotter:
     plt.savefig(savename+'_fit.png',bbox_inches='tight')
     return popt,pcov
 
-  def fit_linear_regression(self, df,A,B,fig=None):
+  def fit_linear_regression(self, df,A,B,fig=None,text_x=0.15,text_y=0.75):
     """Basic WLS for DataFrames"""
     lm = wls(formula = '{0} ~ {1}'.format(A,B), data=df, weights=df[A+'err']).fit()
     if fig==None:
       fig = plt.gcf()
-    elif type(fig) == str and fig.lowercase() == 'new':
+    elif type(fig) == str and fig.lower() == 'new':
       self.plot_count+=1
-      plt.figure(self.plot_count)
+      fig = plt.figure(self.plot_count)
 
     abline_plot(model_results=lm,ax=fig.axes[0])
-    plt.figtext(0.15, 0.75,
+    plt.figtext(text_x, text_y,
       'Intercept: {0:.3e}$\pm${1:.3e}\nSlope: {2:.3e}$\pm${3:.3e}'.format(lm.params[0], lm.bse[0], lm.params[1], lm.bse[1]),
-      size='large')
+      figure=fig, size='large',axes=fig.axes[0])
     plt.draw()
     return lm
 
-
-
-if __name__=="__main__":
-  data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
-  plot_maker = Plotter(data_maker.data_frame)
-  #data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-2.52mmOffset',use_pickle = True)
-  #plot_maker_offset = Plotter(data_maker_offset.data_frame,'-2.52mmOffset')
-  #data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
-  #plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
-  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==0')
-  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==400')
-  #plot_maker.plot_mag_field(5,'Z==-4929','Y<1200','X<1075','Y>-1200','X>-1075')
-  #print plot_maker.data_frame.head()
-  #plot_maker.plot_Br_v_Theta(831.038507,'Z==-4929',method='polynomial',order=2)
-  #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
-  #plot_maker.plot_A_v_B('Bz','X','Z==-4929','Y==0')
-  #plot_maker.plot_mag_field(1,'Z==-4929')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-5000','Z<-4000','X>500')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
-  #data_frame, data_frame_interp,data_frame_grid = plot_maker.plot_Br_v_Theta(201.556444,'Z==-4929',300)
-  #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
-  #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
-  #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
+def hall_probe_sweep():
   hall_probe_distances = [40,80,120,160]
   #z_regions = [-6129,-6154,-6179,-6204,-6229]
   z_regions = range(-6229,-4004,500)
@@ -349,9 +325,9 @@ if __name__=="__main__":
       Aerr = 0
       try: Aerr = np.sqrt(np.diag(pcov)[0])
       except: Aerr = df_fit_values.tail(1)['A err'].values[0]
-      offset = lm.params[0]/popt[0]
-      offset_err = abs(offset)*np.sqrt((Aerr/popt[0])**2+(lm.bse[0]/lm.params[0])**2)
-      df_fit_values = df_fit_values.append({'Z':z,'R':r,'A':popt[0],'A err':Aerr,'dBr/dr':lm.params[0],'dBr/dr err':lm.bse[0],
+      offset = popt[0]/lm.params[1]
+      offset_err = abs(offset)*np.sqrt((Aerr/popt[0])**2+(lm.bse[1]/lm.params[1])**2)
+      df_fit_values = df_fit_values.append({'Z':z,'R':r,'A':popt[0],'A err':Aerr,'dBr/dr':lm.params[1],'dBr/dr err':lm.bse[1],
         'Offset (mm)':offset, 'Offset err':offset_err},ignore_index=True)
       #df,fig,popt,pcov = plot_maker.plot_A_v_Theta('Bz',r,'Z=={}'.format(z),300,'cubic')
       #popt,pcov = plot_maker.fit_radial_plot(df,'Bz')
@@ -381,5 +357,45 @@ if __name__=="__main__":
   plt.savefig('plots/slope.png')
 
 
+def fit_compare_sweep():
+  z_regions = range(-6229,-4004,500)
+  for z in z_regions:
+    df_left, fig_left = plot_maker.plot_A_v_B('Br','X','Z=={}'.format(z),'Y==0','X>-300','X<-100')
+    df_right, fig_right = plot_maker.plot_A_v_B('Br','X','Z=={}'.format(z),'Y==0','X<300','X>100')
+    df_full, fig_full = plot_maker.plot_A_v_B('Br','X','Z=={}'.format(z),'Y==0','((X<300&X>100)|(X>-300&X<-100))')
+    lm_right = plot_maker.fit_linear_regression(df_right, 'Br','X',fig=fig_full,text_x=0.44,text_y=0.75)
+    lm_left = plot_maker.fit_linear_regression(df_left, 'Br','X',fig=fig_full,text_x=0.25,text_y=0.55)
+    plt.savefig('plots/Br_v_X_at_Z=={}_fit_comp.png'.format(z))
+
+def print_full(x):
+    pd.set_option('display.max_rows', len(x))
+    print(x)
+    pd.reset_option('display.max_rows')
+
+if __name__=="__main__":
+  data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
+  plot_maker = Plotter(data_maker.data_frame)
+  fit_compare_sweep()
+
+  #data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-2.52mmOffset',use_pickle = True)
+  #plot_maker_offset = Plotter(data_maker_offset.data_frame,'-2.52mmOffset')
+  #data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
+  #plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
+  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==0')
+  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==400')
+  #plot_maker.plot_mag_field(5,'Z==-4929','Y<1200','X<1075','Y>-1200','X>-1075')
+  #print plot_maker.data_frame.head()
+  #plot_maker.plot_Br_v_Theta(831.038507,'Z==-4929',method='polynomial',order=2)
+  #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
+  #plot_maker.plot_A_v_B('Bz','X','Z==-4929','Y==0')
+  #plot_maker.plot_mag_field(1,'Z==-4929')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-5000','Z<-4000','X>500')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
+  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
+  #data_frame, data_frame_interp,data_frame_grid = plot_maker.plot_Br_v_Theta(201.556444,'Z==-4929',300)
+  #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
+  #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
+  #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
 
   plt.show()
