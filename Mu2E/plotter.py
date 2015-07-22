@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
-from DataFileProducer import *
+import os
+import mu2e
+from datafileprod import DataFileMaker
 import src.RowTransformations as rt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -15,10 +17,16 @@ from statsmodels.graphics.regressionplots import abline_plot
 
 class Plotter:
   """Class that takes prepped datafile and produces all kinds of neat plots"""
-  def __init__(self, data_frame,suffix=''):
+  def __init__(self, data_frame,suffix='',save_dir=None):
     self.data_frame = data_frame
     self.plot_count = 0
     self.suffix = '_'+suffix if suffix!='' else ''
+    if not save_dir:
+      self.save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots'
+    else:
+      self.save_dir = save_dir
+    if not os.path.exists(self.save_dir):
+          os.makedirs(self.save_dir)
 
   def plot_wrapper(func):
     def inner(self,*args,**kwargs):
@@ -124,7 +132,7 @@ class Plotter:
     plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig('plots/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
     return data_frame, fig
 
   @plot_wrapper
@@ -143,7 +151,7 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
     lm = self.fit_linear_regression(data_frame,A,B,fig)
-    plt.savefig('plots/{0}_v_{1}_at_{2}{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
     return data_frame, fig, lm
 
   @plot_wrapper
@@ -183,9 +191,9 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
@@ -199,9 +207,9 @@ class Plotter:
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     plt.grid(True)
     if interp:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig('plots/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     return fig,data_frame
 
 
@@ -237,7 +245,7 @@ class Plotter:
     plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    savename = 'plots/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix)
+    savename = self.save_dir+'/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix)
     if not do_fit:
       plt.savefig(savename,bbox_inches='tight')
     else:
@@ -266,7 +274,7 @@ class Plotter:
     plt.grid(True)
     circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
     fig.gca().add_artist(circle2)
-    fig.savefig('plots/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
+    fig.savefig(self.save_dir+'/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
 
   def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
     """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""

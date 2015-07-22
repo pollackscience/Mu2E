@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
-from Mu2E.DataFileProducer import DataFileMaker
-from Mu2E.MagFieldPlotter import Plotter
+from mu2e.datafileprod import DataFileMaker
+from mu2e.plotter import Plotter
+import matplotlib.pyplot as plt
 
 def hall_probe_sweep():
   hall_probe_distances = [40,80,120,160]
@@ -29,7 +30,7 @@ def hall_probe_sweep():
   ax.set_xlabel('Z Position (mm)')
   ax.set_title('Offset Calculation')
   ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
-  plt.savefig('plots/offsets.png')
+  plt.savefig(plot_maker.save_dir+'/offsets.png')
 
 
   ax = df_fit_values_indexed.unstack().plot(y='A',yerr='A err',kind='line', style='^',linewidth=2)
@@ -37,14 +38,14 @@ def hall_probe_sweep():
   ax.set_xlabel('Z Position (mm)')
   ax.set_title('Amplitude of Sinusoid Fit')
   ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
-  plt.savefig('plots/amplitude.png')
+  plt.savefig(plot_maker.save_dir+'/amplitude.png')
 
   ax = df_fit_values_indexed.iloc[df_fit_values_indexed.index.get_level_values('R') == 40].unstack().plot(y='dBr/dr',yerr='dBr/dr err',kind='line', style='^',linewidth=2,legend=False)
   ax.set_ylabel('dBr/dr')
   ax.set_xlabel('Z Position (mm)')
   ax.set_title('Change in Br as a Function of r')
   ax.set_xlim(ax.get_xlim()[0]-100, ax.get_xlim()[1]+100)
-  plt.savefig('plots/slope.png')
+  plt.savefig(plot_maker.save_dir+'/slope.png')
 
 
 def fit_compare_sweep():
@@ -55,7 +56,7 @@ def fit_compare_sweep():
     df_full, fig_full = plot_maker.plot_A_v_B('Br','X','Z=={}'.format(z),'Y==0','((X<300&X>100)|(X>-300&X<-100))')
     lm_right = plot_maker.fit_linear_regression(df_right, 'Br','X',fig=fig_full,text_x=0.44,text_y=0.75)
     lm_left = plot_maker.fit_linear_regression(df_left, 'Br','X',fig=fig_full,text_x=0.25,text_y=0.55)
-    plt.savefig('plots/Br_v_X_at_Z=={}_fit_comp.png'.format(z))
+    plt.savefig(plot_maker.save_dir+'/Br_v_X_at_Z=={}_fit_comp.png'.format(z))
 
 def print_full(x):
     pd.set_option('display.max_rows', len(x))
@@ -64,6 +65,8 @@ def print_full(x):
 
 
 if __name__=="__main__":
+  #import sys
+  #print sys.path
   data_maker=DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
   plot_maker = Plotter(data_maker.data_frame)
   fit_compare_sweep()
