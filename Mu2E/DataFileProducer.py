@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 import cPickle as pkl
-import RowTransformations as rt
+import src.RowTransformations as rt
 
 class DataFileMaker:
   """Convert Field Map plain text into pandas Data File"""

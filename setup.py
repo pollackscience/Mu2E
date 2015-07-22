@@ -1,10 +1,20 @@
-from distutils.core import setup
-from Cython.Build import cythonize
-import numpy
+from setuptools import setup, find_packages
 
-setup(
-    #ext_modules = cythonize("helloworld.pyx")
-    ext_modules = cythonize("RowTransformations.pyx"),
-    include_dirs = [numpy.get_include()]
-    #ext_modules = cythonize("fib.pyx")
-    )
+def readme():
+  with open('README.rst') as f:
+    return f.read()
+
+setup(name='Mu2E',
+    version='0.1',
+    description='Mu2E Analysis Software',
+    url='https://github.com/brovercleveland/Mu2E',
+    author='Brian Pollack',
+    author_email='brianleepollack@gmail.com',
+    license='NU',
+    packages=find_packages(),
+    install_requires=[
+      'numpy',
+      'scipy',
+      'pandas'],
+    include_package_data=True,
+    zip_safe=False)
