@@ -2,6 +2,7 @@
 
 import os
 import mu2e
+import numpy as np
 from datafileprod import DataFileMaker
 import src.RowTransformations as rt
 import matplotlib.pyplot as plt
@@ -25,6 +26,10 @@ class Plotter:
       self.save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots'
     else:
       self.save_dir = save_dir
+
+    if self.suffix!='':
+      self.save_dir+='/'+self.suffix[1:]
+
     if not os.path.exists(self.save_dir):
           os.makedirs(self.save_dir)
 
@@ -324,27 +329,5 @@ class Plotter:
 if __name__=="__main__":
   data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
   plot_maker = Plotter(data_maker.data_frame)
-  fit_compare_sweep()
+  #fit_compare_sweep()
 
-  #data_maker_offset=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-2.52mmOffset',use_pickle = True)
-  #plot_maker_offset = Plotter(data_maker_offset.data_frame,'-2.52mmOffset')
-  #data_maker_offset2=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_-1.5mmOffset',use_pickle = True)
-  #plot_maker_offset2 = Plotter(data_maker_offset2.data_frame,'-1.5mmOffset')
-  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==0')
-  #plot_maker.plot_A_v_B('Br','Y','Z==-4929','X==400')
-  #plot_maker.plot_mag_field(5,'Z==-4929','Y<1200','X<1075','Y>-1200','X>-1075')
-  #print plot_maker.data_frame.head()
-  #plot_maker.plot_Br_v_Theta(831.038507,'Z==-4929',method='polynomial',order=2)
-  #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
-  #plot_maker.plot_A_v_B('Bz','X','Z==-4929','Y==0')
-  #plot_maker.plot_mag_field(1,'Z==-4929')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-5000','Z<-4000','X>500')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
-  #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0','Z>-6200','Z<-5700','X>500','X<1000')
-  #data_frame, data_frame_interp,data_frame_grid = plot_maker.plot_Br_v_Theta(201.556444,'Z==-4929',300)
-  #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
-  #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
-  #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
-
-  plt.show()

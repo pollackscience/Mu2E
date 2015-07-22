@@ -44,8 +44,14 @@ class DataFileMaker:
 
 
 if __name__ == "__main__":
-  data_maker = DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = False)
-  data_maker.do_basic_modifications(3906.54)
-  data_maker.make_dump('_-2.54mmOffset')
+  #for PS
+  #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = False)
+  #data_maker.do_basic_modifications()
+  #data_maker.make_dump()
+
+  #for DS
+  data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
+  data_maker.do_basic_modifications(-3904)
+  data_maker.make_dump()
   print data_maker.data_frame.head()
 
