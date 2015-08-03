@@ -3,6 +3,7 @@
 import os
 import mu2e
 import numpy as np
+import pandas as pd
 from datafileprod import DataFileMaker
 import src.RowTransformations as rt
 import matplotlib.pyplot as plt
@@ -255,9 +256,9 @@ class Plotter:
       plt.savefig(savename,bbox_inches='tight')
     else:
       if method:
-        popt,pcov = self.fit_radial_plot(data_frame_interp, A, savename=savename,fig=fig,p0=(0.0001,0.0,0.05))
+        popt,pcov = self.fit_radial_plot(data_frame_interp, A, savename=savename,fig=fig,p0=(-0.0001,0.0,0.05))
       else:
-        popt,pcov = self.fit_radial_plot(data_frame, A, savename=savename,fig=fig,p0=(0.0001,0.0,0.05))
+        popt,pcov = self.fit_radial_plot(data_frame, A, savename=savename,fig=fig,p0=(-0.0001,0.0,0.05))
 
     if (method and do_fit): return data_frame_interp,fig,popt,pcov
     elif (method and not do_fit): return data_frame_interp,fig
@@ -280,6 +281,29 @@ class Plotter:
     circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
     fig.gca().add_artist(circle2)
     fig.savefig(self.save_dir+'/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
+
+  @plot_wrapper
+  def plot_mag_field2(self,step_size = 1,*conditions):
+    data_frame = self.data_frame.query(' and '.join(conditions))
+    fig, ax = plt.subplots(1,1)
+    print 'len Y',len(np.unique(data_frame.Y.values))
+    print 'len X',len(np.unique(data_frame.X.values))
+    print data_frame.head()
+    piv_Bx = data_frame.pivot('X','Y','Bx')
+    piv_By = data_frame.pivot('X','Y','By')
+    piv_Br = data_frame.pivot('X','Y','Br')
+
+
+    plt.streamplot(piv_By.columns.values, piv_By.index.values, piv_By.values, piv_Bx.values,
+        color = piv_Br.values,density=step_size,linewidth=2)
+
+    plt.xlabel('X (mm)')
+    plt.ylabel('Y (mm)')
+    cb = plt.colorbar()
+    cb.set_label('Br (T)')
+
+    plt.title('Magnetic Field Lines for {0}'.format(conditions))
+    fig.savefig(self.save_dir+'/Field_Lines_{0}{1}.png'.format('_'.join(conditions),self.suffix),bbox_inches='tight')
 
   def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
     """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""
@@ -306,7 +330,7 @@ class Plotter:
           popt[0],std_devs[0],popt[1],std_devs[1],popt[2],std_devs[2]),
         size='large')
     plt.draw()
-    if '.' in savename: savename = savename.split('.')[0]
+    if '.png' in savename: savename = savename.split('.png')[0]
     plt.savefig(savename+'_fit.png',bbox_inches='tight')
     return popt,pcov
 

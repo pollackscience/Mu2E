@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
   #for DS
   data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
-  data_maker.do_basic_modifications(-3904)
+  data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()
+  print data_maker.data_frame.tail()
 
