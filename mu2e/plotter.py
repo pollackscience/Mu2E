@@ -9,30 +9,60 @@ import src.RowTransformations as rt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from matplotlib import gridspec
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy import interpolate
 from scipy.optimize import curve_fit
 import statsmodels.api as sm
 from statsmodels.formula.api import wls
 from statsmodels.graphics.regressionplots import abline_plot
+from collections import OrderedDict
+import re
 
 
 class Plotter:
   """Class that takes prepped datafile and produces all kinds of neat plots"""
-  def __init__(self, data_frame,suffix='',save_dir=None):
-    self.data_frame = data_frame
-    self.plot_count = 0
-    self.suffix = '_'+suffix if suffix!='' else ''
-    if not save_dir:
-      self.save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots'
+
+  def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,clear=True):
+    """Default constructor, takes a dict of pandas DataFrame.
+    (optional suffix and save dir)"""
+    if clear: plt.close('all')
+
+    self.markers = ['o','v','^','s']
+    self.colors = ['blue','darksalmon','lightgreen','plum']
+
+    if type(data_frame_dict) != dict: raise TypeError('data_frame_dict must be dict')
+    if len(data_frame_dict)==0: raise Exception('data_frame_dict must have at least one entry')
+
+    if main_suffix and main_suffix not in data_frame_dict.keys():
+      raise KeyError('main_suffix: '+main_suffix+'not in keys: '+data_frame_dict.keys())
+
+    if not main_suffix and len(data_frame_dict)>1:
+      raise Exception('must specify main_suffix if len(dict)>1')
+
+    if not alt_save_dir:
+      save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots'
     else:
-      self.save_dir = save_dir
+      save_dir = alt_save_dir
 
-    if self.suffix!='':
-      self.save_dir+='/'+self.suffix[1:]
+    try: self.plot_count = plt.get_fignums()[-1]
+    except: self.plot_count = 0
 
-    if not os.path.exists(self.save_dir):
-          os.makedirs(self.save_dir)
+    if len(data_frame_dict)==1:
+      self.data_frame_dict = OrderedDict(data_frame_dict)
+      self.suffix = self.data_frame_dict.keys()[0]
+    else:
+      self.suffix = main_suffix
+      keys = sorted([key for key in data_frame_dict.keys() if key not in main_suffix])
+      keys.insert(0,main_suffix)
+      self.data_frame_dict = OrderedDict()
+      for key in keys:
+        self.data_frame_dict[key] = data_frame_dict[key]
+      self.suffix_extra = '-'.join(self.data_frame_dict.keys())
+      self.init_save_dir(save_dir,extra=True)
+
+    self.init_save_dir(save_dir)
+
 
   def plot_wrapper(func):
     def inner(self,*args,**kwargs):
@@ -40,6 +70,19 @@ class Plotter:
       print'Plot {0} is: {1} {2}'.format(self.plot_count,args,kwargs)
       return func(self,*args)
     return inner
+
+  def init_save_dir(self,save_dir,extra=False):
+    if extra:
+      self.save_dir_extra = save_dir+'/'+self.suffix_extra
+
+      if not os.path.exists(self.save_dir_extra):
+            os.makedirs(self.save_dir_extra)
+    else:
+      if self.suffix!='':
+        self.save_dir=save_dir+'/'+self.suffix
+
+      if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
   def polar_to_cart(self,r,theta):
     x = r * np.cos(theta)
@@ -126,7 +169,7 @@ class Plotter:
   @plot_wrapper
   def plot_A_v_B(self,A,B,*conditions):
     """Plot A vs B given some set of comma seperated boolean conditions"""
-    data_frame = self.data_frame.query(' and '.join(conditions))
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     print data_frame.head()
 
     fig = plt.figure(self.plot_count)
@@ -142,9 +185,48 @@ class Plotter:
     return data_frame, fig
 
   @plot_wrapper
+  def plot_A_v_B_ratio(self,A,B,*conditions):
+    """Plot A vs B given some set of comma seperated boolean conditions, use multiple dataframes"""
+    fig = plt.figure(self.plot_count)
+    gs = gridspec.GridSpec(2,1,height_ratios=[3,1])
+    ax1=fig.add_subplot(gs[0])
+    ax2=fig.add_subplot(gs[1],sharex=ax1)
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    fig.subplots_adjust(hspace=0)
+
+
+    data_frame_dict = OrderedDict()
+    for key in self.data_frame_dict:
+      data_frame_dict[key] = self.data_frame_dict[key].query(' and '.join(conditions))
+      data_frame_dict[key].eval('{0}err = 0.0001*{0}'.format(A))
+
+    for i,key in enumerate(data_frame_dict):
+      ax1.errorbar(data_frame_dict[key][B],data_frame_dict[key][A],yerr=data_frame_dict[key][A+'err'],
+          linestyle='None',marker=self.markers[i], color = self.colors[i], markersize=7,label=key)
+      if i>0:
+        ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],
+            linestyle='None',marker=self.markers[i], color= self.colors[i], markersize = 7,label=key)
+
+    ax2.set_xlabel(B)
+    ax2.axhline(1,linewidth=2,color='r')
+    ax1.set_ylabel(A)
+    labels = data_frame_dict.keys()
+    labels = [re.sub('_','\_',i) for i in labels]
+
+    if len(data_frame_dict)==2:
+      ax2.set_ylabel(r'$\frac{\mathrm{'+labels[0]+r'}}{\mathrm{'+labels[1]+r'}}$')
+    ax1.set_title('{0} vs {1} at {2}'.format(A,B,conditions))
+    ax1.grid(True)
+    ax2.grid(True)
+    ax1.legend(loc='best')
+    plt.setp(ax2.get_yticklabels()[-2:], visible=False)
+    fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix_extra))
+    return data_frame_dict, fig
+
+  @plot_wrapper
   def plot_A_v_B_and_fit(self,A,B,*conditions):
     """Plot A vs B given some set of comma seperated boolean conditions"""
-    data_frame = self.data_frame.query(' and '.join(conditions))
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     print data_frame.head()
 
     fig = plt.figure(self.plot_count)
@@ -165,7 +247,65 @@ class Plotter:
     """Plot A vs B and C given some set of comma seperated boolean conditions.
     B and C are the independent, A is the dependent. A bit complicated right now to get
     proper setup for contour plotting."""
-    data_frame = self.data_frame.query(' and '.join(conditions))
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+    print data_frame.head()
+
+    if interp:
+      data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
+          data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
+      data_frame = self.interpolate_data(data_frame, data_frame_interp_grid, field = A, x_ax = B, y_ax =C, method='cubic')
+
+    data_frame = data_frame.reindex(columns=[A,B,C])
+    piv = data_frame.pivot(B,C,A)
+    X=piv.columns.values
+    Y=piv.index.values
+    Z=piv.values
+    Xi,Yi = np.meshgrid(X, Y)
+
+    fig = plt.figure(self.plot_count).gca(projection='3d')
+    surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                linewidth=0, antialiased=False)
+    fig.zaxis.set_major_locator(LinearLocator(10))
+    fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    fig.view_init(elev=20., azim=45)
+
+    #cb = plt.colorbar(surf, shrink=0.5, aspect=5)
+    #cb.set_label(A)
+
+    plt.xlabel(C)
+    plt.ylabel(B)
+    fig.set_zlabel(A)
+    plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
+    #plt.axis([-0.1, 3.24,0.22,0.26])
+    #plt.grid(True)
+    if interp:
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+    else:
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+
+    self.plot_count+=1
+    fig = plt.figure(self.plot_count)
+    heat = plt.pcolor(Xi,Yi,Z)
+
+    cb = plt.colorbar(heat, shrink=0.5, aspect=5)
+    cb.set_label(A)
+
+    plt.xlabel(C)
+    plt.ylabel(B)
+    plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
+    plt.grid(True)
+    if interp:
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+    else:
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+    return fig,data_frame
+
+  @plot_wrapper
+  def plot_A_v_B_and_C_ratio(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
+    """Plot A vs B and C given some set of comma seperated boolean conditions.
+    B and C are the independent, A is the dependent. A bit complicated right now to get
+    proper setup for contour plotting."""
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     print data_frame.head()
 
     if interp:
@@ -224,8 +364,8 @@ class Plotter:
     from scipy import interpolate
     """Plot A vs Theta for a given Z and R. The values are interpolated """
 
-    print self.data_frame.head()
-    data_frame = self.data_frame.query(z_cond)
+    print self.data_frame_dict[self.suffix].head()
+    data_frame = self.data_frame_dict[self.suffix].query(z_cond)
     if method!=None:
 
       data_frame_interp_grid = self.make_interp_grid(r=r, data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
@@ -267,7 +407,7 @@ class Plotter:
 
   @plot_wrapper
   def plot_mag_field(self,step_size = 1,*conditions):
-    data_frame = self.data_frame.query(' and '.join(conditions))
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     fig, ax = plt.subplots(1,1)
     print 'len Y',len(np.unique(data_frame.Y.values))
     print 'len X',len(np.unique(data_frame.X.values))
@@ -283,26 +423,26 @@ class Plotter:
     fig.savefig(self.save_dir+'/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
 
   @plot_wrapper
-  def plot_mag_field2(self,step_size = 1,*conditions):
-    data_frame = self.data_frame.query(' and '.join(conditions))
+  def plot_mag_field2(self,A,B,density= 1,*conditions):
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     fig, ax = plt.subplots(1,1)
-    print 'len Y',len(np.unique(data_frame.Y.values))
-    print 'len X',len(np.unique(data_frame.X.values))
-    print data_frame.head()
-    piv_Bx = data_frame.pivot('X','Y','Bx')
-    piv_By = data_frame.pivot('X','Y','By')
-    piv_Br = data_frame.pivot('X','Y','Br')
+    piv = data_frame.pivot(A,B,'B'+A.lower())
+    xax = piv.columns.values
+    yax = piv.index.values
+    V = piv.values
+    U = data_frame.pivot(A,B,'B'+B.lower()).values
+
+    mag = np.sqrt(V**2+U**2)
 
 
-    plt.streamplot(piv_By.columns.values, piv_By.index.values, piv_By.values, piv_Bx.values,
-        color = piv_Br.values,density=step_size,linewidth=2)
+    plt.streamplot(xax, yax, U, V, color = mag, density=density,linewidth=2)
 
-    plt.xlabel('X (mm)')
-    plt.ylabel('Y (mm)')
+    plt.xlabel('{} (mm)'.format(B))
+    plt.ylabel('{} (mm)'.format(A))
     cb = plt.colorbar()
-    cb.set_label('Br (T)')
+    cb.set_label('Mag (T)')
 
-    plt.title('Magnetic Field Lines for {0}'.format(conditions))
+    plt.title('Magnetic Field Lines in {0}-{1} plane for {2}'.format(A,B,conditions))
     fig.savefig(self.save_dir+'/Field_Lines_{0}{1}.png'.format('_'.join(conditions),self.suffix),bbox_inches='tight')
 
   def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):

@@ -71,8 +71,10 @@ def print_full(x):
 
 
 if __name__=="__main__":
-  data_maker=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = True)
-  plot_maker = Plotter(data_maker.data_frame,suffix='DS')
+  data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+  data_maker2=DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = True)
+  #plot_maker = Plotter(data_maker1.data_frame,suffix='DS_Mau',data_frame_dict={'DS_GA01':data_maker2.data_frame})
+  plot_maker = Plotter({'DS_Mau':data_maker1.data_frame,'DS_GA01':data_maker2.data_frame},'DS_Mau')
   #data_maker=DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
   #plot_maker = Plotter(data_maker.data_frame,suffix='PS')
   #fit_compare_sweep()
@@ -97,6 +99,7 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
   #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
+  #plot_maker.plot_mag_field2('X','Z',1.3,'Y==0')
 
-  plt.show()
+  #plt.show()
 

@@ -64,6 +64,7 @@ target/
 *.tar
 *.gz
 *.p
+*.csv
 
 # MSFT Files
 *.doc*
@@ -71,5 +72,5 @@ target/
 
 #Folders
 plots/
-FieldMapData_1760_v5/
+FieldMap*
 Presentations/
