@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import math
 import mu2e
 import numpy as np
 import pandas as pd
@@ -181,7 +182,7 @@ class Plotter:
     plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
     return data_frame, fig
 
   @plot_wrapper
@@ -220,7 +221,7 @@ class Plotter:
     ax2.grid(True)
     ax1.legend(loc='best')
     plt.setp(ax2.get_yticklabels()[-2:], visible=False)
-    fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}{3}.png'.format(A,B,'_'.join(conditions),self.suffix_extra))
+    fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(conditions),self.suffix_extra))
     return data_frame_dict, fig
 
   @plot_wrapper
@@ -239,7 +240,7 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
     lm = self.fit_linear_regression(data_frame,A,B,fig)
-    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
     return data_frame, fig, lm
 
   @plot_wrapper
@@ -279,9 +280,9 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
     if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
@@ -295,68 +296,91 @@ class Plotter:
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     plt.grid(True)
     if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
     return fig,data_frame
 
   @plot_wrapper
-  def plot_A_v_B_and_C_ratio(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
+  def plot_A_v_B_and_C_ratio(self,A='Bz',B='X',C='Z', *conditions):
     """Plot A vs B and C given some set of comma seperated boolean conditions.
-    B and C are the independent, A is the dependent. A bit complicated right now to get
-    proper setup for contour plotting."""
-    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
-    print data_frame.head()
+    B and C are the independent, A is the dependent.
 
-    if interp:
-      data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
-          data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
-      data_frame = self.interpolate_data(data_frame, data_frame_interp_grid, field = A, x_ax = B, y_ax =C, method='cubic')
+    The ratio plotter will plot 2N-1 plots, where N is the number of items in the data dictionary.
+    Each data set will be plotted, and ratios will also be plotted for main/extras.
+    """
 
-    data_frame = data_frame.reindex(columns=[A,B,C])
-    piv = data_frame.pivot(B,C,A)
-    X=piv.columns.values
-    Y=piv.index.values
-    Z=piv.values
-    Xi,Yi = np.meshgrid(X, Y)
+    labels = self.data_frame_dict.keys()
+    labels = [re.sub('_','\_',i) for i in labels]
 
-    fig = plt.figure(self.plot_count).gca(projection='3d')
-    surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-                linewidth=0, antialiased=False)
-    fig.zaxis.set_major_locator(LinearLocator(10))
-    fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-    fig.view_init(elev=20., azim=45)
+    data_frame_dict = OrderedDict()
+    piv_dict = OrderedDict()
+    X = None
+    Y = None
+    Xi = None
+    Yi = None
+    surf = None
+    for i,key in enumerate(self.data_frame_dict):
+      if i>0: self.plot_count+=1
+      data_frame_dict[key] = self.data_frame_dict[key].query(' and '.join(conditions))
+      data_frame_dict[key] = data_frame_dict[key].reindex(columns=[A,B,C])
 
-    #cb = plt.colorbar(surf, shrink=0.5, aspect=5)
-    #cb.set_label(A)
+      piv_dict[key] = data_frame_dict[key].pivot(B,C,A)
+      if i==0:
+        X=piv_dict[key].columns.values
+        Y=piv_dict[key].index.values
+        Xi,Yi = np.meshgrid(X, Y)
+      Z=piv_dict[key].values
 
-    plt.xlabel(C)
-    plt.ylabel(B)
-    fig.set_zlabel(A)
-    plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
-    #plt.axis([-0.1, 3.24,0.22,0.26])
-    #plt.grid(True)
-    if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
-    else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
 
-    self.plot_count+=1
-    fig = plt.figure(self.plot_count)
-    heat = plt.pcolor(Xi,Yi,Z)
+      fig = plt.figure(self.plot_count)
+      heat = plt.pcolor(Xi,Yi,Z)
 
-    cb = plt.colorbar(heat, shrink=0.5, aspect=5)
-    cb.set_label(A)
+      cb = plt.colorbar(heat, shrink=0.5, aspect=5)
+      cb.set_label(A)
 
-    plt.xlabel(C)
-    plt.ylabel(B)
-    plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
-    plt.grid(True)
-    if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
-    else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
-    return fig,data_frame
+      plt.xlabel(C)
+      plt.ylabel(B)
+      plt.title('{0}, {1} vs {2} and {3}, {4}'.format(key,A,B,C,conditions[0]))
+      plt.grid(True)
+      plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(conditions),key),bbox_inches='tight')
+
+      if i>0:
+        self.plot_count+=1
+
+#
+        fig = plt.figure(self.plot_count).gca(projection='3d')
+        surf = fig.plot_surface(Xi, Yi, piv_dict.values()[0].values/Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                    linewidth=0, antialiased=False)
+        fig.zaxis.set_major_locator(LinearLocator(10))
+        fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+        fig.view_init(elev=9., azim=-112)
+
+        plt.xlabel(C)
+        plt.ylabel(B)
+        zlims = surf.get_axes().get_zlim()
+        zlims[0] = math.floor(zlims[0]*100)/100.0
+        zlims[1] = math.ceil(zlims[1]*100)/100.0
+
+        fig.set_zticks(np.arange(zlims[0],zlims[1],0.05))
+        plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
+        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(conditions),piv_dict.keys()[0],key),bbox_inches='tight')
+#
+        self.plot_count+=1
+        fig = plt.figure(self.plot_count)
+        heat = plt.pcolor(Xi,Yi,piv_dict.values()[0].values/Z)
+
+        cb = plt.colorbar(heat, shrink=0.5, aspect=5)
+        cb.set_label(r'$\frac{\mathrm{'+labels[0]+r'}}{\mathrm{'+labels[i]+r'}}$',fontsize=20,labelpad=20)
+
+        plt.xlabel(C)
+        plt.ylabel(B)
+        plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
+        plt.grid(True)
+        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(conditions),piv_dict.keys()[0],key),bbox_inches='tight')
+
+
+    return surf,data_frame_dict
 
 
   @plot_wrapper
@@ -391,7 +415,7 @@ class Plotter:
     plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    savename = self.save_dir+'/{0}_v_Theta_at_{1}_R=={2}{3}.png'.format(A,z_cond,r,self.suffix)
+    savename = self.save_dir+'/{0}_v_Theta_at_{1}_R=={2}_{3}.png'.format(A,z_cond,r,self.suffix)
     if not do_fit:
       plt.savefig(savename,bbox_inches='tight')
     else:
@@ -420,7 +444,7 @@ class Plotter:
     plt.grid(True)
     circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
     fig.gca().add_artist(circle2)
-    fig.savefig(self.save_dir+'/PsField_{0}{1}.png'.format('_'.join(conditions),self.suffix))
+    fig.savefig(self.save_dir+'/PsField_{0}_{1}.png'.format('_'.join(conditions),self.suffix))
 
   @plot_wrapper
   def plot_mag_field2(self,A,B,density= 1,*conditions):
@@ -443,7 +467,7 @@ class Plotter:
     cb.set_label('Mag (T)')
 
     plt.title('Magnetic Field Lines in {0}-{1} plane for {2}'.format(A,B,conditions))
-    fig.savefig(self.save_dir+'/Field_Lines_{0}{1}.png'.format('_'.join(conditions),self.suffix),bbox_inches='tight')
+    fig.savefig(self.save_dir+'/Field_Lines_{0}_{1}.png'.format('_'.join(conditions),self.suffix),bbox_inches='tight')
 
   def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
     """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""
