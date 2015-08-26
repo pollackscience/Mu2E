@@ -16,8 +16,12 @@ class DataFileMaker:
       self.data_frame = pkl.load(open(self.file_name+'.p',"rb"))
     elif 'Mau' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.txt', header=None, names = header_names, delim_whitespace=True)
-    elif 'GA' in self.field_map_version:
+    elif 'GA01' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.1', header=None, names = header_names, delim_whitespace=True, skiprows=8)
+    elif 'GA02' in self.field_map_version:
+      self.data_frame = pd.read_csv(self.file_name+'.2', header=None, names = header_names, delim_whitespace=True, skiprows=8)
+    elif 'GA03' in self.field_map_version:
+      self.data_frame = pd.read_csv(self.file_name+'.3', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     else:
       raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
@@ -50,7 +54,8 @@ class DataFileMaker:
       data_frame_lower.eval('By = By*-1')
       self.data_frame = pd.concat([self.data_frame, data_frame_lower])
     self.data_frame['Theta'] = rt.apply_make_theta(self.data_frame['X'].values, self.data_frame['Y'].values)
-    #self.data_frame.sort(['Z','X','Y'],inplace=True)
+    self.data_frame.sort(['X','Y','Z'],inplace=True)
+    self.data_frame.reset_index(inplace = True, drop=True)
     print 'num of columns end', len(self.data_frame.index)
 
   def make_dump(self,suffix=''):
@@ -75,7 +80,9 @@ if __name__ == "__main__":
 
   #for DS
   #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
-  data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
+  #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
+  #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
+  data_maker = DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA03')
   data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()

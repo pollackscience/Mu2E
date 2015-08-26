@@ -18,6 +18,7 @@ import statsmodels.api as sm
 from statsmodels.formula.api import wls
 from statsmodels.graphics.regressionplots import abline_plot
 from collections import OrderedDict
+import matplotlib.ticker as mtick
 import re
 
 
@@ -30,7 +31,8 @@ class Plotter:
     if clear: plt.close('all')
 
     self.markers = ['o','v','^','s']
-    self.colors = ['blue','darksalmon','lightgreen','plum']
+    self.lines= ['-','--',':','-.']
+    self.colors = {'DS_Mau':'blue','DS_GA01':'darksalmon','DS_GA02':'green','DS_GA03':'maroon'}
 
     if type(data_frame_dict) != dict: raise TypeError('data_frame_dict must be dict')
     if len(data_frame_dict)==0: raise Exception('data_frame_dict must have at least one entry')
@@ -68,8 +70,8 @@ class Plotter:
   def plot_wrapper(func):
     def inner(self,*args,**kwargs):
       self.plot_count+=1
-      print'Plot {0} is: {1} {2}'.format(self.plot_count,args,kwargs)
-      return func(self,*args)
+      print'Plot {0} is: {1}'.format(self.plot_count,args)
+      return func(self,*args,**kwargs)
     return inner
 
   def init_save_dir(self,save_dir,extra=False):
@@ -199,17 +201,15 @@ class Plotter:
     data_frame_dict = OrderedDict()
     for key in self.data_frame_dict:
       data_frame_dict[key] = self.data_frame_dict[key].query(' and '.join(conditions))
-      data_frame_dict[key].eval('{0}err = 0.0001*{0}'.format(A))
 
     for i,key in enumerate(data_frame_dict):
-      ax1.errorbar(data_frame_dict[key][B],data_frame_dict[key][A],yerr=data_frame_dict[key][A+'err'],
-          linestyle='None',marker=self.markers[i], color = self.colors[i], markersize=7,label=key)
+      #ax1.errorbar(data_frame_dict[key][B],data_frame_dict[key][A],yerr=data_frame_dict[key][A+'err'], linestyle='None',marker=self.markers[i], color = self.colors[i], markersize=7,label=key)
+      ax1.plot(data_frame_dict[key][B],data_frame_dict[key][A], linestyle=self.lines[i],marker='None', color = self.colors[key], linewidth=2,label=key)
       if i>0:
-        ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],
-            linestyle='None',marker=self.markers[i], color= self.colors[i], markersize = 7,label=key)
+        #ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],linestyle='None',marker=self.markers[i], color= self.colors[i], markersize = 7,label=key)
+        ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],linestyle=self.lines[i],marker='None', color= self.colors[key], linewidth=2,label=key)
 
     ax2.set_xlabel(B)
-    ax2.axhline(1,linewidth=2,color='r')
     ax1.set_ylabel(A)
     labels = data_frame_dict.keys()
     labels = [re.sub('_','\_',i) for i in labels]
@@ -219,10 +219,18 @@ class Plotter:
     ax1.set_title('{0} vs {1} at {2}'.format(A,B,conditions))
     ax1.grid(True)
     ax2.grid(True)
+    ylims = ax2.get_ylim()
+    if ylims[0]>1: ylims[0] = 0.995
+    if ylims[1]<1: ylims[1] = 1.005
+    print ylims
+    ax2.set_ylim(ylims[0],ylims[1])
+    ax2.get_yaxis().get_major_formatter().set_useOffset(False)
+    ax2.axhline(1,linewidth=2,color='r')
     ax1.legend(loc='best')
-    plt.setp(ax2.get_yticklabels()[-2:], visible=False)
+    plt.setp(ax2.get_yticklabels()[-1:], visible=False)
     fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(conditions),self.suffix_extra))
-    return data_frame_dict, fig
+    #return data_frame_dict, fig
+    return ax2
 
   @plot_wrapper
   def plot_A_v_B_and_fit(self,A,B,*conditions):
@@ -244,11 +252,14 @@ class Plotter:
     return data_frame, fig, lm
 
   @plot_wrapper
-  def plot_A_v_B_and_C(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions):
+  def plot_A_v_B_and_C(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions,**kwargs):
     """Plot A vs B and C given some set of comma seperated boolean conditions.
     B and C are the independent, A is the dependent. A bit complicated right now to get
     proper setup for contour plotting."""
-    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+    if 'data_frame' in kwargs:
+      data_frame = kwargs['data_frame']
+    else:
+      data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
     print data_frame.head()
 
     if interp:
@@ -268,7 +279,10 @@ class Plotter:
                 linewidth=0, antialiased=False)
     fig.zaxis.set_major_locator(LinearLocator(10))
     fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-    fig.view_init(elev=20., azim=45)
+    if 'PS' in self.suffix:
+      fig.view_init(elev=20., azim=45)
+    else:
+      fig.view_init(elev=20., azim=-117)
 
     #cb = plt.colorbar(surf, shrink=0.5, aspect=5)
     #cb.set_label(A)
@@ -276,6 +290,10 @@ class Plotter:
     plt.xlabel(C)
     plt.ylabel(B)
     fig.set_zlabel(A)
+    #plt.ticklabel_format(style='sci', axis='z', scilimits=(0,0))
+    fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+    fig.zaxis._axinfo['ticklabel']['space_factor'] = 1.2
+    fig.zaxis._axinfo['label']['space_factor'] = 2.2
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
@@ -353,7 +371,7 @@ class Plotter:
         surf = fig.plot_surface(Xi, Yi, piv_dict.values()[0].values/Z, rstride=1, cstride=1, cmap=cm.coolwarm,
                     linewidth=0, antialiased=False)
         fig.zaxis.set_major_locator(LinearLocator(10))
-        fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+        fig.zaxis.set_major_formatter(FormatStrFormatter('%.03f'))
         fig.view_init(elev=9., azim=-112)
 
         plt.xlabel(C)
@@ -361,8 +379,9 @@ class Plotter:
         zlims = surf.get_axes().get_zlim()
         zlims[0] = math.floor(zlims[0]*100)/100.0
         zlims[1] = math.ceil(zlims[1]*100)/100.0
+        ticks_width = (zlims[1]-zlims[0])/10.0
 
-        fig.set_zticks(np.arange(zlims[0],zlims[1],0.05))
+        fig.set_zticks(np.arange(zlims[0],zlims[1],ticks_width))
         plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
         plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(conditions),piv_dict.keys()[0],key),bbox_inches='tight')
 #
@@ -372,6 +391,8 @@ class Plotter:
 
         cb = plt.colorbar(heat, shrink=0.5, aspect=5)
         cb.set_label(r'$\frac{\mathrm{'+labels[0]+r'}}{\mathrm{'+labels[i]+r'}}$',fontsize=20,labelpad=20)
+        cb.formatter.set_useOffset(False)
+        cb.update_ticks()
 
         plt.xlabel(C)
         plt.ylabel(B)
@@ -428,6 +449,18 @@ class Plotter:
     elif (method and not do_fit): return data_frame_interp,fig
     elif (not method and do_fit): return data_frame,fig,popt,pcov
     else: return data_frame,fig
+
+  def plot_symmetry(self, reflect = 'X',const = 'Z', interp = False, interp_num = 0, *conditions):
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+    data_frame_top = data_frame[data_frame[reflect]>0].sort([const,reflect]).reset_index(drop=True)
+    data_frame_bottom = data_frame[data_frame[reflect]<0].sort([const,reflect],ascending=[True,False]).reset_index(drop=True)
+    data_frame_diff = data_frame_top.copy()
+    data_frame_diff['Bz_diff'] = data_frame_top['Bz'].abs()-data_frame_bottom['Bz'].abs()
+    data_frame_diff['Bx_diff'] = data_frame_top['Bx'].abs()-data_frame_bottom['Bx'].abs()
+    data_frame_diff['By_diff'] = data_frame_top['By'].abs()-data_frame_bottom['By'].abs()
+    self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+    self.plot_A_v_B_and_C('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+    self.plot_A_v_B_and_C('By_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
 
   @plot_wrapper
   def plot_mag_field(self,step_size = 1,*conditions):
