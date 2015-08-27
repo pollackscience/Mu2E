@@ -23,7 +23,7 @@ import re
 
 
 class Plotter:
-  """Class that takes prepped datafile and produces all kinds of neat plots"""
+  """Class that takes prepped dataframes and produces all kinds of neat plots and things"""
 
   def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,clear=True):
     """Default constructor, takes a dict of pandas DataFrame.
