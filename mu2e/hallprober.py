@@ -30,9 +30,20 @@ class HallProbeGenerator:
     self.full_field = input_data
     self.sparse_field = self.full_field
 
+    self.apply_selection('Z',z_steps)
+    self.apply_selection('X',x_steps)
+    self.apply_selection('Y',y_steps)
+
+
   def apply_selection(self, coord, steps):
+
     if isinstance(steps,int):
-      coord_vals = sort(self.full_field[coord].unique())[:steps]
+      if coord in ['Z','R']:
+        coord_vals = np.sort(self.full_field[coord].unique())[:steps]
+      else:
+        coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
+        coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
+
     elif isinstance(steps, collections.Sequence):
       coord_vals = steps
     else:
@@ -46,4 +57,7 @@ class HallProbeGenerator:
     return self.sparse_field
 
 
-
+if __name__=="__main__":
+  data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+  hpg = HallProbeGenerator(data_maker1.data_frame)
+  hall_toy = hpg.get_toy()
