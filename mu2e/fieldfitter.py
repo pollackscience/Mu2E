@@ -10,57 +10,44 @@ from scipy.optimize import curve_fit
 
 class FieldFitter:
   """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
+  def __init__(self, input_data):
+    self.input_data = input_data
 
 
-def legendre_2d((x,y), a,b,c,d):
-  leg = a*x*y + b*(x*y**2) + c*(y*x**2) + d*(x**2*y**2)
-  return leg.ravel()
+  def legendre_2d(self,(x,y), O,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p):
+    leg = O+a*x+b*y+ c*x*y + d*x**2 + e*y**2+ f*(x*y**2) + g*(y*x**2) + h*x**3 + i*y**3 +j*x**2*y**2 +k*x**3*y +l*y**3*x
+    + m*x**4 + n*y**4 + o*x**5 + p*y**5
+    return leg.ravel()
 
+  def fit_2d(self,A,B,C):
 
-plt.close('all')
-plt.rc('font', family='serif')
-fig = plt.figure()
-plt.hold(True)
-ax = fig.gca(projection='3d')
-X1 = np.arange(-2, 2, 0.1)
-Y1 = np.arange(-2, 2, 0.1)
-Z1 = X1*(Y1**2+1)
-X, Y = np.meshgrid(X1, Y1)
-Z = X*(Y**2+1)
-#surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-scat = ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
-#ax.set_zlim(-1.01, 1.01)
+    piv = self.input_data.pivot(B,C,A)
+    X=piv.columns.values
+    Y=piv.index.values
+    self.Z=piv.values
+    self.X,self.Y = np.meshgrid(X, Y)
+    self.popt,self.pcov = curve_fit(self.legendre_2d, (self.X,self.Y), self.Z.ravel(), p0=(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
 
-#ax.zaxis.set_major_locator(LinearLocator(10))
-#ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.set_title(r'Z=X$\times$(Y+1)$^2$')
+  def plot_fit(self):
 
-#fig.colorbar(surf, shrink=0.5, aspect=5)
+    plt.close('all')
+    plt.rc('font', family='serif')
+    fig = plt.figure()
+    plt.hold(True)
+    ax = fig.gca(projection='3d')
+    scat = ax.scatter(self.X.ravel(), self.Y.ravel(), self.Z.ravel(), color='black')
 
+    ax.set_xlabel('Z')
+    ax.set_ylabel('X')
+    ax.set_zlabel('Br')
+    #ax.set_title(r'Z=X$\times$(Y+1)$^2$')
 
-#Z_noisy = Z.ravel() + 0.5*np.random.normal(size=Z.ravel().shape)
-popt,pcov = curve_fit(legendre_2d, (X,Y), Z.ravel(), p0=(1,1,1,1))
+    fitted_vals = self.legendre_2d((self.X,self.Y),*self.popt).reshape(self.Z.shape)
 
-Z_fitted = legendre_2d((X,Y),*popt).reshape(40,40)
+    surf = ax.plot_wireframe(self.X, self.Y, fitted_vals,color='green')
 
-#fig = plt.figure()
-#ax = fig.gca(projection='3d')
-#surf = ax.plot_surface(X, Y, Z_fitted, rstride=1, cstride=1, cmap=cm.coolwarm, alpha = 0.5)
-surf = ax.plot_wireframe(X, Y, Z_fitted,color='green')
+    plt.show()
 
-#fig.colorbar(surf, shrink=0.5, aspect=5)
-
-plt.show()
-#plt.get_current_fig_manager().window.wm_geometry("-2600+1300")
-
-plt.show()
-
-plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-
-print popt
-
-
+    plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    fig.set_size_inches(10,10,forward=True)
 
