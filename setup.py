@@ -15,6 +15,7 @@ setup(name='Mu2E',
     install_requires=[
       'numpy',
       'scipy',
-      'pandas'],
+      'pandas',
+      'lmfit'],
     include_package_data=True,
     zip_safe=False)

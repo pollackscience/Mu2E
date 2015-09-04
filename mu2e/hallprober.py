@@ -34,12 +34,21 @@ class HallProbeGenerator:
     self.apply_selection('X',x_steps)
     self.apply_selection('Y',y_steps)
 
+  def takespread(self, sequence, num):
+    length = float(len(sequence))
+    spread = []
+    for i in range(num):
+      spread.append(sequence[int(math.ceil(i * length / num))])
+    return spread
+
 
   def apply_selection(self, coord, steps):
 
     if isinstance(steps,int):
       if coord in ['Z','R']:
-        coord_vals = np.sort(self.full_field[coord].unique())[:steps]
+        coord_vals = np.sort(self.full_field[coord].unique())
+        #coord_vals = self.takespread(coord_vals, steps)
+        coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
       else:
         coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
         coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
