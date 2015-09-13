@@ -45,3 +45,30 @@ try:
 except:
     pass
 
+import numpy as np
+
+from lmfit import Model, Parameters
+
+def my_poly(x, **params):
+    val= 0.0
+    parnames = sorted(params.keys())
+    for i, pname in enumerate(parnames):
+        val += params[pname]*x**i
+    return val
+
+my_model = Model(my_poly)
+
+# Parameter names and starting values
+params = Parameters()
+params.add('C00', value=-10)
+params.add('C01', value=  5)
+params.add('C02', value=  1)
+params.add('C03', value=  0)
+params.add('C04', value=  0)
+
+x = np.linspace(-20, 20, 101)
+y = -30.4 + 7.8*x - 0.5*x*x + 0.03 * x**3 + 0.009*x**4
+y = y + np.random.normal(size=len(y), scale=0.2)
+
+out = my_model.fit(y, params, x=x)
+print(out.fit_report())

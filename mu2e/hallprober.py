@@ -47,8 +47,8 @@ class HallProbeGenerator:
     if isinstance(steps,int):
       if coord in ['Z','R']:
         coord_vals = np.sort(self.full_field[coord].unique())
-        #coord_vals = self.takespread(coord_vals, steps)
-        coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
+        coord_vals = self.takespread(coord_vals, steps)
+        #coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
       else:
         coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
         coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
