@@ -62,6 +62,9 @@ class HallProbeGenerator:
     if len(self.sparse_field[coord].unique()) != len(coord_vals):
       print 'Warning!:',set(coord_vals)-set(self.sparse_field[coord].unique()), 'not valid input_data',coord
 
+    for mag in ['Bz','Br','Bx','By','Bz']:
+      self.sparse_field.eval('{0}err = 0.0001*{0}'.format(mag))
+
   def get_toy(self):
     return self.sparse_field
 

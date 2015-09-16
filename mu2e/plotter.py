@@ -20,12 +20,16 @@ from statsmodels.graphics.regressionplots import abline_plot
 from collections import OrderedDict
 import matplotlib.ticker as mtick
 import re
+import IPython.display as IPdisplay
+import glob
+from PIL import Image as PIL_Image
+from images2gif import writeGif
 
 
 class Plotter:
   """Class that takes prepped dataframes and produces all kinds of neat plots and things"""
 
-  def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,clear=True):
+  def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,clear=True, fit_result=None):
     """Default constructor, takes a dict of pandas DataFrame.
     (optional suffix and save dir)"""
     if clear: plt.close('all')
@@ -65,7 +69,13 @@ class Plotter:
       self.init_save_dir(save_dir,extra=True)
 
     self.init_save_dir(save_dir)
+    if fit_result: self.fit_result = fit_result
 
+  @classmethod
+  def from_hall_study(cls, data_frame_dict, fit_result):
+    "Initialize plotter from a hall probe study"
+    alt_save_dir =  os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/field_fits'
+    return cls(data_frame_dict,fit_result = fit_result, alt_save_dir = alt_save_dir)
 
   def plot_wrapper(func):
     def inner(self,*args,**kwargs):
@@ -402,6 +412,135 @@ class Plotter:
 
 
     return surf,data_frame_dict
+
+  @plot_wrapper
+  def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, *conditions):
+    """Plot A vs B and C given some set of comma seperated boolean conditions.
+    B and C are the independent, A is the dependent.
+
+    The distribution will be fit, or a previously made fit will displayed.
+    """
+
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+    print data_frame.head()
+    if not self.fit_result: raise Exception('no fit available')
+    fig1 = plt.figure(self.plot_count)
+
+    plt.rc('font', family='serif')
+    data_frame = data_frame.reindex(columns=[A,B,C])
+    piv = data_frame.pivot(C,B,A)
+    X=piv.columns.values
+    Y=piv.index.values
+    X,Y = np.meshgrid(X, Y)
+    Z=piv.values
+
+    #gs = gridspec.GridSpec(2, 2)
+    #gs = gridspec.GridSpec(1, 1)
+    ax1 = fig1.add_subplot(111,projection='3d')
+    scat = ax1.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
+
+    ax1.set_xlabel(B)
+    ax1.set_ylabel(C)
+    ax1.set_zlabel(A)
+
+    if sim and A=='Bz':
+      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit[len(self.fit_result.best_fit)/2:].reshape(Z.shape),color='green')
+    elif sim and A=='Br':
+      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape),color='green')
+    else:
+      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit.reshape(Z.shape),color='green')
+    if A=='Bz':
+      ax1.view_init(elev=20., azim=59)
+    else:
+      ax1.view_init(elev=35., azim=15)
+    plt.show()
+    plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_fit.pdf'.format(A,B,C)
+    plt.savefig(savename,transparent = True)
+
+
+    #ax2 = fig.add_subplot(gs[0,1])
+    #heat = ax2.pcolor(X,Y,Z/self.fit_result.best_fit.reshape(Z.shape),vmax=1.05,vmin=0.95)
+    #cb = plt.colorbar(heat, aspect=7)
+    #cb.set_label('Data/Fit')
+    #ax2.set_xlabel(B)
+    #ax2.set_ylabel(C)
+
+    self.plot_count+=1
+    fig2 = plt.figure(self.plot_count)
+    #gs = gridspec.GridSpec(1, 1)
+    ax3 = fig2.add_subplot(111)
+    if sim and A=='Bz':
+      data_fit_diff = (Z - self.fit_result.best_fit[len(self.fit_result.best_fit)/2:].reshape(Z.shape))*10000
+    elif sim and A=='Br':
+      data_fit_diff = (Z - self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape))*10000
+    else:
+      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*10000
+
+    heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-20,vmax=20)
+
+    cb = plt.colorbar(heat, aspect=7)
+    cb.set_label('Data-Fit (G)')
+    ax3.set_xlabel(B)
+    ax3.set_ylabel(C)
+    plt.show()
+    #plt.get_current_fig_manager().window.wm_geometry("-3000-600")
+    plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
+    #fig.set_size_inches(17,10,forward=True)
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_residual.pdf'.format(A,B,C)
+    plt.savefig(savename,transparent = True)
+    print ax1, ax3
+    plt.figure(fig1.number)
+    plt.sca(ax1)
+    #for n in range(0, 365):
+    #  ax1.view_init(elev=35., azim=n)
+    #raw_input()
+    return fig1
+
+  def make_gif(self, fig):
+
+    plt.figure(fig.number)
+    ax = fig.get_axes()[0]
+    plt.sca(ax)
+    #fig.canvas.manager.window.attributes('-topmost', 1)
+    #raw_input()
+    gif_filename = 'test_gif'
+    for n in range(0, 360):
+      ax.view_init(elev=35., azim=n)
+      #if n >= 20 and n <= 22:
+      #  ax.set_xlabel('')
+      #  ax.set_ylabel('') #don't show axis labels while we move around, it looks weird
+      #  ax.elev = ax.elev-0.5 #start by panning down slowly
+      #if n >= 23 and n <= 36:
+      #  ax.elev = ax.elev-1.0 #pan down faster
+      #if n >= 37 and n <= 60:
+      #  ax.elev = ax.elev-1.5
+      #  ax.azim = ax.azim+1.1 #pan down faster and start to rotate
+      #if n >= 61 and n <= 64:
+      #  ax.elev = ax.elev-1.0
+      #if n >= 65 and n <= 73:
+      #  ax.elev = ax.elev-0.5
+      #  ax.azim = ax.azim+1.1 #pan down slowly and rotate same speed
+      #if n >= 74 and n <= 76:
+      #  ax.elev = ax.elev-0.2
+      #  ax.azim = ax.azim+0.5 #end by panning/rotating slowly to stopping position
+      plt.draw()
+      plt.savefig('../plots/anim/' + gif_filename + '/img' + str(n).zfill(3) + '.png',dpi=60)
+
+    #plt.close('all')
+    #images = [PIL_Image.open(image) for image in glob.glob('../plots/anim/' + gif_filename + '/*.png')]
+    images = []
+    for image in glob.glob('../plots/anim/' + gif_filename + '/*.png'):
+      img = PIL_Image.open(image)
+      images.append(img.copy())
+      img.close()
+
+    file_path_name = '../plots/anim/' + gif_filename + '.gif'
+    writeGif(file_path_name, images, duration=0.1)
+    IPdisplay.Image(url=file_path_name)
+
+    ##plt.show()
 
 
   @plot_wrapper
