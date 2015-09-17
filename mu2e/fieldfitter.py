@@ -63,30 +63,26 @@ class FieldFitter:
       self.params = Parameters()
       #self.params.add('R',value=1000,vary=False)
       #self.params.add('R',value=22000,vary=False)
-      self.params.add('R',value=11000,vary=False)
+      self.params.add('R',value=30000,vary=False)
       #if A == 'Br':
-      #self.params.add('C',value=0)
+      self.params.add('C',value=0)
       self.params.add('A0',value=0)
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-      for i in range(15):
+      for i in range(50):
         print 'refitting with params:',i+1
         #self.params = self.result.params
         self.params.add('A'+str(i+1),value=0)
         self.params.add('B'+str(i+1),value=0)
         #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-      #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq',
       #    fit_kws={'xtol':1e-100,'ftol':1e-100,'maxfev':5000,'epsfcn':1e-40})
       self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
           r=self.X,z=self.Y, params = self.params,method='leastsq')
-      #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='powell')
-      #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.result.params,method='lbfgsb')
-      #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.result.params,method='lbfgsb')
       self.params = self.result.params
-      #self.params['R'].vary=True
-      #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='slsqp')
+      #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+          #r=self.X,z=self.Y, params = self.params,method='lbfgsb',fit_kws= {'options':{'factr':0.1}})
 
     report_fit(self.result)
 
