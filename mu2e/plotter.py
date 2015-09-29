@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import shutil
 import math
 import mu2e
 import numpy as np
@@ -29,7 +30,7 @@ from images2gif import writeGif
 class Plotter:
   """Class that takes prepped dataframes and produces all kinds of neat plots and things"""
 
-  def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,clear=True, fit_result=None):
+  def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None):
     """Default constructor, takes a dict of pandas DataFrame.
     (optional suffix and save dir)"""
     if clear: plt.close('all')
@@ -70,6 +71,8 @@ class Plotter:
 
     self.init_save_dir(save_dir)
     if fit_result: self.fit_result = fit_result
+
+    self.extra_suffix = extra_suffix
 
   @classmethod
   def from_hall_study(cls, data_frame_dict, fit_result):
@@ -194,7 +197,7 @@ class Plotter:
     plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
-    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
     return data_frame, fig
 
   @plot_wrapper
@@ -238,7 +241,7 @@ class Plotter:
     ax2.axhline(1,linewidth=2,color='r')
     ax1.legend(loc='best')
     plt.setp(ax2.get_yticklabels()[-1:], visible=False)
-    fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(conditions),self.suffix_extra))
+    fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix_extra))
     #return data_frame_dict, fig
     return ax2
 
@@ -258,7 +261,7 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     plt.grid(True)
     lm = self.fit_linear_regression(data_frame,A,B,fig)
-    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}_fit.png'.format(A,B,'_'.join(conditions),self.suffix))
+    plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}_fit.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
     return data_frame, fig, lm
 
   @plot_wrapper
@@ -308,9 +311,9 @@ class Plotter:
     #plt.axis([-0.1, 3.24,0.22,0.26])
     #plt.grid(True)
     if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
@@ -324,9 +327,9 @@ class Plotter:
     plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
     plt.grid(True)
     if interp:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
     else:
-      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(conditions),self.suffix),bbox_inches='tight')
+      plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
     return fig,data_frame
 
   @plot_wrapper
@@ -371,7 +374,7 @@ class Plotter:
       plt.ylabel(B)
       plt.title('{0}, {1} vs {2} and {3}, {4}'.format(key,A,B,C,conditions[0]))
       plt.grid(True)
-      plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(conditions),key),bbox_inches='tight')
+      plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),key),bbox_inches='tight')
 
       if i>0:
         self.plot_count+=1
@@ -393,7 +396,7 @@ class Plotter:
 
         fig.set_zticks(np.arange(zlims[0],zlims[1],ticks_width))
         plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
-        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(conditions),piv_dict.keys()[0],key),bbox_inches='tight')
+        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key),bbox_inches='tight')
 #
         self.plot_count+=1
         fig = plt.figure(self.plot_count)
@@ -408,7 +411,7 @@ class Plotter:
         plt.ylabel(B)
         plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
         plt.grid(True)
-        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(conditions),piv_dict.keys()[0],key),bbox_inches='tight')
+        plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key),bbox_inches='tight')
 
 
     return surf,data_frame_dict
@@ -455,7 +458,7 @@ class Plotter:
       ax1.view_init(elev=35., azim=15)
     plt.show()
     plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-    savename = self.save_dir+'/{0}_v_{1}_and_{2}_fit.pdf'.format(A,B,C)
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
 
 
@@ -475,9 +478,11 @@ class Plotter:
     elif sim and A=='Br':
       data_fit_diff = (Z - self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape))*10000
     else:
-      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*10000
+      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*1000story0
 
-    heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-20,vmax=20)
+    heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
+    #heat = ax3.pcolor(X,Y,data_fit_diff)
+    #heat = ax3.pcolor(X,Y,data_fit_diff)
 
     cb = plt.colorbar(heat, aspect=7)
     cb.set_label('Data-Fit (G)')
@@ -488,7 +493,7 @@ class Plotter:
     plt.get_current_fig_manager().window.wm_geometry("-2600-600")
     #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
     #fig.set_size_inches(17,10,forward=True)
-    savename = self.save_dir+'/{0}_v_{1}_and_{2}_residual.pdf'.format(A,B,C)
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
     print ax1, ax3
     plt.figure(fig1.number)
@@ -496,49 +501,38 @@ class Plotter:
     #for n in range(0, 365):
     #  ax1.view_init(elev=35., azim=n)
     #raw_input()
-    return fig1
+    outname =  '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+    return fig1, outname
 
-  def make_gif(self, fig):
+  def make_gif(self, fig,outname):
 
     plt.figure(fig.number)
     ax = fig.get_axes()[0]
     plt.sca(ax)
+    tmpdir = self.save_dir+'/anim/tmpfigs'
+    gifdir = self.save_dir+'/anim'
+    if not os.path.exists(tmpdir):
+      os.makedirs(tmpdir)
     #fig.canvas.manager.window.attributes('-topmost', 1)
     #raw_input()
-    gif_filename = 'test_gif'
-    for n in range(0, 360):
+    for n in range(0, 360,2):
       ax.view_init(elev=35., azim=n)
-      #if n >= 20 and n <= 22:
-      #  ax.set_xlabel('')
-      #  ax.set_ylabel('') #don't show axis labels while we move around, it looks weird
-      #  ax.elev = ax.elev-0.5 #start by panning down slowly
-      #if n >= 23 and n <= 36:
-      #  ax.elev = ax.elev-1.0 #pan down faster
-      #if n >= 37 and n <= 60:
-      #  ax.elev = ax.elev-1.5
-      #  ax.azim = ax.azim+1.1 #pan down faster and start to rotate
-      #if n >= 61 and n <= 64:
-      #  ax.elev = ax.elev-1.0
-      #if n >= 65 and n <= 73:
-      #  ax.elev = ax.elev-0.5
-      #  ax.azim = ax.azim+1.1 #pan down slowly and rotate same speed
-      #if n >= 74 and n <= 76:
-      #  ax.elev = ax.elev-0.2
-      #  ax.azim = ax.azim+0.5 #end by panning/rotating slowly to stopping position
       plt.draw()
-      plt.savefig('../plots/anim/' + gif_filename + '/img' + str(n).zfill(3) + '.png',dpi=60)
+
+      plt.savefig(tmpdir+'/' + outname + str(n).zfill(3) + '.png',dpi=60)
 
     #plt.close('all')
     #images = [PIL_Image.open(image) for image in glob.glob('../plots/anim/' + gif_filename + '/*.png')]
     images = []
-    for image in glob.glob('../plots/anim/' + gif_filename + '/*.png'):
+    for image in glob.glob(tmpdir + '/*.png'):
       img = PIL_Image.open(image)
       images.append(img.copy())
       img.close()
 
-    file_path_name = '../plots/anim/' + gif_filename + '.gif'
-    writeGif(file_path_name, images, duration=0.1)
+    file_path_name = gifdir+'/'+outname+'.gif'
+    writeGif(file_path_name, images, duration=0.15)
     IPdisplay.Image(url=file_path_name)
+    shutil.rmtree(tmpdir)
 
     ##plt.show()
 
@@ -616,7 +610,7 @@ class Plotter:
     plt.grid(True)
     circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
     fig.gca().add_artist(circle2)
-    fig.savefig(self.save_dir+'/PsField_{0}_{1}.png'.format('_'.join(conditions),self.suffix))
+    fig.savefig(self.save_dir+'/PsField_{0}_{1}.png'.format('_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
 
   @plot_wrapper
   def plot_mag_field2(self,A,B,density= 1,*conditions):
@@ -639,7 +633,7 @@ class Plotter:
     cb.set_label('Mag (T)')
 
     plt.title('Magnetic Field Lines in {0}-{1} plane for {2}'.format(A,B,conditions))
-    fig.savefig(self.save_dir+'/Field_Lines_{0}_{1}.png'.format('_'.join(conditions),self.suffix),bbox_inches='tight')
+    fig.savefig(self.save_dir+'/Field_Lines_{0}_{1}.png'.format('_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
 
   def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
     """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""

@@ -52,38 +52,40 @@ class FieldFitter:
     self.Bzerr=piv_bz_err.values
     self.Brerr=piv_br_err.values
 
-    self.mod = Model(brz_2d, independent_vars=['r','z'])
+    self.mod = Model(brz_2d_trig, independent_vars=['r','z'])
 
     if use_pickle:
       self.params = pkl.load(open('result.p',"rb"))
       #for param in self.params:
       #  self.params[param].vary = False
-      self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
+      self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+          r=self.X,z=self.Y, params = self.params,method='leastsq')
     else:
       self.params = Parameters()
       #self.params.add('R',value=1000,vary=False)
       #self.params.add('R',value=22000,vary=False)
-      self.params.add('R',value=30000,vary=False)
+      self.params.add('R',value=9000,vary=False)
       #if A == 'Br':
-      self.params.add('C',value=0)
+      #self.params.add('C',value=1)
       self.params.add('A0',value=0)
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
       for i in range(50):
         print 'refitting with params:',i+1
-        #self.params = self.result.params
         self.params.add('A'+str(i+1),value=0)
         self.params.add('B'+str(i+1),value=0)
-        #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
+        #if (i+1)%10==0:
+        #  self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
+        #  self.params = self.result.params
 
       #    fit_kws={'xtol':1e-100,'ftol':1e-100,'maxfev':5000,'epsfcn':1e-40})
       self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
           r=self.X,z=self.Y, params = self.params,method='leastsq')
-      self.params = self.result.params
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
           #r=self.X,z=self.Y, params = self.params,method='lbfgsb',fit_kws= {'options':{'factr':0.1}})
 
+    self.params = self.result.params
     report_fit(self.result)
 
 
@@ -110,9 +112,10 @@ class FieldFitter:
 
     if use_pickle:
       self.params = pkl.load(open('result.p',"rb"))
+      self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params, weights  = self.Zerr.ravel(), method='leastsq')
       #for param in self.params:
       #  self.params[param].vary = False
-      self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
+      self.params = self.result.params
     else:
       self.params = Parameters()
       #self.params.add('R',value=1000,vary=False)
@@ -124,7 +127,7 @@ class FieldFitter:
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-      for i in range(30):
+      for i in range(60):
         print 'refitting with params:',i+1
         #self.params = self.result.params
         self.params.add('A'+str(i+1),value=0)
@@ -174,92 +177,6 @@ class FieldFitter:
     self.params = self.result.params
     report_fit(self.result)
     #report_fit(self.params)
-
-  def plot_fit(self,ds='1d'):
-
-    plt.close('all')
-    plt.rc('font', family='serif')
-    fig = plt.figure()
-    #plt.hold(True)
-
-    if ds == '1d':
-      ax = fig.gca()
-      ax.scatter(self.X, self.Z, color='black')
-      ax.set_xlabel('Z')
-      ax.set_ylabel('Bz')
-
-      ax.plot(self.X, self.result.best_fit, color='green')
-      #ax.plot(self.X, self.result.init_fit, color='black',linestyle='--')
-    else:
-      #gs = gridspec.GridSpec(2, 2)
-      gs = gridspec.GridSpec(1, 1)
-      ax1 = fig.add_subplot(gs[0:,0],projection='3d')
-      scat = ax1.scatter(self.X.ravel(), self.Y.ravel(), self.Z.ravel(), color='black')
-
-      ax1.set_xlabel(self.axis2)
-      ax1.set_ylabel(self.axis1)
-      ax1.set_zlabel(self.mag_field)
-
-      surf = ax1.plot_wireframe(self.X, self.Y, self.result.best_fit.reshape(self.Z.shape),color='green')
-
-      #ax2 = fig.add_subplot(gs[0,1])
-      #heat = ax2.pcolor(self.X,self.Y,self.Z/self.result.best_fit.reshape(self.Z.shape),vmax=1.05,vmin=0.95)
-      #cb = plt.colorbar(heat, aspect=7)
-      #cb.set_label('Data/Fit')
-      #ax2.set_xlabel(self.axis2)
-      #ax2.set_ylabel(self.axis1)
-
-      #ax3 = fig.add_subplot(gs[1,1])
-      #heat = ax3.pcolor(self.X,self.Y,self.result.residual.reshape(self.Z.shape)*10000,vmin=-20,vmax=20)
-      #cb = plt.colorbar(heat, aspect=7)
-      #cb.set_label('Data-Fit (G)')
-      #ax3.set_xlabel(self.axis2)
-      #ax3.set_ylabel(self.axis1)
-
-    #ax1.view_init(elev=15., azim=-75)
-    #plt.show()
-    #plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-    #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
-    fig.set_size_inches(17,10,forward=True)
-    #plt.savefig('../plots/field_fits/'+ds+'_'+self.mag_field+'1a.png',transparent=True)
-    #ax1.view_init(elev=0., azim=-88)
-    #plt.draw()
-    #plt.savefig('../plots/field_fits/'+ds+'_'+self.mag_field+'2a.png',transparent=True)
-    #ax1.view_init(elev=11., azim=12)
-    #plt.draw()
-    #plt.savefig('../plots/field_fits/'+ds+'_'+self.mag_field+'3a.png',transparent=True)
-    #mpld3.save_html(fig, '/Users/brianpollack/Documents/PersonalWebPage/mu2e.html')
-
-    gif_filename = 'test_gif'
-#    for n in range(0, 100):
-#      if n >= 20 and n <= 22:
-#        ax1.set_xlabel('')
-#        ax1.set_ylabel('') #don't show ax1is labels while we move around, it looks weird
-#        ax1.elev = ax1.elev-0.5 #start by panning down slowly
-#      if n >= 23 and n <= 36:
-#        ax1.elev = ax1.elev-1.0 #pan down faster
-#      if n >= 37 and n <= 60:
-#        ax1.elev = ax1.elev-1.5
-#        ax1.azim = ax1.azim+1.1 #pan down faster and start to rotate
-#      if n >= 61 and n <= 64:
-#        ax1.elev = ax1.elev-1.0
-#        ax1.azim = ax1.azim+1.1 #pan down slower and rotate same speed
-#      if n >= 65 and n <= 73:
-#        ax1.elev = ax1.elev-0.5
-#        ax1.azim = ax1.azim+1.1 #pan down slowly and rotate same speed
-#      if n >= 74 and n <= 76:
-#        ax1.elev = ax1.elev-0.2
-#        ax1.azim = ax1.azim+0.5 #end by panning/rotating slowly to stopping position
-#      plt.savefig('../plots/anim/' + gif_filename + '/img' + str(n).zfill(3) + '.png',
-#                bbox_inches='tight')
-
-    plt.close()
-    images = [PIL_Image.open(image) for image in glob.glob('../plots/anim/' + gif_filename + '/*.png')]
-    file_path_name = '../plots/anim/' + gif_filename + '.gif'
-    writeGif(file_path_name, images, duration=0.1)
-    IPdisplay.Image(url=file_path_name)
-
-    #plt.show()
 
   def pickle_results(self):
     pkl.dump( self.result.params, open( 'result.p', "wb" ),pkl.HIGHEST_PROTOCOL )

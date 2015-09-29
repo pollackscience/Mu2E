@@ -64,14 +64,27 @@ def brz_2d(z,r, R, C, **AB_params):
 #def brz_2d(z,r, R, **AB_params):
   """ 2D model for Bz vs Z and R. Can take any number of AnBn terms."""
   model_r = C*z
-  #model_r = 0.0
   model_z = 0.0
   R = R
   ABs = sorted(AB_params.keys(),key=lambda x:x[::-1])
   b_zeros = special.jn_zeros(0,len(ABs)/2)
   kms = b_zeros/R
   for i,ab in enumerate(pairwise(ABs)):
-    model_r += -special.iv(1,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.exp(kms[i]*z) + AB_params[ab[1]]*np.exp(-kms[i]*z))
-    model_z += special.iv(0,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.exp(kms[i]*z) - AB_params[ab[1]]*np.exp(-kms[i]*z))
+    model_r += -special.jv(1,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.exp(kms[i]*(z-8000)) + AB_params[ab[1]]*np.exp(-kms[i]*(z-8000)))
+    model_z += special.jv(0,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.exp(kms[i]*(z-8000)) - AB_params[ab[1]]*np.exp(-kms[i]*(z-8000)))
   return np.concatenate([model_r,model_z]).ravel()
 
+def brz_2d_trig(z,r, R, **AB_params):
+#def brz_2d(z,r, R, **AB_params):
+  """ 2D model for Bz vs Z and R. Can take any number of AnBn terms."""
+  #model_r = C*z
+  model_r = 0.0
+  model_z = 0.0
+  R = R
+  ABs = sorted(AB_params.keys(),key=lambda x:x[::-1])
+  b_zeros = special.jn_zeros(0,len(ABs)/2)
+  kms = b_zeros/R
+  for i,ab in enumerate(pairwise(ABs)):
+    model_r += -special.iv(1,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.cos(kms[i]*(z-8000)) + AB_params[ab[1]]*np.sin(kms[i]*(z-8000)))
+    model_z += special.iv(0,kms[i]*abs(r))*kms[i]*(AB_params[ab[0]]*np.sin(kms[i]*(z-8000)) - AB_params[ab[1]]*np.cos(-kms[i]*(z-8000)))
+  return np.concatenate([model_r,model_z]).ravel()

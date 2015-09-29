@@ -53,8 +53,10 @@ class HallProbeGenerator:
         coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
         coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
 
-    elif isinstance(steps, collections.Sequence):
+    elif isinstance(steps, collections.Sequence) and type(steps)!=str:
       coord_vals = steps
+    elif steps=='all':
+        coord_vals = np.sort(self.full_field[coord].unique())
     else:
       raise TypeError(coord+" steps must be scalar or list of values!")
 
@@ -64,6 +66,7 @@ class HallProbeGenerator:
 
     for mag in ['Bz','Br','Bx','By','Bz']:
       self.sparse_field.eval('{0}err = 0.0001*{0}'.format(mag))
+      #self.sparse_field[self.sparse_field.Z > 8000][self.sparse_field.Z < 13000].eval('{0}err = 0.0000001*{0}'.format(mag))
 
   def get_toy(self):
     return self.sparse_field
