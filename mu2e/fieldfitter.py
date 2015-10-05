@@ -65,13 +65,15 @@ class FieldFitter:
       #self.params.add('R',value=1000,vary=False)
       #self.params.add('R',value=22000,vary=False)
       self.params.add('R',value=9000,vary=False)
+      self.params.add('offset',value=0,vary=False)
       #if A == 'Br':
-      #self.params.add('C',value=1)
+      self.params.add('C',value=1)
+      self.params.add('D',value=1)
       self.params.add('A0',value=0)
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-      for i in range(50):
+      for i in range(20):
         print 'refitting with params:',i+1
         self.params.add('A'+str(i+1),value=0)
         self.params.add('B'+str(i+1),value=0)

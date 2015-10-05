@@ -9,7 +9,9 @@ from mu2e.plotter import Plotter
 if __name__ == "__main__":
 
   plt.close('all')
-  data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+  #data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+  data_maker1=DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = True)
+
   #hpg = HallProbeGenerator(data_maker1.data_frame.query('X==0 & Z>8200 & Z <12000'),z_steps = 100,y_steps = 10)
   #hpg2 = HallProbeGenerator(data_maker1.data_frame.query('X==0 & Z>4000 & Z <14000'),z_steps = 100,y_steps = 10)
   #hpg2 = HallProbeGenerator(data_maker1.data_frame.query('X==0 & Z>4000 & Z <14000'),z_steps = 'all',y_steps = 10)
@@ -29,9 +31,10 @@ if __name__ == "__main__":
 
 
   hpg3 = HallProbeGenerator(data_maker1.data_frame.query('X==0 & Z>4000 & Z <14000'),z_steps = 'all', y_steps = [-825,-650,-475,-325,0,325,475,650,825])
+  #hpg3 = HallProbeGenerator(data_maker1.data_frame.query('X==0 & Z>4000 & Z <14000'),z_steps = 'all', y_steps = 34)
   ff3 = FieldFitter(hpg3.get_toy())
   ff3.fit_2d_sim('Y','Z')
-  plot_maker3 = Plotter.from_hall_study({'DS_Mau':ff3.input_data},fit_result = ff3.result)
+  plot_maker3 = Plotter.from_hall_study({'DS_GA03':ff3.input_data},fit_result = ff3.result)
   plot_maker3.extra_suffix = 'halltoy'
   plot_maker3.plot_A_v_B_and_C_fit('Bz','Y','Z',True,'X==0')
   plot_maker3.plot_A_v_B_and_C_fit('Br','Y','Z',True,'X==0')

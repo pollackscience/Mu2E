@@ -25,6 +25,7 @@ import IPython.display as IPdisplay
 import glob
 from PIL import Image as PIL_Image
 from images2gif import writeGif
+import AppKit
 
 
 class Plotter:
@@ -73,6 +74,10 @@ class Plotter:
     if fit_result: self.fit_result = fit_result
 
     self.extra_suffix = extra_suffix
+
+    self.MultiScreen = True
+    if len(AppKit.NSScreen.screens())==1:
+      self.MultiScreen = False
 
   @classmethod
   def from_hall_study(cls, data_frame_dict, fit_result):
@@ -432,9 +437,9 @@ class Plotter:
     plt.rc('font', family='serif')
     data_frame = data_frame.reindex(columns=[A,B,C])
     piv = data_frame.pivot(C,B,A)
-    X=piv.columns.values
-    Y=piv.index.values
-    X,Y = np.meshgrid(X, Y)
+    Xa=piv.columns.values
+    Ya=piv.index.values
+    X,Y = np.meshgrid(Xa, Ya)
     Z=piv.values
 
     #gs = gridspec.GridSpec(2, 2)
@@ -457,7 +462,7 @@ class Plotter:
     else:
       ax1.view_init(elev=35., azim=15)
     plt.show()
-    plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
     savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
 
@@ -478,26 +483,34 @@ class Plotter:
     elif sim and A=='Br':
       data_fit_diff = (Z - self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape))*10000
     else:
-      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*1000story0
+      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*10000
 
-    heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
-    #heat = ax3.pcolor(X,Y,data_fit_diff)
-    #heat = ax3.pcolor(X,Y,data_fit_diff)
+    #heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
+    #heat = ax3.pcolor(data_fit_diff,vmin=-10,vmax=10)
+    Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+    Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+    heat = ax3.pcolor(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+    #ax3.set_xticks(np.arange(Z.shape[1])+0.5, minor=False)
+    #print ax3.get_xticks()
+    #print X
+    #ax3.set_xticks(X[0])
+    #raw_input()
 
     cb = plt.colorbar(heat, aspect=7)
     cb.set_label('Data-Fit (G)')
     ax3.set_xlabel(B)
     ax3.set_ylabel(C)
+    #ax3.set_xticks(np.arange(Z.shape[0])+0.5, minor=False)
     plt.show()
     #plt.get_current_fig_manager().window.wm_geometry("-3000-600")
-    plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
     #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
     #fig.set_size_inches(17,10,forward=True)
     savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
-    print ax1, ax3
-    plt.figure(fig1.number)
-    plt.sca(ax1)
+    #print ax1, ax3
+    #plt.figure(fig1.number)
+    #plt.sca(ax1)
     #for n in range(0, 365):
     #  ax1.view_init(elev=35., azim=n)
     #raw_input()
