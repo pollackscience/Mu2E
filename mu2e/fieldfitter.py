@@ -37,18 +37,20 @@ class FieldFitter:
     self.zero_data = pd.concat([df_highz, self.input_data, df_lowz], ignore_index=True)
     self.zero_data.sort(['Z','X'],inplace=True)
 
-  def fit_2d_sim(self,B,C,use_pickle = False):
+  def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):
 
+    if B=='X':Br='Bx'
+    elif B=='Y':Br='By'
     piv_bz = self.input_data.pivot(C,B,'Bz')
-    piv_br = self.input_data.pivot(C,B,'Br')
+    piv_br = self.input_data.pivot(C,B,Br)
     X=piv_br.columns.values
     Y=piv_br.index.values
     self.Bz=piv_bz.values
-    self.Br=piv_br.values
+    self.Br=abs(piv_br.values)
     self.X,self.Y = np.meshgrid(X, Y)
 
     piv_bz_err = self.input_data.pivot(C,B,'Bzerr')
-    piv_br_err = self.input_data.pivot(C,B,'Brerr')
+    piv_br_err = self.input_data.pivot(C,B,Br+'err')
     self.Bzerr=piv_bz_err.values
     self.Brerr=piv_br_err.values
 
@@ -65,15 +67,14 @@ class FieldFitter:
       #self.params.add('R',value=1000,vary=False)
       #self.params.add('R',value=22000,vary=False)
       self.params.add('R',value=9000,vary=False)
+      #self.params.add('offset',value=-14000,vary=False)
       self.params.add('offset',value=0,vary=False)
-      #if A == 'Br':
-      self.params.add('C',value=1)
-      self.params.add('D',value=1)
+      self.params.add('C',value=0)
       self.params.add('A0',value=0)
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-      for i in range(20):
+      for i in range(nparams):
         print 'refitting with params:',i+1
         self.params.add('A'+str(i+1),value=0)
         self.params.add('B'+str(i+1),value=0)

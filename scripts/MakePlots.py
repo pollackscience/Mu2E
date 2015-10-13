@@ -122,11 +122,13 @@ def field_comps_set1D(plotter):
 
 
 if __name__=="__main__":
+  data_maker0=DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSmap',use_pickle = True)
   data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
   data_maker2=DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = True)
   data_maker3=DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = True)
   data_maker4=DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = True)
   plot_maker = Plotter({'DS_Mau':data_maker1.data_frame,'DS_GA01':data_maker2.data_frame,'DS_GA02':data_maker3.data_frame,'DS_GA03':data_maker4.data_frame},'DS_Mau')
+  plot_maker_ps = Plotter({'PS_Mau':data_maker0.data_frame})
   #do_sym()
   #plot_maker = Plotter(data_maker1.data_frame,suffix='DS_Mau',data_frame_dict={'DS_GA01':data_maker2.data_frame})
   #plot_maker.plot_symmetry('X','Z','Y==0','X<300','X>-300','Z<4500')
@@ -146,10 +148,12 @@ if __name__=="__main__":
   #print plot_maker.data_frame.head()
   #plot_maker.plot_Br_v_Theta(831.038507,'Z==-4929',method='polynomial',order=2)
   #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
-  plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==0')
-  plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==25')
-  plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==50')
-  plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==75')
+  #plot_maker.plot_A_v_B('By','Y','Z==5021','X==0','Y<851','Y>-851')
+  #plot_maker.plot_A_v_B('By','Y','Z==9521','X==0','Y<851','Y>-851')
+  plot_maker_ps.plot_A_v_B('By','Y','Z==-6129','X==0','Y<251','Y>-251')
+  #plot_maker.plot_A_v_B('By','Z','Z>8400','Z<10000','X==0','Y==25')
+  #plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==50')
+  #plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==75')
   #plot_maker.plot_mag_field(1,'Z==-4929')
   #plot_maker.plot_A_v_B_and_C('Bz','X','Z',True,300, 'Y==0','Z>-5000','Z<-4000','X>500')
   #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0, 'Y==0')
@@ -161,5 +165,5 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
   #plot_maker.plot_mag_field2('X','Z',1.3,'Y==0')
 
-  #plt.show()
+  plt.show()
 

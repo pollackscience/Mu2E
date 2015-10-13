@@ -71,6 +71,26 @@ class HallProbeGenerator:
   def get_toy(self):
     return self.sparse_field
 
+  def bad_calibration(self,measure = True, position=False):
+    measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
+    pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+    probes = abs(self.sparse_field.Y).unique()
+    if measure:
+      if len(probes)<len(measure_sf): raise IndexError('need more measure_sf, too many probes')
+      for i,probe in enumerate(probes):
+        self.sparse_field.ix[abs(self.sparse_field.Y)==probe, 'Bz'] *= measure_sf[i]
+        self.sparse_field.ix[abs(self.sparse_field.Y)==probe, 'By'] *= measure_sf[i]
+
+    if position:
+      if len(probes)<len(pos_offset): raise IndexError('need more pos_offset, too many probes')
+      for i,probe in enumerate(probes):
+        if probe==0:
+          self.sparse_field.ix[self.sparse_field.Y==probe, 'Y'] += pos_offset[i]
+        else:
+          self.sparse_field.ix[self.sparse_field.Y==probe, 'Y'] += pos_offset[i]
+          self.sparse_field.ix[self.sparse_field.Y==-probe, 'Y'] -= pos_offset[i]
+
+
 
 if __name__=="__main__":
   data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)

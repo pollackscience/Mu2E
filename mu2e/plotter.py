@@ -322,7 +322,7 @@ class Plotter:
 
     self.plot_count+=1
     fig = plt.figure(self.plot_count)
-    heat = plt.pcolor(Xi,Yi,Z)
+    heat = plt.pcolormesh(Xi,Yi,Z)
 
     cb = plt.colorbar(heat, shrink=0.5, aspect=5)
     cb.set_label(A)
@@ -370,7 +370,7 @@ class Plotter:
 
 
       fig = plt.figure(self.plot_count)
-      heat = plt.pcolor(Xi,Yi,Z)
+      heat = plt.pcolormesh(Xi,Yi,Z)
 
       cb = plt.colorbar(heat, shrink=0.5, aspect=5)
       cb.set_label(A)
@@ -405,7 +405,7 @@ class Plotter:
 #
         self.plot_count+=1
         fig = plt.figure(self.plot_count)
-        heat = plt.pcolor(Xi,Yi,piv_dict.values()[0].values/Z)
+        heat = plt.pcolormesh(Xi,Yi,piv_dict.values()[0].values/Z)
 
         cb = plt.colorbar(heat, shrink=0.5, aspect=5)
         cb.set_label(r'$\frac{\mathrm{'+labels[0]+r'}}{\mathrm{'+labels[i]+r'}}$',fontsize=20,labelpad=20)
@@ -422,7 +422,7 @@ class Plotter:
     return surf,data_frame_dict
 
   @plot_wrapper
-  def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, *conditions):
+  def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, do_eval = False, *conditions):
     """Plot A vs B and C given some set of comma seperated boolean conditions.
     B and C are the independent, A is the dependent.
 
@@ -451,12 +451,17 @@ class Plotter:
     ax1.set_ylabel(C)
     ax1.set_zlabel(A)
 
-    if sim and A=='Bz':
-      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit[len(self.fit_result.best_fit)/2:].reshape(Z.shape),color='green')
-    elif sim and A=='Br':
-      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape),color='green')
+    if do_eval:
+      best_fit = self.fit_result.eval(r=X,z=Y)
     else:
-      surf = ax1.plot_wireframe(X, Y, self.fit_result.best_fit.reshape(Z.shape),color='green')
+      best_fit = self.fit_result.best_fit
+
+    if sim and A=='Bz':
+      surf = ax1.plot_wireframe(X, Y, best_fit[len(best_fit)/2:].reshape(Z.shape),color='green')
+    elif sim and (A=='Br' or A=='By' or A == 'Bx'):
+      surf = ax1.plot_wireframe(X, Y, best_fit[0:len(best_fit)/2].reshape(Z.shape),color='green')
+    else:
+      surf = ax1.plot_wireframe(X, Y, best_fit.reshape(Z.shape),color='green')
     if A=='Bz':
       ax1.view_init(elev=20., azim=59)
     else:
@@ -479,17 +484,17 @@ class Plotter:
     #gs = gridspec.GridSpec(1, 1)
     ax3 = fig2.add_subplot(111)
     if sim and A=='Bz':
-      data_fit_diff = (Z - self.fit_result.best_fit[len(self.fit_result.best_fit)/2:].reshape(Z.shape))*10000
-    elif sim and A=='Br':
-      data_fit_diff = (Z - self.fit_result.best_fit[0:len(self.fit_result.best_fit)/2].reshape(Z.shape))*10000
+      data_fit_diff = (Z - best_fit[len(best_fit)/2:].reshape(Z.shape))*10000
+    elif sim and (A=='Br' or A=='By' or A=='Bx'):
+      data_fit_diff = (Z - best_fit[0:len(best_fit)/2].reshape(Z.shape))*10000
     else:
-      data_fit_diff = (Z - self.fit_result.best_fit.reshape(Z.shape))*10000
+      data_fit_diff = (Z - best_fit.reshape(Z.shape))*10000
 
     #heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
     #heat = ax3.pcolor(data_fit_diff,vmin=-10,vmax=10)
     Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
     Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-    heat = ax3.pcolor(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+    heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
     #ax3.set_xticks(np.arange(Z.shape[1])+0.5, minor=False)
     #print ax3.get_xticks()
     #print X
