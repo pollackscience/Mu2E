@@ -422,7 +422,7 @@ class Plotter:
     return surf,data_frame_dict
 
   @plot_wrapper
-  def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, do_eval = False, *conditions):
+  def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, do_3d=False, do_eval = False, *conditions):
     """Plot A vs B and C given some set of comma seperated boolean conditions.
     B and C are the independent, A is the dependent.
 
@@ -456,7 +456,16 @@ class Plotter:
     else:
       best_fit = self.fit_result.best_fit
 
-    if sim and A=='Bz':
+    if do_3d:
+      l = len(best_fit)/3
+      if A=='Br':
+        surf = ax1.plot_wireframe(X, Y, best_fit[:l].reshape(Z.shape),color='green')
+      elif A=='Bz':
+        surf = ax1.plot_wireframe(X, Y, best_fit[l:2*l].reshape(Z.shape),color='green')
+      elif A=='Bphi':
+        surf = ax1.plot_wireframe(X, Y, best_fit[2*l:].reshape(Z.shape),color='green')
+
+    elif sim and A=='Bz':
       surf = ax1.plot_wireframe(X, Y, best_fit[len(best_fit)/2:].reshape(Z.shape),color='green')
     elif sim and (A=='Br' or A=='By' or A == 'Bx'):
       surf = ax1.plot_wireframe(X, Y, best_fit[0:len(best_fit)/2].reshape(Z.shape),color='green')
@@ -483,7 +492,16 @@ class Plotter:
     fig2 = plt.figure(self.plot_count)
     #gs = gridspec.GridSpec(1, 1)
     ax3 = fig2.add_subplot(111)
-    if sim and A=='Bz':
+    if do_3d:
+      l = len(best_fit)/3
+      if A=='Br':
+        data_fit_diff = (Z - best_fit[:l].reshape(Z.shape))*10000
+      elif A=='Bz':
+        data_fit_diff = (Z - best_fit[l:2*l].reshape(Z.shape))*10000
+      elif A=='Bphi':
+        data_fit_diff = (Z - best_fit[2*l:].reshape(Z.shape))*10000
+
+    elif sim and A=='Bz':
       data_fit_diff = (Z - best_fit[len(best_fit)/2:].reshape(Z.shape))*10000
     elif sim and (A=='Br' or A=='By' or A=='Bx'):
       data_fit_diff = (Z - best_fit[0:len(best_fit)/2].reshape(Z.shape))*10000

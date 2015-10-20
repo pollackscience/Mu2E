@@ -37,6 +37,66 @@ class FieldFitter:
     self.zero_data = pd.concat([df_highz, self.input_data, df_lowz], ignore_index=True)
     self.zero_data.sort(['Z','X'],inplace=True)
 
+  def fit_3d(self,ns=5,ms=10,use_pickle = False):
+
+    Reff=9000
+    phi_slice = 1.570796
+    #input_data_phi = self.input_data[(abs(self.input_data.phi-phi_slice)<1e-6)|(self.input_data.phi==0)]
+    input_data_phi = self.input_data[(abs(self.input_data.Phi-phi_slice)<1e-6)]
+    piv_bz = input_data_phi.pivot('Z','R','Bz')
+    piv_br = input_data_phi.pivot('Z','R','Br')
+    piv_bphi = input_data_phi.pivot('Z','R','Bphi')
+    R=piv_br.columns.values
+    Z=piv_br.index.values
+    self.Bz=piv_bz.values
+    self.Br=piv_br.values
+    self.Bphi=piv_bphi.values
+    self.R,self.Z = np.meshgrid(R, Z)
+    self.Phi = np.full_like(self.R,input_data_phi.Phi.unique()[0])
+
+    piv_bz_err = input_data_phi.pivot('Z','R','Bzerr')
+    piv_br_err = input_data_phi.pivot('Z','R','Brerr')
+    piv_bphi_err = input_data_phi.pivot('Z','R','Bphierr')
+    self.Bzerr=piv_bz_err.values
+    self.Brerr=piv_br_err.values
+    self.Bphierr=piv_bphi_err.values
+
+    #self.mod = Model(brzphi_3d, independent_vars=['r','z','phi'])
+    brzphi_3d_fast = brzphi_3d_producer(self.Z,self.R,self.Phi,Reff,ns,ms)
+    self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
+
+    if use_pickle:
+      #self.params = pkl.load(open('result.p',"rb"))
+      #for param in self.params:
+      #  self.params[param].vary = False
+      #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+      #    r=self.X,z=self.Y, params = self.params,method='leastsq')
+      pass
+    else:
+
+      #b_zeros = []
+      #for n in range(ns):
+      #  b_zeros.append(special.jn_zeros(n,ms))
+      #kms = [b/R for b in b_zeros]
+
+      self.params = Parameters()
+      self.params.add('R',value=Reff,vary=False)
+      self.params.add('offset',value=0,vary=False)
+      self.params.add('ns',value=ns,vary=False)
+      self.params.add('ms',value=ms,vary=False)
+
+      for n in range(ns):
+        for m in range(ms):
+          self.params.add('A_{0}_{1}'.format(n,m),value=0)
+          self.params.add('B_{0}_{1}'.format(n,m),value=0)
+      print 'fitting with n={0}, m={1}'.format(ns,ms)
+      self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
+          weights = np.concatenate([self.Brerr,self.Bzerr,self.Bphierr]).ravel(),
+          r=self.R, z=self.Z, phi=self.Phi, params = self.params,method='leastsq')
+
+    self.params = self.result.params
+    report_fit(self.result)
+
   def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):
 
     if B=='X':Br='Bx'
@@ -69,7 +129,7 @@ class FieldFitter:
       self.params.add('R',value=9000,vary=False)
       #self.params.add('offset',value=-14000,vary=False)
       self.params.add('offset',value=0,vary=False)
-      self.params.add('C',value=0)
+      #self.params.add('C',value=0)
       self.params.add('A0',value=0)
       self.params.add('B0',value=0)
       #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')

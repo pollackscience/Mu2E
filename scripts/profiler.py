@@ -1,13 +1,23 @@
 #! /usr/bin/env python
 
 import matplotlib.pyplot as plt
+import numpy as np
 from mu2e.datafileprod import DataFileMaker
 from mu2e.hallprober import HallProbeGenerator
 from mu2e.fieldfitter import FieldFitter
 from mu2e.plotter import Plotter
 
+#use for profiling and optimizing the fitting procedure.
+#do:
+#  %run profiler
+#  %prun ff.fit_3d() or whatever fit thing
+#
+#  also, for the fit function, do
+# %lprun -f  brzphi_3d brzphi_3d(zz,rr,2,9000,ns,ms,0, **params)
+# or something similar to test the individual function lines
 
-def hallprobesim(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='halltoy',
+
+def profiler_setup(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='halltoy',
     r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', conditions = ('X==0','Z>4000','Z<14000')):
   plt.close('all')
   data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
@@ -24,28 +34,9 @@ def hallprobesim(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=Fal
   elif A=='R':Br='Br'
 
   ff = FieldFitter(toy)
-  if do_3d:
-    ff.fit_3d(ns=5,ms=40)
-  else:
-    ff.fit_2d_sim(A,B,nparams = nparams)
 
-  if fullsim:
-    df = data_maker.data_frame
-    df.By = abs(df.By)
-    df.Bx = abs(df.Bx)
-    plot_maker = Plotter.from_hall_study({magnet+'_Mau':df},fit_result = ff.result)
-    plot_maker.extra_suffix = suffix
-    plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,sim=True,do_3d=do_3d,do_eval=True,*conditions)
-    plot_maker.plot_A_v_B_and_C_fit(Br,A,B,sim=True,do_3d=do_3d,do_eval=True,*conditions)
-  else:
-    plot_maker = Plotter.from_hall_study({magnet+'_Mau':ff.input_data},fit_result = ff.result)
-    plot_maker.extra_suffix = suffix
-    plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,True,do_3d,False,*conditions)
-    plot_maker.plot_A_v_B_and_C_fit(Br,A,B,True,do_3d,False,*conditions)
-    if do_3d:
-      plot_maker.plot_A_v_B_and_C_fit('Bphi',A,B,True,do_3d,False,*conditions)
+  return ff
 
-  return data_maker, hpg, plot_maker
 
 
 if __name__ == "__main__":
@@ -53,6 +44,19 @@ if __name__ == "__main__":
   #data_maker,hpg,plot_maker = hallprobesim(magnet = 'DS',A='X',B='Z',nparams=60,fullsim=False,suffix='halltoy',
   #         r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', conditions = ('Y==0','Z>4000','Z<14000'))
 
-  data_maker,hpg,plot_maker = hallprobesim(do_3d=True, magnet = 'DS',A='R',B='Z',nparams=60,fullsim=False,suffix='halltoy3d_exp',
+  ff = profiler_setup(do_3d=True, magnet = 'DS',A='R',B='Z',nparams=60,fullsim=False,suffix='profiler',
            r_steps = range(0,600,50), z_steps = 'all', conditions = ('X==0','Z>5000','Z<14000','Phi>0'))
 
+
+  from tools.fit_funcs import brzphi_3d_producer
+  from tools.fit_funcs import brzphi_3d
+
+  zz,rr = np.meshgrid(range(8000,9000),range(1,100))
+  ns = 2
+  ms = 40
+
+  params = {}
+  for n in range(ns):
+    for m in range(ms):
+      params['A_{0}_{1}'.format(n,m)]=1
+      params['B_{0}_{1}'.format(n,m)]=1

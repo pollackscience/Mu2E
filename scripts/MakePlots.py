@@ -150,7 +150,7 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_B('Bz','Theta','Z==-4929','R>200','R<202')
   #plot_maker.plot_A_v_B('By','Y','Z==5021','X==0','Y<851','Y>-851')
   #plot_maker.plot_A_v_B('By','Y','Z==9521','X==0','Y<851','Y>-851')
-  plot_maker_ps.plot_A_v_B('By','Y','Z==-6129','X==0','Y<251','Y>-251')
+  #plot_maker_ps.plot_A_v_B('By','Y','Z==-6129','X==0','Y<251','Y>-251')
   #plot_maker.plot_A_v_B('By','Z','Z>8400','Z<10000','X==0','Y==25')
   #plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==50')
   #plot_maker.plot_A_v_B('Bz','Z','Z>8400','Z<10000','X==0','Y==75')
@@ -163,7 +163,8 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_Theta('Bz',500,'Z==-4929',300,'cubic')
   #plot_maker.plot_A_v_Theta('Br',150,'Z==-6179',300,'cubic')
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
-  #plot_maker.plot_mag_field2('X','Z',1.3,'Y==0')
+  #plot_maker.plot_mag_field2('Y','Z',1.3,'X==0','Z>14000')
 
+  plot_maker.plot_A_v_B_and_C('Bphi','Y','X',False,0,'Z==9096')
   plt.show()
 

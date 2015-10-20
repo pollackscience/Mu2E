@@ -53,7 +53,8 @@ class DataFileMaker:
       data_frame_lower.eval('Y = Y*-1')
       data_frame_lower.eval('By = By*-1')
       self.data_frame = pd.concat([self.data_frame, data_frame_lower])
-    self.data_frame['Theta'] = rt.apply_make_theta(self.data_frame['X'].values, self.data_frame['Y'].values)
+    self.data_frame['Phi'] = rt.apply_make_theta(self.data_frame['X'].values, self.data_frame['Y'].values)
+    self.data_frame['Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values, self.data_frame['Bx'].values, self.data_frame['By'].values)
     self.data_frame.sort(['X','Y','Z'],inplace=True)
     self.data_frame.reset_index(inplace = True, drop=True)
     print 'num of columns end', len(self.data_frame.index)
@@ -79,10 +80,10 @@ if __name__ == "__main__":
   #data_maker.make_dump()
 
   #for DS
-  #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
+  data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
-  data_maker = DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA03')
+  #data_maker = DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA03')
   data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()
