@@ -26,13 +26,16 @@ class HallProbeGenerator:
   """Class for generating toy outputs for mimicing the Argonne hall probe measurements.
   The input should be a dataframe made from the magnetic field simulations."""
 
-  def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10):
+  def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10,r_steps=None):
     self.full_field = input_data
     self.sparse_field = self.full_field
 
     self.apply_selection('Z',z_steps)
-    self.apply_selection('X',x_steps)
-    self.apply_selection('Y',y_steps)
+    if r_steps:
+      self.apply_selection('R',r_steps)
+    else:
+      self.apply_selection('X',x_steps)
+      self.apply_selection('Y',y_steps)
 
   def takespread(self, sequence, num):
     length = float(len(sequence))

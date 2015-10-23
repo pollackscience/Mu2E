@@ -75,7 +75,7 @@ class Plotter:
 
     self.extra_suffix = extra_suffix
 
-    self.MultiScreen = True
+    self.MultiScreen = False
     if len(AppKit.NSScreen.screens())==1:
       self.MultiScreen = False
 
@@ -507,6 +507,113 @@ class Plotter:
       data_fit_diff = (Z - best_fit[0:len(best_fit)/2].reshape(Z.shape))*10000
     else:
       data_fit_diff = (Z - best_fit.reshape(Z.shape))*10000
+
+    #heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
+    #heat = ax3.pcolor(data_fit_diff,vmin=-10,vmax=10)
+    Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+    Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+    heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+    #ax3.set_xticks(np.arange(Z.shape[1])+0.5, minor=False)
+    #print ax3.get_xticks()
+    #print X
+    #ax3.set_xticks(X[0])
+    #raw_input()
+
+    cb = plt.colorbar(heat, aspect=7)
+    cb.set_label('Data-Fit (G)')
+    ax3.set_xlabel(B)
+    ax3.set_ylabel(C)
+    #ax3.set_xticks(np.arange(Z.shape[0])+0.5, minor=False)
+    plt.show()
+    #plt.get_current_fig_manager().window.wm_geometry("-3000-600")
+    if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
+    #fig.set_size_inches(17,10,forward=True)
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+    plt.savefig(savename,transparent = True)
+    #print ax1, ax3
+    #plt.figure(fig1.number)
+    #plt.sca(ax1)
+    #for n in range(0, 365):
+    #  ax1.view_init(elev=35., azim=n)
+    #raw_input()
+    outname =  '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+    return fig1, outname
+
+  @plot_wrapper
+  def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', do_eval = False, *conditions):
+    """Plot A vs B and C given some set of comma seperated boolean conditions.
+    B and C are the independent, A is the dependent.
+
+    The distribution will be fit, or a previously made fit will displayed.
+    """
+
+    data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+    data_frame.ix[data_frame.Phi<0, 'R']*=-1
+    #data_frame.ix[==probe, 'Bz'] *= measure_sf[i]
+    print data_frame.head()
+    if not self.fit_result: raise Exception('no fit available')
+    fig1 = plt.figure(self.plot_count)
+
+    plt.rc('font', family='serif')
+    data_frame = data_frame.reindex(columns=[A,B,C])
+    piv = data_frame.pivot(C,B,A)
+    Xa=piv.columns.values
+    Ya=piv.index.values
+    X,Y = np.meshgrid(Xa, Ya)
+    Z=piv.values
+
+    #gs = gridspec.GridSpec(2, 2)
+    #gs = gridspec.GridSpec(1, 1)
+    ax1 = fig1.add_subplot(111,projection='3d')
+    scat = ax1.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
+
+    ax1.set_xlabel(B)
+    ax1.set_ylabel(C)
+    ax1.set_zlabel(A)
+
+    if do_eval:
+      best_fit = self.fit_result.eval(r=X,z=Y)
+    else:
+      best_fit = self.fit_result.best_fit
+
+    l = len(best_fit)/3
+    if A=='Br':
+      surf = ax1.plot_wireframe(X, Y, best_fit[:l].reshape(Z.shape),color='green')
+    elif A=='Bz':
+      surf = ax1.plot_wireframe(X, Y, best_fit[l:2*l].reshape(Z.shape),color='green')
+    elif A=='Bphi':
+      surf = ax1.plot_wireframe(X, Y, best_fit[2*l:].reshape(Z.shape),color='green')
+
+    if A=='Bz':
+      ax1.view_init(elev=20., azim=59)
+    else:
+      ax1.view_init(elev=35., azim=15)
+    plt.show()
+    if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+    savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+    plt.savefig(savename,transparent = True)
+
+
+    #ax2 = fig.add_subplot(gs[0,1])
+    #heat = ax2.pcolor(X,Y,Z/self.fit_result.best_fit.reshape(Z.shape),vmax=1.05,vmin=0.95)
+    #cb = plt.colorbar(heat, aspect=7)
+    #cb.set_label('Data/Fit')
+    #ax2.set_xlabel(B)
+    #ax2.set_ylabel(C)
+
+    self.plot_count+=1
+    fig2 = plt.figure(self.plot_count)
+    #gs = gridspec.GridSpec(1, 1)
+    ax3 = fig2.add_subplot(111)
+
+    l = len(best_fit)/3
+    if A=='Br':
+      data_fit_diff = (Z - best_fit[:l].reshape(Z.shape))*10000
+    elif A=='Bz':
+      data_fit_diff = (Z - best_fit[l:2*l].reshape(Z.shape))*10000
+    elif A=='Bphi':
+      data_fit_diff = (Z - best_fit[2*l:].reshape(Z.shape))*10000
 
     #heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
     #heat = ax3.pcolor(data_fit_diff,vmin=-10,vmax=10)

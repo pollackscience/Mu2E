@@ -121,6 +121,7 @@ def field_comps_set1D(plotter):
   plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==4146','-300<X<300','-300<Y<300')
 
 
+
 if __name__=="__main__":
   data_maker0=DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSmap',use_pickle = True)
   data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
