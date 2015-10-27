@@ -90,7 +90,8 @@ class FieldFitter:
       self.params = Parameters()
       self.params.add('R',value=Reff,vary=False)
       self.params.add('offset',value=0,vary=False)
-      self.params.add('delta',value=0.5)
+      self.params.add('delta',value=0.5,min=0,max=np.pi, vary=True)
+      #self.params.add('delta',value=0.005,min=-0.1,max=0.1, vary=True)
       self.params.add('ns',value=ns,vary=False)
       self.params.add('ms',value=ms,vary=False)
 

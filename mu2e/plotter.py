@@ -75,7 +75,7 @@ class Plotter:
 
     self.extra_suffix = extra_suffix
 
-    self.MultiScreen = False
+    self.MultiScreen = True
     if len(AppKit.NSScreen.screens())==1:
       self.MultiScreen = False
 

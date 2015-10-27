@@ -166,6 +166,8 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
   #plot_maker.plot_mag_field2('Y','Z',1.3,'X==0','Z>14000')
 
-  plot_maker.plot_A_v_B_and_C('Bphi','Y','X',False,0,'Z==9096')
+  #plot_maker.plot_A_v_B_and_C('Bphi','Y','X',False,0,'Z==9096')
+  plot_maker_ps.plot_mag_field2('Y','Z',1.3,'X==0','Z<-8500')
+  pl
   plt.show()
 

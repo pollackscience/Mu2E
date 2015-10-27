@@ -25,7 +25,7 @@ def hallprobesim(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=Fal
 
   ff = FieldFitter(toy)
   if do_3d:
-    ff.fit_3d_v2(ns=5,ms=20)
+    ff.fit_3d_v2(ns=4,ms=20)
   else:
     ff.fit_2d_sim(A,B,nparams = nparams)
 
