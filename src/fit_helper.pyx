@@ -4,60 +4,26 @@ from __future__ import division
 cimport cython
 cimport numpy as np
 import numpy as np
-from scipy import special
 from libc.math cimport sin
 from libc.math cimport cos
 from libc.math cimport fabs
 
 
-cpdef model_r_calc(np.ndarray[np.float64_t, ndim=2] res, np.ndarray[np.float64_t, ndim=2] z, np.ndarray[np.float64_t, ndim=2] phi,
-  int n, int i, np.float64_t delta, np.float64_t offset, np.float64_t a, np.float64_t b,
-  np.ndarray[np.float64_t, ndim=2] kms, np.ndarray[np.float64_t, ndim=4] ivp):
+        #model_r += (np.cos(n*phi)*(1-AB_params[Ds[n]]**2)-np.sin(n*phi)*(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
 
-  #cdef unsigned int r1,r2
-  #for r1 in range(phi.shape[0]):
-   # for r2 in range(phi.shape[1]):
-    #  pass
-      #res[r1][r2] += (cos(n*phi[r1][r2]+delta)*ivp[n][i][r1][r2]*kms[n][i]*(a*cos(kms[n][i]*(z[r1][r2]-offset)) + b*sin(-kms[n][i]*(z[r1][r2]-offset))))
-  pass
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.initializedcheck(False)
+cpdef np.ndarray[double, ndim=2] model_r_calc(np.ndarray[double, ndim=2] z, np.ndarray[double, ndim=2] phi,
+  double n, double d, double a, double b,
+  double kms, np.ndarray[double, ndim=2] ivp):
 
-def main():
-  r1 = np.asarray(range(-49,0), dtype=np.float64)
-  r2 = np.asarray(range(1,50), dtype=np.float64)
-  z = np.asarray(range(8000,9000), dtype=np.float64)
+  cdef unsigned int s1 = z.shape[0]
+  cdef unsigned int s2 = z.shape[1]
+  cdef np.ndarray[double, ndim=2] res = np.empty((s1,s2))
+  cdef unsigned int r1,r2
+  for r1 in range(s1):
+    for r2 in range(s2):
+      res[r1][r2] = (cos(n*phi[r1][r2]+d)*ivp[r1][r2]*kms*(a*cos(kms*(z[r1][r2])) + b*sin(-kms*(z[r1][r2]))))
 
-
-  zz,rr = np.meshgrid(z,np.concatenate([r1,r2]))
-  pp = np.full_like(rr,-2)
-  pp[:,pp.shape[1]/2:]*=-1
-
-  ns = 2
-  ms = 5
-
-  delta =0.5
-  offset = 0.0
-  a=1.1
-  b=1.1
-  R=9000.0
-
-
-  model_r = np.zeros((rr.shape[0],rr.shape[1]))
-
-
-  b_zeros = []
-  for n in range(ns):
-    b_zeros.append(special.jn_zeros(n,ms))
-  kms = np.asarray([b/R for b in b_zeros])
-  iv = np.empty((ns,ms,rr.shape[0],rr.shape[1]))
-  ivp = np.empty((ns,ms,rr.shape[0],rr.shape[1]))
-  for n in range(ns):
-    for m in range(ms):
-      iv[n][m] = special.iv(n,kms[n][m]*np.abs(rr))
-      ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(rr))
-
-  n=1
-  i=1
-  print model_r
-
-  model_r_calc(model_r,zz,pp,n,i,delta,offset,a,b,kms,ivp)
-  print model_r
+  return res

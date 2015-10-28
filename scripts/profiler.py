@@ -52,23 +52,24 @@ if __name__ == "__main__":
 
 
   from tools.fit_funcs import brzphi_3d_producer
-  from tools.fit_funcs import brzphi_3d_producer_c
+  #from tools.fit_funcs import brzphi_3d_producer_c
 
   zz,rr = np.meshgrid(np.asarray(range(8000,9000),dtype=np.float64),np.asarray(range(-49,0)+range(1,50),dtype=np.float64))
   pp = np.full_like(rr,-2)
   pp[:,pp.shape[1]/2:]*=-1
 
-  ns = 2
-  ms = 5
+  ns = 4
+  ms = 30
 
   params = {}
   for n in range(ns):
+    params['delta_{0}'.format(n)]=0.5
     for m in range(ms):
-      params['A_{0}_{1}'.format(n,m)]=1
-      params['B_{0}_{1}'.format(n,m)]=1
+      params['A_{0}_{1}'.format(n,m)]=1.0
+      params['B_{0}_{1}'.format(n,m)]=1.0
 
-  f_c = brzphi_3d_producer_c(zz,rr,pp,9000,ns,ms)
-  fout_c = f_c(zz,rr,pp,9000,ns,ms,0.5,0,**params)
+  #f_c = brzphi_3d_producer_c(zz,rr,pp,9000,ns,ms)
+  #fout_c = f_c(zz,rr,pp,9000,ns,ms,0.5,0,**params)
   f = brzphi_3d_producer(zz,rr,pp,9000,ns,ms)
-  fout = f(zz,rr,pp,9000,ns,ms,0.5,0,**params)
+  fout = f(zz,rr,pp,9000,ns,ms,0,**params)
   #src.helloworld.say_hello()

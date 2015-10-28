@@ -1,23 +1,11 @@
 #! /usr/bin/env python
 
 import pandas as pd
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
 from tools.fit_funcs import *
 from lmfit import  Model
 import cPickle as pkl
-from matplotlib import gridspec
-import mpld3
-from mpld3 import plugins, utils
-from matplotlib import animation
-import IPython.display as IPdisplay
-import glob
-from PIL import Image as PIL_Image
-from images2gif import writeGif
+from time import time
 
 class FieldFitter:
   """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
@@ -69,43 +57,51 @@ class FieldFitter:
     #self.Brerr=piv_br_err.values
     #self.Bphierr=piv_bphi_err.values
 
-    #self.mod = Model(brzphi_3d, independent_vars=['r','z','phi'])
     brzphi_3d_fast = brzphi_3d_producer(self.ZZ,self.RR,self.PP,Reff,ns,ms)
     self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
     if use_pickle:
-      #self.params = pkl.load(open('result.p',"rb"))
-      #for param in self.params:
-      #  self.params[param].vary = False
-      #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-      #    r=self.X,z=self.Y, params = self.params,method='leastsq')
-      pass
+      self.params = pkl.load(open('result.p',"rb"))
     else:
-
-      #b_zeros = []
-      #for n in range(ns):
-      #  b_zeros.append(special.jn_zeros(n,ms))
-      #kms = [b/R for b in b_zeros]
-
       self.params = Parameters()
-      self.params.add('R',value=Reff,vary=False)
-      self.params.add('offset',value=0,vary=False)
-      self.params.add('delta',value=0.5,min=0,max=np.pi, vary=True)
-      #self.params.add('delta',value=0.005,min=-0.1,max=0.1, vary=True)
-      self.params.add('ns',value=ns,vary=False)
-      self.params.add('ms',value=ms,vary=False)
 
-      for n in range(ns):
-        for m in range(ms):
-          self.params.add('A_{0}_{1}'.format(n,m),value=0)
-          self.params.add('B_{0}_{1}'.format(n,m),value=0)
-      print 'fitting with n={0}, m={1}'.format(ns,ms)
+    if 'R' not in  self.params: self.params.add('R',value=Reff,vary=False)
+    #self.params.add('delta',value=0.5,min=0,max=np.pi, vary=False)
+    #self.params.add('delta',value=0.005,min=-0.1,max=0.1, vary=True)
+    if 'ns' not in self.params: self.params.add('ns',value=ns,vary=False)
+    if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
+
+    for n in range(ns):
+      if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),value=1.5, min=0, max=np.pi)
+      else: self.params['delta_{0}'.format(n)].vary=False
+      for m in range(ms):
+        if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
+        if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
+      #print 'fitting with n={0}, m={1}'.format(n,ms)
+      #if use_pickle:
+      #  self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
+      #    r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='powell')
+      #else:
+      #  self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
+      #    r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq')
+      #self.params = self.result.params
+
+    print 'fitting with n={0}, m={1}'.format(ns,ms)
+    start_time=time()
+    if use_pickle:
       self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
           #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq')
+          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':100})
+    else:
+      self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
+          #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':100})
 
     self.params = self.result.params
-    report_fit(self.result)
+    end_time=time()
+    print("Elapsed time was %g seconds" % (end_time - start_time))
+    report_fit(self.result, show_correl=False)
+    self.pickle_results()
 
   def fit_3d(self,ns=5,ms=10,use_pickle = False):
 

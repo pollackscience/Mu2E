@@ -25,7 +25,7 @@ def hallprobesim(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=Fal
 
   ff = FieldFitter(toy)
   if do_3d:
-    ff.fit_3d_v2(ns=4,ms=20)
+    ff.fit_3d_v2(ns=5,ms=30,use_pickle=True)
   else:
     ff.fit_2d_sim(A,B,nparams = nparams)
 
@@ -45,7 +45,7 @@ def hallprobesim(do_3d = False, magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=Fal
     if do_3d:
       plot_maker.plot_A_v_B_and_C_fit_cyl('Bphi',A,B,False,*conditions)
 
-  return data_maker, hpg, plot_maker
+  return data_maker, hpg, plot_maker, ff
 
 
 if __name__ == "__main__":
@@ -53,6 +53,6 @@ if __name__ == "__main__":
   #data_maker,hpg,plot_maker = hallprobesim(magnet = 'DS',A='X',B='Z',nparams=60,fullsim=False,suffix='halltoy',
   #         r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', conditions = ('Y==0','Z>4000','Z<14000'))
 
-  data_maker,hpg,plot_maker = hallprobesim(do_3d=True, magnet = 'DS',A='R',B='Z',nparams=60,fullsim=False,suffix='halltoy3d_test',
+  data_maker,hpg,plot_maker,ff = hallprobesim(do_3d=True, magnet = 'DS',A='R',B='Z',nparams=60,fullsim=False,suffix='halltoy3d_test',
            r_steps = range(0,600,50), z_steps = 'all', conditions = ('X==0','Z>5000','Z<14000','R!=0'))
 

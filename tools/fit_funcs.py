@@ -95,68 +95,6 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
   b_zeros = []
   for n in range(ns):
     b_zeros.append(special.jn_zeros(n,ms))
-  kms = [b/R for b in b_zeros]
-  iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
-  ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
-  for n in range(ns):
-    for m in range(ms):
-      iv[n][m] = special.iv(n,kms[n][m]*abs(r))
-      ivp[n][m] = special.ivp(n,kms[n][m]*abs(r))
-
-  def brzphi_3d_fast(z,r,phi,R,ns,ms,delta,offset,**AB_params):
-  #def brzphi_3d_fast(z,r,phi,R,ns,ms,offset,**AB_params):
-    """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
-
-    model_r = 0.0
-    model_z = 0.0
-    model_phi = 0.0
-    R = R
-    ABs = sorted(AB_params,key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-    for n in range(ns):
-      for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
-
-        #model_r += np.cos(n*phi)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        #model_z += -np.cos(n*phi)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        #model_phi += -n*np.sin(n*phi)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi+delta)
-        #model_r += np.cos(n*phi+delta)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        #model_z += -np.cos(n*phi+delta)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        #model_phi += -n*np.sin(n*phi+delta)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta)
-        model_r += (np.cos(n*phi)*np.cos(delta)-np.sin(n*phi)*np.sin(delta))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        model_z += -(np.cos(n*phi)*np.cos(delta)-np.sin(n*phi)*np.sin(delta))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        model_phi += -n*(np.sin(n*phi)*np.cos(delta)+np.cos(n*phi)*np.sin(delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta), small angle for delta
-        #model_r += (np.cos(n*phi)*(1-delta**2/2)-np.sin(n*phi)*delta)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        #model_z += -(np.cos(n*phi)*(1-delta**2/2)-np.sin(n*phi)*delta)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        #model_phi += -n*(np.sin(n*phi)*(1-delta**2/2)+np.cos(n*phi)*delta)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta), small angle for delta, drop sin(delta)
-        #model_r += np.cos(n*phi)*(1-delta**2/2)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        #model_z += -np.cos(n*phi)*(1-delta**2/2)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        #model_phi += -n*np.sin(n*phi)*(1-delta**2/2)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi+delta)+sin(n*phi+delta)
-        #model_r += (np.cos(n*phi+delta)+np.sin(n*phi+delta))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-        #model_z += -(np.cos(n*phi+delta)+np.sin(n*phi+delta))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-        #model_phi += n*(-np.sin(n*phi+delta)+np.cos(n*phi+delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-    model_phi[np.isinf(model_phi)]=0
-    #m = mr(n_args,i_args,a_args,b_args)
-    #model_r = np.sum(mr(n_args,i_args,a_args,b_args),dtype=np.ndarray)
-    #model_r = np.add.reduce(m)
-    #model_r = np.sum(mr(n_args,i_args,a_args,b_args),dtype=np.ndarray)
-    return np.concatenate([model_r,model_z,model_phi]).ravel()
-  return brzphi_3d_fast
-
-
-def brzphi_3d_producer_c(z,r,phi,R,ns,ms):
-  b_zeros = []
-  for n in range(ns):
-    b_zeros.append(special.jn_zeros(n,ms))
   kms = np.asarray([b/R for b in b_zeros])
   iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
   ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
@@ -165,19 +103,80 @@ def brzphi_3d_producer_c(z,r,phi,R,ns,ms):
       iv[n][m] = special.iv(n,kms[n][m]*abs(r))
       ivp[n][m] = special.ivp(n,kms[n][m]*abs(r))
 
-  def brzphi_3d_fast(z,r,phi,R,ns,ms,delta,offset,**AB_params):
-  #def brzphi_3d_fast(z,r,phi,R,ns,ms,offset,**AB_params):
+  def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
     """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
 
-    model_r = np.zeros((r.shape[0],r.shape[1]))
+    model_r = 0.0
+    model_z = 0.0
+    model_phi = 0.0
     R = R
-    ABs = sorted(AB_params,key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    ABs = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' not in k},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    Ds = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' in k})
     for n in range(ns):
       for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
-        a = AB_params[ab[0]]
-        b = AB_params[ab[1]]
 
-        model_r_calc(model_r,z,phi,n,i,delta,offset,a,b,kms,ivp)
+        #model_r += model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],kms[n][i],ivp[n][i])
 
-    return model_r.ravel()
+        #model_r += np.cos(n*phi)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+        #model_z += -np.cos(n*phi)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+        #model_phi += -n*np.sin(n*phi)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+
+######version cos(n*phi+delta)
+        #model_r += np.cos(n*phi+AB_params[Ds[n]])*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+        #model_z += -np.cos(n*phi+AB_params[Ds[n]])*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+        #model_phi += -n*np.sin(n*phi+AB_params[Ds[n]])*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+
+######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta)
+        model_r += (np.cos(n*phi)*np.cos(AB_params[Ds[n]])-np.sin(n*phi)*np.sin(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+        model_z += -(np.cos(n*phi)*np.cos(AB_params[Ds[n]])-np.sin(n*phi)*np.sin(AB_params[Ds[n]]))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
+        model_phi += -n*(np.sin(n*phi)*np.cos(AB_params[Ds[n]])+np.cos(n*phi)*np.sin(AB_params[Ds[n]]))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+
+######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta), small angle for delta
+        #model_r += (np.cos(n*phi)*(1-AB_params[Ds[n]]**2)-np.sin(n*phi)*(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+        #model_z += -(np.cos(n*phi)*(1-AB_params[Ds[n]]**2)-np.sin(n*phi)*(AB_params[Ds[n]]))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
+        #model_phi += -n*(np.sin(n*phi)*(1-AB_params[Ds[n]]**2)+np.cos(n*phi)*(AB_params[Ds[n]]))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+
+
+######version cos(n*phi+delta)+sin(n*phi+delta)
+        #model_r += (np.cos(n*phi+delta)+np.sin(n*phi+delta))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+        #model_z += -(np.cos(n*phi+delta)+np.sin(n*phi+delta))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+        #model_phi += n*(-np.sin(n*phi+delta)+np.cos(n*phi+delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+
+    model_phi[np.isinf(model_phi)]=0
+    return np.concatenate([model_r,model_z,model_phi]).ravel()
+  return brzphi_3d_fast
+
+
+def brzphi_3d_producer_n2(z,r,phi,R,ns,ms):
+  b_zeros = []
+  for n in range(ns):
+    b_zeros.append(special.jn_zeros(n+2,ms))
+  kms = np.asarray([b/R for b in b_zeros])
+  iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
+  ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
+  for n in range(ns):
+    for m in range(ms):
+      iv[n][m] = special.iv(n+2,kms[n][m]*abs(r))
+      ivp[n][m] = special.ivp(n+2,kms[n][m]*abs(r))
+
+  #def brzphi_3d_fast(z,r,phi,R,ns,ms,delta,offset,**AB_params):
+  def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+    """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+    model_r = 0.0
+    model_z = 0.0
+    model_phi = 0.0
+    R = R
+    ABs = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' not in k},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    Ds = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' in k})
+    for n in range(ns):
+      for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta)
+        model_r += (np.cos((n+2)*phi)*np.cos(AB_params[Ds[n]])-np.sin((n+2)*phi)*np.sin(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+        model_z += -(np.cos((n+2)*phi)*np.cos(AB_params[Ds[n]])-np.sin((n+2)*phi)*np.sin(AB_params[Ds[n]]))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
+        model_phi += -(n+2)*(np.sin((n+2)*phi)*np.cos(AB_params[Ds[n]])+np.cos((n+2)*phi)*np.sin(AB_params[Ds[n]]))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+
+    model_phi[np.isinf(model_phi)]=0
+    return np.concatenate([model_r,model_z,model_phi]).ravel()
   return brzphi_3d_fast
