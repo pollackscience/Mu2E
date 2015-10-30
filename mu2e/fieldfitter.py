@@ -9,8 +9,10 @@ from time import time
 
 class FieldFitter:
   """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
-  def __init__(self, input_data):
+  def __init__(self, input_data, phi_steps = None):
     self.input_data = input_data
+    if phi_steps: self.phi_steps = phi_steps
+    else: self.phi_steps = (np.pi/2,)
     #self.add_zero_data()
 
   def add_zero_data(self):
@@ -25,12 +27,88 @@ class FieldFitter:
     self.zero_data = pd.concat([df_highz, self.input_data, df_lowz], ignore_index=True)
     self.zero_data.sort(['Z','X'],inplace=True)
 
-  def fit_3d_v2(self,ns=5,ms=10,use_pickle = False):
-
+  def fit_3d_v3(self,ns=5,ms=10,use_pickle = False):
     Reff=9000
-    phi_slice = 1.570796
-    #input_data_phi = self.input_data[(abs(self.input_data.phi-phi_slice)<1e-6)|(self.input_data.phi==0)]
-    input_data_phi = self.input_data[(abs(self.input_data.Phi)-phi_slice)<1e-6]
+    Bz = []
+    Br =[]
+    Bphi = []
+    RR =[]
+    ZZ = []
+    PP = []
+    for phi in self.phi_steps:
+      if phi==0: nphi = np.pi
+      else: nphi=phi-np.pi
+
+      input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
+      input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
+      print input_data_phi.Phi.unique()
+
+      piv_bz = input_data_phi.pivot('Z','R','Bz')
+      piv_br = input_data_phi.pivot('Z','R','Br')
+      piv_bphi = input_data_phi.pivot('Z','R','Bphi')
+
+      R = piv_br.columns.values
+      Z = piv_br.index.values
+      Bz.append(piv_bz.values)
+      Br.append(piv_br.values)
+      Bphi.append(piv_bphi.values)
+      RR_slice,ZZ_slice = np.meshgrid(R, Z)
+      RR.append(RR_slice)
+      ZZ.append(ZZ_slice)
+      PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
+      PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
+      PP.append(PP_slice)
+
+    ZZ = np.concatenate(ZZ)
+    RR = np.concatenate(RR)
+    PP = np.concatenate(PP)
+    Bz = np.concatenate(Bz)
+    Br = np.concatenate(Br)
+    Bphi = np.concatenate(Bphi)
+
+    brzphi_3d_fast = brzphi_3d_producer(ZZ,RR,PP,Reff,ns,ms)
+    self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
+
+    if use_pickle:
+      self.params = pkl.load(open('result.p',"rb"))
+    else:
+      self.params = Parameters()
+
+    if 'R' not in  self.params: self.params.add('R',value=Reff,vary=False)
+    if 'ns' not in self.params: self.params.add('ns',value=ns,vary=False)
+    if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
+
+    for n in range(ns):
+      if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),value=(np.pi/ns)*n, min=0, max=np.pi)
+      else: self.params['delta_{0}'.format(n)].vary=False
+      for m in range(ms):
+        if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
+        else: self.params['A_{0}_{1}'.format(n,m)].vary=True
+        if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
+        else: self.params['B_{0}_{1}'.format(n,m)].vary=True
+
+    print 'fitting with n={0}, m={1}'.format(ns,ms)
+    start_time=time()
+    if use_pickle:
+      self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
+          #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+          r=RR, z=ZZ, phi=PP, params = self.params,method='leastsq',fit_kws={'maxfev':500})
+    else:
+      self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
+          #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
+          r=RR, z=ZZ, phi=PP, params = self.params,method='leastsq',fit_kws={'maxfev':200})
+
+    self.params = self.result.params
+    end_time=time()
+    print("Elapsed time was %g seconds" % (end_time - start_time))
+    report_fit(self.result, show_correl=False)
+    self.pickle_results()
+
+  def fit_3d_v2(self,ns=5,ms=10,use_pickle = False):
+    Reff=9000
+    phi_slice = np.pi/2
+    input_data_phi = self.input_data[((abs(self.input_data.Phi)-phi_slice)<1e-6)|(self.input_data.Phi==0)]
+    #input_data_phi = self.input_data[(abs(self.input_data.Phi)-phi_slice)<1e-6]
     input_data_phi.ix[input_data_phi.Phi<0, 'R']*=-1
 
     piv_bz = input_data_phi.pivot('Z','R','Bz')
@@ -72,11 +150,13 @@ class FieldFitter:
     if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
 
     for n in range(ns):
-      if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),value=1.5, min=0, max=np.pi)
+      if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),value=(np.pi/ns)*n, min=0, max=np.pi)
       else: self.params['delta_{0}'.format(n)].vary=False
       for m in range(ms):
         if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
+        else: self.params['A_{0}_{1}'.format(n,m)].vary=True
         if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
+        else: self.params['B_{0}_{1}'.format(n,m)].vary=True
       #print 'fitting with n={0}, m={1}'.format(n,ms)
       #if use_pickle:
       #  self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
@@ -91,11 +171,11 @@ class FieldFitter:
     if use_pickle:
       self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
           #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':100})
+          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':500})
     else:
       self.result = self.mod.fit(np.concatenate([self.Br,self.Bz,self.Bphi]).ravel(),
           #weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':100})
+          r=self.RR, z=self.ZZ, phi=self.PP, params = self.params,method='leastsq',fit_kws={'maxfev':500})
 
     self.params = self.result.params
     end_time=time()

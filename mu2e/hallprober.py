@@ -26,16 +26,21 @@ class HallProbeGenerator:
   """Class for generating toy outputs for mimicing the Argonne hall probe measurements.
   The input should be a dataframe made from the magnetic field simulations."""
 
-  def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10,r_steps=None):
+  def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10,r_steps=None,phi_steps=(np.pi/2,)):
     self.full_field = input_data
     self.sparse_field = self.full_field
 
     self.apply_selection('Z',z_steps)
     if r_steps:
       self.apply_selection('R',r_steps)
+      self.apply_selection('Phi',phi_steps)
     else:
       self.apply_selection('X',x_steps)
       self.apply_selection('Y',y_steps)
+
+    for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
+      self.sparse_field.eval('{0}err = 0.0001*{0}'.format(mag))
+      #self.sparse_field[self.sparse_field.Z > 8000][self.sparse_field.Z < 13000].eval('{0}err = 0.0000001*{0}'.format(mag))
 
   def takespread(self, sequence, num):
     length = float(len(sequence))
@@ -52,12 +57,20 @@ class HallProbeGenerator:
         coord_vals = np.sort(self.full_field[coord].unique())
         coord_vals = self.takespread(coord_vals, steps)
         #coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
+
       else:
         coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
         coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
 
     elif isinstance(steps, collections.Sequence) and type(steps)!=str:
-      coord_vals = steps
+      if coord =='Phi':
+        coord_vals=[]
+        for step in steps:
+          coord_vals.append(step)
+          if step!=0: coord_vals.append(step-np.pi)
+          else: coord_vals.append(step+np.pi)
+      else:
+        coord_vals = steps
     elif steps=='all':
         coord_vals = np.sort(self.full_field[coord].unique())
     else:
@@ -66,10 +79,6 @@ class HallProbeGenerator:
     self.sparse_field = self.sparse_field[self.sparse_field[coord].isin(coord_vals)]
     if len(self.sparse_field[coord].unique()) != len(coord_vals):
       print 'Warning!:',set(coord_vals)-set(self.sparse_field[coord].unique()), 'not valid input_data',coord
-
-    for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
-      self.sparse_field.eval('{0}err = 0.0001*{0}'.format(mag))
-      #self.sparse_field[self.sparse_field.Z > 8000][self.sparse_field.Z < 13000].eval('{0}err = 0.0000001*{0}'.format(mag))
 
   def get_toy(self):
     return self.sparse_field

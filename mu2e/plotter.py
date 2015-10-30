@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+from __future__ import division
 import os
 import shutil
 import math
@@ -442,8 +443,6 @@ class Plotter:
     X,Y = np.meshgrid(Xa, Ya)
     Z=piv.values
 
-    #gs = gridspec.GridSpec(2, 2)
-    #gs = gridspec.GridSpec(1, 1)
     ax1 = fig1.add_subplot(111,projection='3d')
     scat = ax1.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
 
@@ -480,17 +479,8 @@ class Plotter:
     savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
 
-
-    #ax2 = fig.add_subplot(gs[0,1])
-    #heat = ax2.pcolor(X,Y,Z/self.fit_result.best_fit.reshape(Z.shape),vmax=1.05,vmin=0.95)
-    #cb = plt.colorbar(heat, aspect=7)
-    #cb.set_label('Data/Fit')
-    #ax2.set_xlabel(B)
-    #ax2.set_ylabel(C)
-
     self.plot_count+=1
     fig2 = plt.figure(self.plot_count)
-    #gs = gridspec.GridSpec(1, 1)
     ax3 = fig2.add_subplot(111)
     if do_3d:
       l = len(best_fit)/3
@@ -508,37 +498,103 @@ class Plotter:
     else:
       data_fit_diff = (Z - best_fit.reshape(Z.shape))*10000
 
-    #heat = ax3.pcolor(X,Y,data_fit_diff,vmin=-10,vmax=10)
-    #heat = ax3.pcolor(data_fit_diff,vmin=-10,vmax=10)
     Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
     Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
     heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
-    #ax3.set_xticks(np.arange(Z.shape[1])+0.5, minor=False)
-    #print ax3.get_xticks()
-    #print X
-    #ax3.set_xticks(X[0])
-    #raw_input()
 
     cb = plt.colorbar(heat, aspect=7)
     cb.set_label('Data-Fit (G)')
     ax3.set_xlabel(B)
     ax3.set_ylabel(C)
-    #ax3.set_xticks(np.arange(Z.shape[0])+0.5, minor=False)
     plt.show()
-    #plt.get_current_fig_manager().window.wm_geometry("-3000-600")
     if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-    #plt.get_current_fig_manager().window.wm_geometry("-1100-600")
-    #fig.set_size_inches(17,10,forward=True)
     savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
     plt.savefig(savename,transparent = True)
-    #print ax1, ax3
-    #plt.figure(fig1.number)
-    #plt.sca(ax1)
-    #for n in range(0, 365):
-    #  ax1.view_init(elev=35., azim=n)
-    #raw_input()
     outname =  '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
-    return fig1, outname
+    #return fig1, outname
+
+  @plot_wrapper
+  def plot_A_v_B_and_C_fit_cyl_v2(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
+    """Plot A vs B and C given some set of comma seperated boolean conditions.
+    B and C are the independent, A is the dependent.
+
+    The distribution will be fit, or a previously made fit will displayed.
+    """
+    self.plot_count-=1
+
+    for i,phi in enumerate(phi_steps):
+      data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+      self.plot_count+=1
+      if phi==0: nphi = np.pi
+      else: nphi=phi-np.pi
+
+      data_frame = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
+      data_frame.ix[np.abs(data_frame.Phi-nphi)<1e-6, 'R']*=-1
+
+      print data_frame.head()
+      if not self.fit_result: raise Exception('no fit available')
+      fig1 = plt.figure(self.plot_count)
+
+      plt.rc('font', family='serif')
+      data_frame = data_frame.reindex(columns=[A,B,C])
+      piv = data_frame.pivot(C,B,A)
+      Xa=piv.columns.values
+      Ya=piv.index.values
+      X,Y = np.meshgrid(Xa, Ya)
+      Z=piv.values
+
+      ax1 = fig1.add_subplot(111,projection='3d')
+      scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko' )
+
+      ax1.set_xlabel(B)
+      ax1.set_ylabel(C)
+      ax1.set_zlabel(A)
+
+      if do_eval:
+        best_fit = self.fit_result.eval(r=X,z=Y)
+      else:
+        best_fit = self.fit_result.best_fit
+
+      l = len(best_fit)/3
+      if A=='Br':
+        bf = best_fit[:l]
+      elif A=='Bz':
+        bf = best_fit[l:2*l]
+      elif A=='Bphi':
+        bf = best_fit[2*l:]
+      p = len(bf)
+      surf = ax1.plot_wireframe(X, Y, bf[(i/2)*p:((i+1)/2)*p].reshape(Z.shape),color='green')
+      plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+
+      if A=='Bz':
+        ax1.view_init(elev=20., azim=59)
+      else:
+        ax1.view_init(elev=35., azim=15)
+      plt.show()
+      if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+      savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+      plt.savefig(savename,transparent = True)
+
+      self.plot_count+=1
+      fig2 = plt.figure(self.plot_count)
+      ax3 = fig2.add_subplot(111)
+
+      data_fit_diff = (Z - bf[(i/2)*p:((i+1)/2)*p].reshape(Z.shape))*10000
+
+      Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+      Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+      heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+      plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+
+      cb = plt.colorbar(heat, aspect=7)
+      cb.set_label('Data-Fit (G)')
+      ax3.set_xlabel(B)
+      ax3.set_ylabel(C)
+      plt.show()
+      if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+      savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_residual.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+      plt.savefig(savename,transparent = True)
+      outname =  '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
   @plot_wrapper
   def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', do_eval = False, *conditions):
