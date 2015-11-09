@@ -166,8 +166,9 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_B_and_C('Br','X','Y',False,0, 'Z==-6179')
   #plot_maker.plot_mag_field2('Y','Z',1.3,'X==0','Z>14000')
 
-  #plot_maker.plot_A_v_B_and_C('Bphi','Y','X',False,0,'Z==9096')
-  plot_maker_ps.plot_mag_field2('Y','Z',1.3,'X==0','Z<-8500')
-  pl
+  plot_maker.plot_A_v_B_and_C('Bphi','Y','Z',False,0,'X==0','R<651','Z>4000','Z<14000')
+  plot_maker.plot_A_v_B_and_C('Bphi','Y','X',False,0,'Z==9171','-700<X<700','-700<Y<700')
+  plot_maker.plot_A_v_Theta('Bphi',500,'Z==9171',300,'cubic')
+  #plot_maker_ps.plot_mag_field2('Y','Z',1.3,'X==0','Z<-8500')
   plt.show()
 

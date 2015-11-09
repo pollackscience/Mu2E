@@ -180,11 +180,11 @@ class Plotter:
     interp_frame.eval('{0}={1}'.format(C,old_frame[C].unique()[0]))
     print 'making new Theta'
     #interp_frame['Theta'] = interp_frame.apply(self.make_theta,axis=1)
-    interp_frame['Theta'] = rt.apply_make_theta(interp_frame['X'].values, interp_frame['Y'].values)
+    interp_frame['Phi'] = rt.apply_make_theta(interp_frame['X'].values, interp_frame['Y'].values)
     print 'making new R'
     #interp_frame['R'] = interp_frame.apply(self.make_r,axis=1)
     interp_frame['R'] = rt.apply_make_r(interp_frame['X'].values, interp_frame['Y'].values)
-    interp_frame = interp_frame[['X','Y','Z','R','Theta',field]]
+    interp_frame = interp_frame[['X','Y','Z','R','Phi',field]]
     return interp_frame
 
 
@@ -544,7 +544,7 @@ class Plotter:
       Z=piv.values
 
       ax1 = fig1.add_subplot(111,projection='3d')
-      scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko' )
+      scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
 
       ax1.set_xlabel(B)
       ax1.set_ylabel(C)
@@ -563,7 +563,8 @@ class Plotter:
       elif A=='Bphi':
         bf = best_fit[2*l:]
       p = len(bf)
-      surf = ax1.plot_wireframe(X, Y, bf[(i/2)*p:((i+1)/2)*p].reshape(Z.shape),color='green')
+      bf = bf[(i/len(phi_steps))*p:((i+1)/len(phi_steps))*p]
+      surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
       plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
 
       if A=='Bz':
@@ -579,7 +580,7 @@ class Plotter:
       fig2 = plt.figure(self.plot_count)
       ax3 = fig2.add_subplot(111)
 
-      data_fit_diff = (Z - bf[(i/2)*p:((i+1)/2)*p].reshape(Z.shape))*10000
+      data_fit_diff = (Z - bf.reshape(Z.shape))*10000
 
       Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
       Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
@@ -761,9 +762,9 @@ class Plotter:
     if method!=None:
       data_frame_interp.eval('{0}err = 0.0001*{0}'.format(A))
       #plt.plot(data_frame_interp.Theta,data_frame_interp[A],'b^')
-      plt.errorbar(data_frame_interp.Theta,data_frame_interp[A],yerr=data_frame_interp[A+'err'],fmt='b^')
-    plt.plot(data_frame.Theta,data_frame[A],'ro')
-    plt.xlabel('Theta')
+      plt.errorbar(data_frame_interp.Phi,data_frame_interp[A],yerr=data_frame_interp[A+'err'],fmt='b^')
+    plt.plot(data_frame.Phi,data_frame[A],'ro')
+    plt.xlabel('Phi')
     plt.ylabel(A)
     plt.title('{0} vs Theta at {1} for R=={2}'.format(A,z_cond,r))
     ###plt.axis([-0.1, 3.24,0.22,0.26])
@@ -839,7 +840,7 @@ class Plotter:
     def cos_func(x, A,p1,p2):
       return A*np.cos(x+p1)+p2
     #popt, pcov = curve_fit(cos_func, df.Theta.values, df[mag].values, sigma=df[mag+'err'].values, absolute_sigma=True, p0=p0)
-    popt, pcov = curve_fit(cos_func, df.Theta.values, df[mag].values, sigma=df[mag+'err'].values, p0=p0)
+    popt, pcov = curve_fit(cos_func, df.Phi.values, df[mag].values, sigma=df[mag+'err'].values, p0=p0)
     try:
       std_devs = np.sqrt(np.diag(pcov))
     except:

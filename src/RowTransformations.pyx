@@ -33,10 +33,10 @@ cpdef np.ndarray[double] apply_make_theta(np.ndarray col_a, np.ndarray col_b):
   return res
 
 cdef double make_bphi(double phi, double x, double y):
-  if phi<0:
-    return -x*sin(phi)+y*cos(phi)
-  else:
-    return x*sin(phi)-y*cos(phi)
+  #if phi<0:
+  return -x*sin(phi)+y*cos(phi)
+  #else:
+  #  return -x*sin(phi)+y*cos(phi)
 
 cpdef np.ndarray[double] apply_make_bphi(np.ndarray col_phi, np.ndarray col_a, np.ndarray col_b):
   assert (col_a.dtype == np.float and col_b.dtype == np.float and col_phi.dtype == np.float)

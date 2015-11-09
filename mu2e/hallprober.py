@@ -69,14 +69,20 @@ class HallProbeGenerator:
           coord_vals.append(step)
           if step!=0: coord_vals.append(step-np.pi)
           else: coord_vals.append(step+np.pi)
-      else:
-        coord_vals = steps
+      elif coord =='R':
+        if isinstance(steps[0], collections.Sequence):
+          coord_vals = np.sort(np.unique([val for sublist in steps for val in sublist]))
+        else:
+          coord_vals = steps
     elif steps=='all':
         coord_vals = np.sort(self.full_field[coord].unique())
     else:
       raise TypeError(coord+" steps must be scalar or list of values!")
 
-    self.sparse_field = self.sparse_field[self.sparse_field[coord].isin(coord_vals)]
+    if coord=='R':
+      self.sparse_field = self.sparse_field.query('|'.join(['(-1e-6<R-'+str(i)+'<1e-6)' for i in coord_vals]))
+    else:
+      self.sparse_field = self.sparse_field[self.sparse_field[coord].isin(coord_vals)]
     if len(self.sparse_field[coord].unique()) != len(coord_vals):
       print 'Warning!:',set(coord_vals)-set(self.sparse_field[coord].unique()), 'not valid input_data',coord
 
