@@ -5,9 +5,9 @@ from scipy import special
 from lmfit import minimize, Parameters, Parameter, report_fit, Model
 import numpy as np
 import numexpr as ne
+from numba import double, int32, jit
 
 from itertools import izip
-from src.fit_helper import model_r_calc
 
 def pairwise(iterable):
   """s -> (s0,s1), (s2,s3), (s4, s5), ..."""
@@ -106,6 +106,11 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
 
   def brzphi_3d_fast(z,r,phi,R,C,ns,ms,**AB_params):
     """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+    #def model_r_calc(z,phi,n,D,A,B,ivp,kms):
+    #    return np.cos(n*phi+D)*ivp*kms*(A*np.cos(kms*z) + B*np.sin(-kms*z))
+    #jit_model_r_calc = jit(double[:,:](double[:,:],double[:,:],int32,double,double,double,double[:,:],double))(model_r_calc)
+    def numexpr_model_r_calc(z,phi,n,D,A,B,ivp,kms):
+        return ne.evaluate('cos(n*phi+D)*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
 
     model_r = -np.cos(phi)*(C)
     #model_r = 0.0
@@ -125,7 +130,9 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
         #model_phi += -n*np.sin(n*phi)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
 
 ######version cos(n*phi+delta)
-        model_r += np.cos(n*phi+AB_params[Ds[n]])*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+        #model_r += jit_model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
+        model_r += numexpr_model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
+        #model_r += np.cos(n*phi+AB_params[Ds[n]])*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
         model_z += -np.cos(n*phi+AB_params[Ds[n]])*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
         model_phi += -n*np.sin(n*phi+AB_params[Ds[n]])*(1/np.abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
 
@@ -146,6 +153,7 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
         #model_phi += n*(-np.sin(n*phi+delta)+np.cos(n*phi+delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
 
     model_phi[np.isinf(model_phi)]=0
+    print model_r.shape
     return np.concatenate([model_r,model_z,model_phi]).ravel()
   return brzphi_3d_fast
 

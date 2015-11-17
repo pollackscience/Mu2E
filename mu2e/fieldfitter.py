@@ -17,7 +17,7 @@ class FieldFitter:
     if r_steps: self.r_steps = r_steps
     else: self.r_steps = (range(25,625,50),)
 
-  def fit_3d_v4(self,ns=5,ms=10,use_pickle = False):
+  def fit_3d_v4(self,ns=5,ms=10,use_pickle = False, line_profile=False):
     Reff=9000
     Bz = []
     Br =[]
@@ -67,6 +67,8 @@ class FieldFitter:
     Bzerr = np.concatenate(Bzerr)
     Brerr = np.concatenate(Brerr)
     Bphierr = np.concatenate(Bphierr)
+    if line_profile:
+        return ZZ,RR,PP,Bz,Br,Bphi
 
     brzphi_3d_fast = brzphi_3d_producer(ZZ,RR,PP,Reff,ns,ms)
     self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
