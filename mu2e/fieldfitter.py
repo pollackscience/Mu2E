@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from tools.fit_funcs import *
 from lmfit import  Model
+from lmfit.model import  ModelResult
 import cPickle as pkl
 from time import time
 
@@ -17,7 +18,7 @@ class FieldFitter:
     if r_steps: self.r_steps = r_steps
     else: self.r_steps = (range(25,625,50),)
 
-  def fit_3d_v4(self,ns=5,ms=10,use_pickle = False, line_profile=False):
+  def fit_3d_v4(self,ns=5,ms=10,use_pickle = False, line_profile=False, recreate=False):
     Reff=9000
     Bz = []
     Br =[]
@@ -34,7 +35,7 @@ class FieldFitter:
 
       input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
       input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
-      print input_data_phi.Phi.unique()
+      #print input_data_phi.Phi.unique()
 
       piv_bz = input_data_phi.pivot('Z','R','Bz')
       piv_br = input_data_phi.pivot('Z','R','Br')
@@ -73,7 +74,7 @@ class FieldFitter:
     brzphi_3d_fast = brzphi_3d_producer(ZZ,RR,PP,Reff,ns,ms)
     self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
-    if use_pickle:
+    if use_pickle or recreate:
       self.params = pkl.load(open('result.p',"rb"))
     else:
       self.params = Parameters()
@@ -86,38 +87,41 @@ class FieldFitter:
     if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
     else: self.params['ms'].value=ms
     if 'C' not in  self.params: self.params.add('C',value=2.5752e-05, vary=True)
-    else: self.params['C'].vary=True
-    #if 'C1' not in  self.params: self.params.add('C1',value= -0.00281669, vary=False)
-    #else: self.params['C1'].vary=False
-    #if 'C2' not in  self.params: self.params.add('C2',value=0)
-    #else: self.params['C2'].vary=False
+    else: self.params['C'].vary=False
 
     for n in range(ns):
       if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
           value=delta_seeds[n], min=0, max=np.pi, vary=False)
-      else: self.params['delta_{0}'.format(n)].vary=True
+      else: self.params['delta_{0}'.format(n)].vary=False
       for m in range(ms):
         if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
         else: self.params['A_{0}_{1}'.format(n,m)].vary=False
         if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
         else: self.params['B_{0}_{1}'.format(n,m)].vary=False
 
-    print 'fitting with n={0}, m={1}'.format(ns,ms)
+    if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
     start_time=time()
-    if use_pickle:
-      self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-          #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-          r=RR, z=ZZ, phi=PP, params = self.params,method='leastsq',fit_kws={'maxfev':1000})
+    if recreate:
+        for param in self.params:
+            self.params[param].vary=False
+        self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
+                #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
+    elif use_pickle:
+        self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
+                #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
     else:
-      self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-          #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-          r=RR, z=ZZ, phi=PP, params = self.params,method='leastsq',fit_kws={'maxfev':100})
+        self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
+                #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
 
     self.params = self.result.params
     end_time=time()
-    print("Elapsed time was %g seconds" % (end_time - start_time))
-    report_fit(self.result, show_correl=False)
-    self.pickle_results()
+    if not recreate:
+        print("Elapsed time was %g seconds" % (end_time - start_time))
+        report_fit(self.result, show_correl=False)
+    if not recreate: tself.pickle_results()
 
 
   def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):
