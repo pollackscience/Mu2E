@@ -11,12 +11,13 @@ from time import time
 
 class FieldFitter:
   """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
-  def __init__(self, input_data, phi_steps = None, r_steps = None):
+  def __init__(self, input_data, phi_steps = None, r_steps = None, no_save = False):
     self.input_data = input_data
     if phi_steps: self.phi_steps = phi_steps
     else: self.phi_steps = (np.pi/2,)
     if r_steps: self.r_steps = r_steps
     else: self.r_steps = (range(25,625,50),)
+    self.no_save = no_save
 
   def fit_3d_v4(self,ns=5,ms=10,use_pickle = False, line_profile=False, recreate=False):
     Reff=9000
@@ -87,7 +88,7 @@ class FieldFitter:
     if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
     else: self.params['ms'].value=ms
     if 'C' not in  self.params: self.params.add('C',value=2.5752e-05, vary=True)
-    else: self.params['C'].vary=False
+    else: self.params['C'].vary=True
 
     for n in range(ns):
       if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
@@ -95,9 +96,9 @@ class FieldFitter:
       else: self.params['delta_{0}'.format(n)].vary=False
       for m in range(ms):
         if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
-        else: self.params['A_{0}_{1}'.format(n,m)].vary=False
+        else: self.params['A_{0}_{1}'.format(n,m)].vary=True
         if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
-        else: self.params['B_{0}_{1}'.format(n,m)].vary=False
+        else: self.params['B_{0}_{1}'.format(n,m)].vary=True
 
     if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
     start_time=time()
@@ -110,18 +111,19 @@ class FieldFitter:
     elif use_pickle:
         self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':500})
     else:
         self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
 
     self.params = self.result.params
     end_time=time()
     if not recreate:
         print("Elapsed time was %g seconds" % (end_time - start_time))
         report_fit(self.result, show_correl=False)
-    if not recreate: tself.pickle_results()
+    if not self.no_save and not recreate: self.pickle_results()
 
 
   def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):

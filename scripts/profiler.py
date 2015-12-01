@@ -6,13 +6,15 @@ from mu2e.datafileprod import DataFileMaker
 from mu2e.hallprober import HallProbeGenerator
 from mu2e.fieldfitter import FieldFitter
 from mu2e.plotter import Plotter
-from tools.fit_funcs import brzphi_3d_producer
+from mu2e.tools.fit_funcs import brzphi_3d_producer
+from pyprof2calltree import convert, visualize
 
 
 #use for profiling and optimizing the fitting procedure.
 #do:
 #  %run profiler
-#  %prun ff.fit_3d() or whatever fit thing
+#  %prun -D out.stats ff.fit_3d_v4(5,10) or whatever fit thing
+#  visualize('out.stats')
 #
 #  also, for the fit function, do
 # %lprun -f  f f(zz,rr,2,9000,ns,ms,0, **params)
@@ -35,7 +37,7 @@ def profiler_setup(magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='ha
   elif A=='Y':Br='By'
   elif A=='R':Br='Br'
 
-  ff = FieldFitter(toy,phi_steps,r_steps)
+  ff = FieldFitter(toy,phi_steps,r_steps,no_save=True)
   return ff
 
 if __name__ == "__main__":
