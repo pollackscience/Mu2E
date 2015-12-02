@@ -22,6 +22,8 @@ class DataFileMaker:
       self.data_frame = pd.read_csv(self.file_name+'.2', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     elif 'GA03' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.3', header=None, names = header_names, delim_whitespace=True, skiprows=8)
+    elif 'GA04' in self.field_map_version:
+      self.data_frame = pd.read_csv(self.file_name+'.4', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     else:
       raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
@@ -80,10 +82,10 @@ if __name__ == "__main__":
   #data_maker.make_dump()
 
   #for DS
-  data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
+  #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
-  #data_maker = DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA03')
+  data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
   data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()

@@ -130,7 +130,7 @@ if __name__=="__main__":
   #data_maker4=DataFileMaker('../FieldMapsGA03/Mu2e_DS_GA0',use_pickle = True)
   data_maker5=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
   #plot_maker = Plotter({'DS_Mau':data_maker1.data_frame,'DS_GA01':data_maker2.data_frame,'DS_GA02':data_maker3.data_frame,'DS_GA03':data_maker4.data_frame},'DS_Mau')
-  plot_maker = Plotter({'DS_Mau':data_maker1.data_frame})
+  plot_maker = Plotter({'DS_GA04':data_maker5.data_frame})
   plot_maker_ps = Plotter({'PS_Mau':data_maker0.data_frame})
   #do_sym()
   #plot_maker = Plotter(data_maker1.data_frame,suffix='DS_Mau',data_frame_dict={'DS_GA01':data_maker2.data_frame})
@@ -173,7 +173,7 @@ if __name__=="__main__":
   #plot_maker.plot_A_v_Theta('Bphi',500,'Z==9171',300,'cubic')
   #plot_maker_ps.plot_mag_field2('Y','Z',1.3,'X==0','Z<-8500')
   #plot_maker.plot_symmetry('Y','Z',False,0,'X==0','-600<Y<600','4000<Z<13000')
-  plot_maker.plot_A_v_B_and_C('Br','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-  plot_maker.plot_symmetry('Y','Z',False,0,'X==0','R<651','5000<Z<13000')
+  #plot_maker.plot_A_v_B_and_C('Br','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==0','R<651','5000<Z<13000')
   plt.show()
 
