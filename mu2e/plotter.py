@@ -26,7 +26,9 @@ import IPython.display as IPdisplay
 import glob
 from PIL import Image as PIL_Image
 from images2gif import writeGif
-import AppKit
+from sys import platform
+if platform == 'darwin':
+    import AppKit
 from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
 import plotly.graph_objs as go
 
@@ -79,8 +81,8 @@ class Plotter:
         self.extra_suffix = extra_suffix
 
         self.MultiScreen = False
-        if len(AppKit.NSScreen.screens())==1:
-            self.MultiScreen = False
+        if platform=='darwin' and len(AppKit.NSScreen.screens())==1:
+            self.MultiScreen = True
 
     @classmethod
     def from_hall_study(cls, data_frame_dict, fit_result):
