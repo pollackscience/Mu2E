@@ -174,6 +174,12 @@ if __name__=="__main__":
   #plot_maker_ps.plot_mag_field2('Y','Z',1.3,'X==0','Z<-8500')
   #plot_maker.plot_symmetry('Y','Z',False,0,'X==0','-600<Y<600','4000<Z<13000')
   #plot_maker.plot_A_v_B_and_C('Br','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-  plot_maker.plot_symmetry('X','Z',False,0,'Y==0','R<651','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==0','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==100','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==200','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==300','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==400','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==500','-600<X<600','5000<Z<13000')
+  plot_maker.plot_symmetry('X','Z',False,0,'Y==600','-600<X<600','5000<Z<13000')
   plt.show()
 

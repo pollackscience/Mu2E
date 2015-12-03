@@ -601,6 +601,96 @@ class Plotter:
             plt.savefig(savename,transparent = True)
             outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
+    @plot_wrapper
+    def plot_A_v_B_and_C_fit_cyl_ext(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
+        """Plot A vs B and C given some set of comma seperated boolean conditions.
+        B and C are the independent, A is the dependent.
+
+        The distribution will be fit, or a previously made fit will displayed.
+        """
+        self.plot_count-=1
+
+        for i,phi in enumerate(phi_steps):
+            data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+            self.plot_count+=1
+            if phi==0: nphi = np.pi
+            else: nphi=phi-np.pi
+
+            data_frame = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
+            data_frame.ix[np.abs(data_frame.Phi-nphi)<1e-6, 'R']*=-1
+            data_frame_top = data_frame[data_frame['R']>0].sort(['Z','R']).reset_index(drop=True)
+            data_frame_bottom = data_frame[data_frame['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
+            data_frame_ext = data_frame_top.copy()
+            data_frame_ext['Bphi_ext'] = data_frame_top['Bphi']+data_frame_bottom['Bphi']
+            data_frame_ext['Br_ext'] = data_frame_top['Br']-data_frame_bottom['Br']
+            data_frame_ext['Bz_ext'] = data_frame_top['Bz']-data_frame_bottom['Bz']
+
+            print data_frame.head()
+            if not self.fit_result: raise Exception('no fit available')
+            fig1 = plt.figure(self.plot_count)
+
+            plt.rc('font', family='serif')
+            data_frame_ext = data_frame_ext.reindex(columns=[A,B,C])
+            piv = data_frame_ext.pivot(C,B,A)
+            Xa=piv.columns.values
+            Ya=piv.index.values
+            X,Y = np.meshgrid(Xa, Ya)
+            Z=piv.values
+
+            ax1 = fig1.add_subplot(111,projection='3d')
+            scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
+
+            ax1.set_xlabel(B)
+            ax1.set_ylabel(C)
+            ax1.set_zlabel(A)
+
+            if do_eval:
+                best_fit = self.fit_result.eval(r=X,z=Y)
+            else:
+                best_fit = self.fit_result.best_fit
+
+            l = len(best_fit)/3
+            if A=='Br_ext':
+                bf = best_fit[:l]
+            elif A=='Bz_ext':
+                bf = best_fit[l:2*l]
+            elif A=='Bphi_ext':
+                bf = best_fit[2*l:]
+            p = len(bf)
+            bf = bf[(i/len(phi_steps))*p:((i+1)/len(phi_steps))*p]
+            surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
+            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+
+            if A=='Bz':
+                ax1.view_init(elev=20., azim=59)
+            else:
+                ax1.view_init(elev=35., azim=15)
+            plt.show()
+            if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            plt.savefig(savename,transparent = True)
+
+            self.plot_count+=1
+            fig2 = plt.figure(self.plot_count)
+            ax3 = fig2.add_subplot(111)
+
+            data_fit_diff = (Z - bf.reshape(Z.shape))*10000
+
+            Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+            Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+
+            cb = plt.colorbar(heat, aspect=7)
+            cb.set_label('Data-Fit (G)')
+            ax3.set_xlabel(B)
+            ax3.set_ylabel(C)
+            plt.show()
+            if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_residual.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            plt.savefig(savename,transparent = True)
+            outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+
     def plot_A_v_B_and_C_fit_cyl_plotly(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.
@@ -822,10 +912,10 @@ class Plotter:
         #self.plot_A_v_B_and_C('Bphi_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         self.plot_A_v_B_and_C('Br_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         self.plot_A_v_B_and_C('Br_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Bphi_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Bphi_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Bz_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Bphi_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Bphi_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Bz_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
 
     @plot_wrapper
     def plot_mag_field(self,step_size = 1,*conditions):

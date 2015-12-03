@@ -59,6 +59,7 @@ class DataFileMaker:
     self.data_frame['Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values, self.data_frame['Bx'].values, self.data_frame['By'].values)
     self.data_frame.sort(['X','Y','Z'],inplace=True)
     self.data_frame.reset_index(inplace = True, drop=True)
+    self.data_frame = self.data_frame.round(9)
     print 'num of columns end', len(self.data_frame.index)
 
   def make_dump(self,suffix=''):

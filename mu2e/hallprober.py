@@ -79,12 +79,15 @@ class HallProbeGenerator:
         else:
             raise TypeError(coord+" steps must be scalar or list of values!")
 
-        if coord=='R':
-            self.sparse_field = self.sparse_field.query('|'.join(['(-1e-6<R-'+str(i)+'<1e-6)' for i in coord_vals]))
+        if coord=='R' or coord=='Phi':
+            self.sparse_field = self.sparse_field.query('|'.join(['(-1e-6<'+coord+'-'+str(i)+'<1e-6)' for i in coord_vals]))
         else:
             self.sparse_field = self.sparse_field[self.sparse_field[coord].isin(coord_vals)]
         if len(self.sparse_field[coord].unique()) != len(coord_vals):
-            print 'Warning!:',set(coord_vals)-set(self.sparse_field[coord].unique()), 'not valid input_data',coord
+            print 'Warning!: specified vals:'
+            print np.sort(coord_vals)
+            print 'remaining vals:'
+            print np.sort(self.sparse_field[coord].unique())
 
     def get_toy(self):
         return self.sparse_field
