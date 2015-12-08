@@ -26,7 +26,7 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
             iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
-    def brzphi_3d_fast(z,r,phi,R,C,ns,ms,**AB_params):
+    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
         #def model_r_calc(z,phi,n,D,A,B,ivp,kms):
         #        return np.cos(n*phi+D)*ivp*kms*(A*np.cos(kms*z) + B*np.sin(-kms*z))
@@ -39,47 +39,39 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
         def numexpr_model_phi_calc(z,r,phi,n,D,A,B,iv,kms):
                 return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
 
-        model_r = -np.cos(phi)*(C)
-        #model_r = 0.0
+        def numexpr_model_r_ext_calc(z,r,phi,C,alpha,beta,gamma):
+            return ne.evaluate('C*sinh(gamma*z)*(beta*sin(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))+alpha*cos(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
+        def numexpr_model_phi_ext_calc(z,r,phi,C,alpha,beta,gamma):
+            return ne.evaluate('C*sinh(gamma*z)*(beta*cos(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))-alpha*sin(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
+        def numexpr_model_z_ext_calc(z,r,phi,C,alpha,beta,gamma):
+            return ne.evaluate('gamma*C*cosh(gamma*z)*sin(beta*r*sin(phi))*sin(alpha*r*cos(phi))')
+
+        model_r = 0.0
         model_z = 0.0
-        model_phi = np.sin(phi)*(C)
-        #model_phi = 0.0
+        model_phi = 0.0
         R = R
-        ABs = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' not in k},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
         Ds = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' in k})
+        Cs = sorted({k:v for (k,v) in AB_params.iteritems() if 'C' in k})
+        a = 20000
+        b = 20000
+
         for n in range(ns):
             for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
-                #model_r += model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],kms[n][i],ivp[n][i])
-
-                #model_r += np.cos(n*phi)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-                #model_z += -np.cos(n*phi)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-                #model_phi += -n*np.sin(n*phi)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-
-######version cos(n*phi+delta)
-                #model_r += jit_model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
-                #model_r += np.cos(n*phi+AB_params[Ds[n]])*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
-                #model_z += -np.cos(n*phi+AB_params[Ds[n]])*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
-                #model_phi += -n*np.sin(n*phi+AB_params[Ds[n]])*(1/np.abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
                 model_r += numexpr_model_r_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
                 model_z += numexpr_model_z_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
                 model_phi += numexpr_model_phi_calc(z,r,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
 
-######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta)
-                #model_r += (np.cos(n*phi)*np.cos(AB_params[Ds[n]])-np.sin(n*phi)*np.sin(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
-                #model_z += -(np.cos(n*phi)*np.cos(AB_params[Ds[n]])-np.sin(n*phi)*np.sin(AB_params[Ds[n]]))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
-                #model_phi += -n*(np.sin(n*phi)*np.cos(AB_params[Ds[n]])+np.cos(n*phi)*np.sin(AB_params[Ds[n]]))*(1/np.abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
+        for cn in range(5):
+            for cm in range(5):
+                alpha = cn*np.pi/a
+                beta = cm*np.pi/b
+                gamma = np.pi*np.sqrt(cn**2/a**2+cm**2/b**2)
 
-######version cos(n*phi)cos(delta)-sin(n*phi)sin(delta), small angle for delta
-                #model_r += (np.cos(n*phi)*(1-AB_params[Ds[n]]**2)-np.sin(n*phi)*(AB_params[Ds[n]]))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
-                #model_z += -(np.cos(n*phi)*(1-AB_params[Ds[n]]**2)-np.sin(n*phi)*(AB_params[Ds[n]]))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*z) + AB_params[ab[1]]*np.cos(-kms[n][i]*z))
-                #model_phi += -n*(np.sin(n*phi)*(1-AB_params[Ds[n]]**2)+np.cos(n*phi)*(AB_params[Ds[n]]))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*z) + AB_params[ab[1]]*np.sin(-kms[n][i]*z))
-
-
-######version cos(n*phi+delta)+sin(n*phi+delta)
-                #model_r += (np.cos(n*phi+delta)+np.sin(n*phi+delta))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
-                #model_z += -(np.cos(n*phi+delta)+np.sin(n*phi+delta))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
-                #model_phi += n*(-np.sin(n*phi+delta)+np.cos(n*phi+delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+                model_r += numexpr_model_r_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
+                model_z += numexpr_model_z_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
+                model_phi += numexpr_model_phi_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
 
         model_phi[np.isinf(model_phi)]=0
         return np.concatenate([model_r,model_z,model_phi]).ravel()

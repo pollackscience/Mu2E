@@ -39,7 +39,7 @@ class FieldFitter:
             input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
             input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
             input_data_phi_ext = input_data_phi_top.copy()
-            input_data_phi_ext['Bphi_ext'] = input_data_phi_top['Bphi']+input_data_phi_bottom['Bphi']
+            input_data_phi_ext['Bphi_ext'] = -(input_data_phi_top['Bphi']+input_data_phi_bottom['Bphi'])
             input_data_phi_ext['Br_ext'] = input_data_phi_top['Br']-input_data_phi_bottom['Br']
             input_data_phi_ext['Bz_ext'] = input_data_phi_top['Bz']-input_data_phi_bottom['Bz']
 
@@ -164,18 +164,22 @@ class FieldFitter:
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
         else: self.params['ms'].value=ms
-        if 'C' not in    self.params: self.params.add('C',value=2.5752e-05, vary=True)
-        else: self.params['C'].vary=True
+        #if 'C' not in    self.params: self.params.add('C',value=2.5752e-05, vary=True)
+        #else: self.params['C'].vary=True
 
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
                     value=delta_seeds[n], min=0, max=np.pi, vary=False)
-            else: self.params['delta_{0}'.format(n)].vary=False
+            else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
-                else: self.params['A_{0}_{1}'.format(n,m)].vary=True
+                else: self.params['A_{0}_{1}'.format(n,m)].vary=False
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
-                else: self.params['B_{0}_{1}'.format(n,m)].vary=True
+                else: self.params['B_{0}_{1}'.format(n,m)].vary=False
+        for cn in range(5):
+            for cm in range(5):
+                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0,vary=False)
+                else: self.params['C_{0}_{1}'.format(cn,cm)].vary=False
 
         if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         start_time=time()
@@ -192,8 +196,8 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':200})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params
         end_time=time()

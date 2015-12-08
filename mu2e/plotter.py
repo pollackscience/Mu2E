@@ -31,6 +31,7 @@ if platform == 'darwin':
     import AppKit
 from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
 import plotly.graph_objs as go
+from tools.new_iplot import new_iplot, get_plotlyjs
 
 
 class Plotter:
@@ -58,6 +59,7 @@ class Plotter:
             save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots'
         else:
             save_dir = alt_save_dir
+        self.html_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots'
 
         try: self.plot_count = plt.get_fignums()[-1]
         except: self.plot_count = 0
@@ -100,15 +102,21 @@ class Plotter:
     def init_save_dir(self,save_dir,extra=False):
         if extra:
             self.save_dir_extra = save_dir+'/'+self.suffix_extra
+            self.html_dir_extra = self.html_dir+'/'+self.suffix_extra
 
             if not os.path.exists(self.save_dir_extra):
                         os.makedirs(self.save_dir_extra)
+            if not os.path.exists(self.html_dir_extra):
+                        os.makedirs(self.html_dir_extra)
         else:
             if self.suffix!='':
                 self.save_dir=save_dir+'/'+self.suffix
+                self.html_dir=self.html_dir+'/'+self.suffix
 
             if not os.path.exists(self.save_dir):
                         os.makedirs(self.save_dir)
+            if not os.path.exists(self.html_dir):
+                        os.makedirs(self.html_dir)
 
     def polar_to_cart(self,r,theta):
         x = r * np.cos(theta)
@@ -343,6 +351,76 @@ class Plotter:
         else:
             plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
         return fig,data_frame
+
+    @plot_wrapper
+    def plot_A_v_B_and_C_plotly(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions,**kwargs):
+        """Plot A vs B and C given some set of comma seperated boolean conditions.
+        B and C are the independent, A is the dependent. A bit complicated right now to get
+        proper setup for contour plotting."""
+        init_notebook_mode()
+        layout = go.Layout(
+                        title='Plot of {0} vs {1} and {2} for DS'.format(A,B,C),
+                        autosize=False,
+                        width=650,
+                        height=650,
+                        scene=dict(
+                                xaxis=dict(
+                                        title='Z (mm)',
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                yaxis=dict(
+                                        title='R (mm)',
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                zaxis=dict(
+                                        title='Bz (T)',
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        )
+                                ),
+                        showlegend=True,
+                        )
+
+        if 'data_frame' in kwargs:
+            data_frame = kwargs['data_frame']
+        else:
+            data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+
+        if interp:
+            data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
+                    data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
+            data_frame = self.interpolate_data(data_frame, data_frame_interp_grid, field = A, x_ax = B, y_ax =C, method='cubic')
+
+        data_frame = data_frame.reindex(columns=[A,B,C])
+        piv = data_frame.pivot(B,C,A)
+        X=piv.columns.values
+        Y=piv.index.values
+        Z=piv.values
+        Xi,Yi = np.meshgrid(X, Y)
+
+        surface = go.Surface(x=Xi, y=Yi, z=Z, colorbar = go.ColorBar(title='Tesla',titleside='right'))
+        data = [surface]
+
+        fig = go.Figure(data=data, layout=layout)
+        plot_html = new_iplot(fig,show_link=False)
+        if interp:
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),  self.suffix)
+        else:
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix)
+        with open(savename,'w') as html_file:
+            html_file.write('<script type="text/javascript">'
+                    +get_plotlyjs()
+                    +'</script>'
+                    +plot_html)
+
 
     @plot_wrapper
     def plot_A_v_B_and_C_ratio(self,A='Bz',B='X',C='Z', *conditions):
@@ -623,7 +701,7 @@ class Plotter:
             data_frame_top = data_frame[data_frame['R']>0].sort(['Z','R']).reset_index(drop=True)
             data_frame_bottom = data_frame[data_frame['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
             data_frame_ext = data_frame_top.copy()
-            data_frame_ext['Bphi_ext'] = data_frame_top['Bphi']+data_frame_bottom['Bphi']
+            data_frame_ext['Bphi_ext'] = -(data_frame_top['Bphi']+data_frame_bottom['Bphi'])
             data_frame_ext['Br_ext'] = data_frame_top['Br']-data_frame_bottom['Br']
             data_frame_ext['Bz_ext'] = data_frame_top['Bz']-data_frame_bottom['Bz']
 
@@ -790,25 +868,6 @@ class Plotter:
                 do_leg = False
             fig = go.Figure(data=lines, layout=layout)
             plot_url = iplot(fig)
-
-            #surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
-
-            #data_fit_diff = (Z - bf.reshape(Z.shape))*10000
-
-            #Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
-            #Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-            #heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
-            #plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
-
-            #cb = plt.colorbar(heat, aspect=7)
-            #cb.set_label('Data-Fit (G)')
-            #ax3.set_xlabel(B)
-            #ax3.set_ylabel(C)
-            #plt.show()
-            #if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            #savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_residual.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
-            #plt.savefig(savename,transparent = True)
-            #outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
     def make_gif(self, fig,outname):
 
