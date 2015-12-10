@@ -26,7 +26,7 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
             iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
-    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+    def brzphi_3d_fast(z,r,phi,R,ns,ms,cns,cms,**AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
         #def model_r_calc(z,phi,n,D,A,B,ivp,kms):
         #        return np.cos(n*phi+D)*ivp*kms*(A*np.cos(kms*z) + B*np.sin(-kms*z))
@@ -41,10 +41,13 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
 
         def numexpr_model_r_ext_calc(z,r,phi,C,alpha,beta,gamma):
             return ne.evaluate('C*sinh(gamma*z)*(beta*sin(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))+alpha*cos(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
+            #return ne.evaluate('C*sin(gamma*z)*(beta*sin(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))+alpha*cos(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
         def numexpr_model_phi_ext_calc(z,r,phi,C,alpha,beta,gamma):
             return ne.evaluate('C*sinh(gamma*z)*(beta*cos(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))-alpha*sin(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
+            #return ne.evaluate('C*sin(gamma*z)*(beta*cos(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))-alpha*sin(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
         def numexpr_model_z_ext_calc(z,r,phi,C,alpha,beta,gamma):
             return ne.evaluate('gamma*C*cosh(gamma*z)*sin(beta*r*sin(phi))*sin(alpha*r*cos(phi))')
+            #return ne.evaluate('gamma*C*cos(gamma*z)*sinh(beta*r*sin(phi))*sinh(alpha*r*cos(phi))')
 
         model_r = 0.0
         model_z = 0.0
@@ -63,23 +66,23 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
                 model_z += numexpr_model_z_calc(z,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
                 model_phi += numexpr_model_phi_calc(z,r,phi,n,AB_params[Ds[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
 
-        for cn in range(5):
-            for cm in range(5):
+        for cn in range(1, cns+1):
+            for cm in range(1, cms+1):
                 alpha = cn*np.pi/a
                 beta = cm*np.pi/b
                 gamma = np.pi*np.sqrt(cn**2/a**2+cm**2/b**2)
 
-                model_r += numexpr_model_r_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
-                model_z += numexpr_model_z_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
-                model_phi += numexpr_model_phi_ext_calc(z,r,phi,AB_params[Cs[cm+cn*5]],alpha,beta,gamma)
+                model_r += numexpr_model_r_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma)
+                model_z += numexpr_model_z_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma)
+                model_phi += numexpr_model_phi_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma)
 
         model_phi[np.isinf(model_phi)]=0
         return np.concatenate([model_r,model_z,model_phi]).ravel()
     return brzphi_3d_fast
 
 def brzphi_ext_producer(z,r,phi,ns,ms):
-    a = 20000
-    b = 20000
+    a = 100000
+    b = 100000
 
     def brzphi_ext_fast(z,r,phi,ns,ms,**A_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""

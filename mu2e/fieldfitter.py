@@ -96,7 +96,7 @@ class FieldFitter:
         if not self.no_save and not recreate: self.pickle_results()
 
 
-    def fit_3d_v4(self,ns=5,ms=10,use_pickle = False, line_profile=False, recreate=False):
+    def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, line_profile=False, recreate=False):
         Reff=9000
         Bz = []
         Br =[]
@@ -164,8 +164,10 @@ class FieldFitter:
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
         else: self.params['ms'].value=ms
-        #if 'C' not in    self.params: self.params.add('C',value=2.5752e-05, vary=True)
-        #else: self.params['C'].vary=True
+        if 'cns' not in self.params: self.params.add('cns',value=cns,vary=False)
+        else: self.params['cns'].value=cns
+        if 'cms' not in self.params: self.params.add('cms',value=cms,vary=False)
+        else: self.params['cms'].value=cms
 
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
@@ -173,13 +175,15 @@ class FieldFitter:
             else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
-                else: self.params['A_{0}_{1}'.format(n,m)].vary=False
+                else: self.params['A_{0}_{1}'.format(n,m)].vary=True
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
-                else: self.params['B_{0}_{1}'.format(n,m)].vary=False
-        for cn in range(5):
-            for cm in range(5):
+                else: self.params['B_{0}_{1}'.format(n,m)].vary=True
+        for cn in range(1,cns+1):
+            for cm in range(1,cms+1):
                 if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0,vary=False)
-                else: self.params['C_{0}_{1}'.format(cn,cm)].vary=False
+                else:
+                    #self.params['C_{0}_{1}'.format(cn,cm)].value=0
+                    self.params['C_{0}_{1}'.format(cn,cm)].vary=True
 
         if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         start_time=time()
@@ -196,7 +200,7 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':200})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':500})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params

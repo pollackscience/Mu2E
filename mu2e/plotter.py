@@ -84,7 +84,7 @@ class Plotter:
 
         self.MultiScreen = False
         if platform=='darwin' and len(AppKit.NSScreen.screens())==1:
-            self.MultiScreen = True
+            self.MultiScreen = False
 
     @classmethod
     def from_hall_study(cls, data_frame_dict, fit_result):
@@ -361,30 +361,31 @@ class Plotter:
         layout = go.Layout(
                         title='Plot of {0} vs {1} and {2} for DS'.format(A,B,C),
                         autosize=False,
-                        width=650,
+                        width=675,
                         height=650,
                         scene=dict(
                                 xaxis=dict(
-                                        title='Z (mm)',
+                                        title='{} (mm)'.format(C),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
                                         backgroundcolor='rgb(230, 230,230)'
                                         ),
                                 yaxis=dict(
-                                        title='R (mm)',
+                                        title='{} (mm)'.format(B),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
                                         backgroundcolor='rgb(230, 230,230)'
                                         ),
                                 zaxis=dict(
-                                        title='Bz (T)',
+                                        title='{} (T)'.format(A),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
                                         backgroundcolor='rgb(230, 230,230)'
-                                        )
+                                        ),
+                                cameraposition=[[-0.1, 0.5, -0.7, -0.2], [0.0, 0, 0.0], 2.8]
                                 ),
                         showlegend=True,
                         )
@@ -406,7 +407,7 @@ class Plotter:
         Z=piv.values
         Xi,Yi = np.meshgrid(X, Y)
 
-        surface = go.Surface(x=Xi, y=Yi, z=Z, colorbar = go.ColorBar(title='Tesla',titleside='right'))
+        surface = go.Surface(x=Xi, y=Yi, z=Z, colorbar = go.ColorBar(title='Tesla',titleside='right'), colorscale = 'Viridis')
         data = [surface]
 
         fig = go.Figure(data=data, layout=layout)
@@ -416,10 +417,11 @@ class Plotter:
         else:
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix)
         with open(savename,'w') as html_file:
-            html_file.write('<script type="text/javascript">'
-                    +get_plotlyjs()
-                    +'</script>'
-                    +plot_html)
+            #html_file.write('<script type="text/javascript">'
+            #        +get_plotlyjs()
+            #        +'</script>'
+            #        +plot_html)
+            html_file.write(plot_html)
 
 
     @plot_wrapper
@@ -965,14 +967,14 @@ class Plotter:
         data_frame_diff['Br_add'] = data_frame_top['Br']+data_frame_bottom['Br']
         #self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bz_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        #self.plot_A_v_B_and_C('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        #self.plot_A_v_B_and_C('Bx_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        self.plot_A_v_B_and_C_plotly('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        self.plot_A_v_B_and_C_plotly('Bx_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('By_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('By_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bphi_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bphi_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Br_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C('Br_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Br_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C('Br_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bphi_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bphi_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)

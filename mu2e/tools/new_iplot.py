@@ -57,7 +57,8 @@ def new_iplot(figure_or_data, show_link=True, link_text='Export to plot.ly',
               layout=jlayout,
               config=jconfig)
 
-    html="""<div class="{id} loading" style="color: rgb(50,50,50);">
+    html="""<script src="../plotly.min.js"></script>
+    <div class="{id} loading" style="color: rgb(50,50,50);">
                  Drawing...</div>
                  <div id="{id}" style="height: {height}; width: {width};"
                  class="plotly-graph-div">

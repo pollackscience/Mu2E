@@ -25,7 +25,7 @@ def hallprobesim(magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='hall
     elif A=='R':Br='Br'
 
     ff = FieldFitter(toy,phi_steps,r_steps)
-    ff.fit_3d_v4(ns=10,ms=40,use_pickle=True)
+    ff.fit_3d_v4(ns=10,ms=40,cns=10,cms=10,use_pickle=True)
 
     if fullsim:
         df = data_maker.data_frame
