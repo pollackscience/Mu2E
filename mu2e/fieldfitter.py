@@ -96,7 +96,7 @@ class FieldFitter:
         if not self.no_save and not recreate: self.pickle_results()
 
 
-    def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, line_profile=False, recreate=False):
+    def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         Reff=9000
         Bz = []
         Br =[]
@@ -153,7 +153,7 @@ class FieldFitter:
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if use_pickle or recreate:
-            self.params = pkl.load(open('result.p',"rb"))
+            self.params = pkl.load(open(pickle_name+'_results.p',"rb"))
         else:
             self.params = Parameters()
         delta_seeds = [0, 0.00059746, 0.00452236, 1.82217664, 1.54383364, 0.92910890, 2.3320e-6, 1.57188824, 3.02599942, 3.04222595]
@@ -171,19 +171,22 @@ class FieldFitter:
 
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
-                    value=delta_seeds[n], min=0, max=np.pi, vary=False)
+                    #value=delta_seeds[n], min=0, max=np.pi, vary=True)
+                    value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
             else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
-                if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
+                #if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
+                if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0)
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
-                if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
+                #if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
+                if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
         for cn in range(1,cns+1):
             for cm in range(1,cms+1):
                 if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0,vary=False)
                 else:
                     #self.params['C_{0}_{1}'.format(cn,cm)].value=0
-                    self.params['C_{0}_{1}'.format(cn,cm)].vary=True
+                    self.params['C_{0}_{1}'.format(cn,cm)].vary=False
 
         if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         start_time=time()
@@ -208,7 +211,7 @@ class FieldFitter:
         if not recreate:
             print("Elapsed time was %g seconds" % (end_time - start_time))
             report_fit(self.result, show_correl=False)
-        if not self.no_save and not recreate: self.pickle_results()
+        if not self.no_save and not recreate: self.pickle_results(pickle_name)
 
 
     def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):
@@ -355,6 +358,6 @@ class FieldFitter:
         report_fit(self.result)
         #report_fit(self.params)
 
-    def pickle_results(self):
-        pkl.dump( self.result.params, open( 'result.p', "wb" ),pkl.HIGHEST_PROTOCOL )
+    def pickle_results(self,pickle_name='default'):
+        pkl.dump( self.result.params, open( pickle_name+'_results.p', "wb" ),pkl.HIGHEST_PROTOCOL )
 

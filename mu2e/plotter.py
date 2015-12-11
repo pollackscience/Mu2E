@@ -37,7 +37,7 @@ from tools.new_iplot import new_iplot, get_plotlyjs
 class Plotter:
     """Class that takes prepped dataframes and produces all kinds of neat plots and things"""
 
-    def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None):
+    def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None, no_show=False):
         """Default constructor, takes a dict of pandas DataFrame.
         (optional suffix and save dir)"""
         if clear: plt.close('all')
@@ -85,6 +85,7 @@ class Plotter:
         self.MultiScreen = False
         if platform=='darwin' and len(AppKit.NSScreen.screens())==1:
             self.MultiScreen = False
+        self.no_show= no_show
 
     @classmethod
     def from_hall_study(cls, data_frame_dict, fit_result):
@@ -197,6 +198,7 @@ class Plotter:
         #interp_frame['R'] = interp_frame.apply(self.make_r,axis=1)
         interp_frame['R'] = rt.apply_make_r(interp_frame['X'].values, interp_frame['Y'].values)
         interp_frame = interp_frame[['X','Y','Z','R','Phi',field]]
+        print 'interp made'
         return interp_frame
 
 
@@ -306,51 +308,55 @@ class Plotter:
         Xi,Yi = np.meshgrid(X, Y)
 
         fig = plt.figure(self.plot_count).gca(projection='3d')
-        surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
-                                linewidth=0, antialiased=False)
-        fig.zaxis.set_major_locator(LinearLocator(10))
-        fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-        if 'PS' in self.suffix:
-            fig.view_init(elev=20., azim=45)
+        if self.no_show:
+            return fig,data_frame
         else:
-            fig.view_init(elev=20., azim=-117)
+            surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                                    linewidth=0, antialiased=False)
+            fig.zaxis.set_major_locator(LinearLocator(10))
+            fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+            if 'PS' in self.suffix:
+                fig.view_init(elev=20., azim=45)
+            else:
+                fig.view_init(elev=20., azim=-117)
 
-        #cb = plt.colorbar(surf, shrink=0.5, aspect=5)
-        #cb.set_label(A)
+            #cb = plt.colorbar(surf, shrink=0.5, aspect=5)
+            #cb.set_label(A)
 
-        plt.xlabel(C)
-        plt.ylabel(B)
-        fig.set_zlabel(A)
-        #return fig
-        #plt.ticklabel_format(style='sci', axis='z', scilimits=(0,0))
-        fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
-        fig.zaxis.labelpad=20
-        fig.zaxis.set_tick_params(direction='out',pad=10)
-        #fig.zaxis._axinfo['label']['space_factor'] = 2.2
-        plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
-        #plt.axis([-0.1, 3.24,0.22,0.26])
-        #plt.grid(True)
-        if interp:
-            plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
-        else:
-            plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+            plt.xlabel(C)
+            plt.ylabel(B)
+            fig.set_zlabel(A)
+            #return fig
+            #plt.ticklabel_format(style='sci', axis='z', scilimits=(0,0))
+            fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+            fig.zaxis.labelpad=20
+            fig.zaxis.set_tick_params(direction='out',pad=10)
+            #fig.zaxis._axinfo['label']['space_factor'] = 2.2
+            plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
+            #plt.axis([-0.1, 3.24,0.22,0.26])
+            #plt.grid(True)
+            if interp:
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+            else:
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
 
-        self.plot_count+=1
-        fig = plt.figure(self.plot_count)
-        heat = plt.pcolormesh(Xi,Yi,Z)
+            self.plot_count+=1
+            fig = plt.figure(self.plot_count)
+            heat = plt.pcolormesh(Xi,Yi,Z)
 
-        cb = plt.colorbar(heat, shrink=0.5, aspect=5)
-        cb.set_label(A)
+            cb = plt.colorbar(heat, shrink=0.5, aspect=5)
+            cb.set_label(A)
 
-        plt.xlabel(C)
-        plt.ylabel(B)
-        plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
-        plt.grid(True)
-        if interp:
-            plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
-        else:
-            plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
-        return fig,data_frame
+            plt.xlabel(C)
+            plt.ylabel(B)
+            plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
+            plt.grid(True)
+            if interp:
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+            else:
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+
+            return fig,data_frame
 
     @plot_wrapper
     def plot_A_v_B_and_C_plotly(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions,**kwargs):
@@ -359,7 +365,7 @@ class Plotter:
         proper setup for contour plotting."""
         init_notebook_mode()
         layout = go.Layout(
-                        title='Plot of {0} vs {1} and {2} for DS'.format(A,B,C),
+                        title='Plot of {0} vs {1} and {2} for DS, {3}'.format(A,B,C,conditions[0]),
                         autosize=False,
                         width=675,
                         height=650,
