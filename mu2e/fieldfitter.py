@@ -183,10 +183,10 @@ class FieldFitter:
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
         for cn in range(1,cns+1):
             for cm in range(1,cms+1):
-                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0,vary=False)
+                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0.0001,vary=True)
                 else:
                     #self.params['C_{0}_{1}'.format(cn,cm)].value=0
-                    self.params['C_{0}_{1}'.format(cn,cm)].vary=False
+                    self.params['C_{0}_{1}'.format(cn,cm)].vary=True
 
         if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         start_time=time()
@@ -204,6 +204,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':500})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params

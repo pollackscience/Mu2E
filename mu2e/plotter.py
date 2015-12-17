@@ -676,7 +676,7 @@ class Plotter:
 
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
+            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10,cmap=plt.get_cmap('viridis'))
             plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
 
             cb = plt.colorbar(heat, aspect=7)

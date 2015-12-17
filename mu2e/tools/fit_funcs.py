@@ -40,14 +40,14 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
                 return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
 
         def numexpr_model_r_ext_calc(z,r,phi,C,alpha,beta,gamma):
-            return ne.evaluate('C*sinh(gamma*z)*(beta*sin(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))+alpha*cos(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
-            #return ne.evaluate('C*sin(gamma*z)*(beta*sin(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))+alpha*cos(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
+            return ne.evaluate('C*sinh(gamma*z)*(beta*sin(phi)*sin(alpha*abs(r)*cos(phi))*cos(beta*abs(r)*sin(phi))+alpha*cos(phi)*cos(alpha*abs(r)*cos(phi))*sin(beta*abs(r)*sin(phi)))')
+            #return ne.evaluate('C*sin(gamma*z)*(beta*sin(phi)*sinh(alpha*abs(r)*cos(phi))*cosh(beta*abs(r)*sin(phi))+alpha*cos(phi)*cosh(alpha*abs(r)*cos(phi))*sinh(beta*abs(r)*sin(phi)))')
         def numexpr_model_phi_ext_calc(z,r,phi,C,alpha,beta,gamma):
-            return ne.evaluate('C*sinh(gamma*z)*(beta*cos(phi)*sin(alpha*r*cos(phi))*cos(beta*r*sin(phi))-alpha*sin(phi)*cos(alpha*r*cos(phi))*sin(beta*r*sin(phi)))')
-            #return ne.evaluate('C*sin(gamma*z)*(beta*cos(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))-alpha*sin(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
+            return ne.evaluate('C*sinh(gamma*z)*(beta*cos(phi)*sin(alpha*abs(r)*cos(phi))*cos(beta*abs(r)*sin(phi))-alpha*sin(phi)*cos(alpha*abs(r)*cos(phi))*sin(beta*abs(r)*sin(phi)))')
+            #return ne.evaluate('C*sin(gamma*z)*(beta*cos(phi)*sinh(alpha*abs(r)*cos(phi))*cosh(beta*abs(r)*sin(phi))-alpha*sin(phi)*cosh(alpha*abs(r)*cos(phi))*sinh(beta*abs(r)*sin(phi)))')
         def numexpr_model_z_ext_calc(z,r,phi,C,alpha,beta,gamma):
-            return ne.evaluate('gamma*C*cosh(gamma*z)*sin(beta*r*sin(phi))*sin(alpha*r*cos(phi))')
-            #return ne.evaluate('gamma*C*cos(gamma*z)*sinh(beta*r*sin(phi))*sinh(alpha*r*cos(phi))')
+            return ne.evaluate('gamma*C*cosh(gamma*z)*sin(beta*abs(r)*sin(phi))*sin(alpha*abs(r)*cos(phi))')
+            #return ne.evaluate('gamma*C*cos(gamma*z)*sinh(beta*abs(r)*sin(phi))*sinh(alpha*abs(r)*cos(phi))')
 
         model_r = 0.0
         model_z = 0.0

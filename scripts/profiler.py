@@ -17,7 +17,7 @@ from pyprof2calltree import convert, visualize
 #  visualize('out.stats')
 #
 #  also, for the fit function, do
-# %lprun -f  f f(zz,rr,2,9000,ns,ms,0, **params)
+# %lprun -f  f f(ZZ,RR,PP,9000,ns,ms,cns,cms,**params)
 # or something similar to test the individual function lines
 
 
@@ -51,6 +51,8 @@ if __name__ == "__main__":
 
   ns = 5
   ms = 50
+  cns = 10
+  cms = 10
 
   ZZ,RR,PP,Bz,Br,Bphi = ff.fit_3d_v4(ns,ms,line_profile=True)
 
@@ -60,9 +62,12 @@ if __name__ == "__main__":
     for m in range(ms):
       params['A_{0}_{1}'.format(n,m)]=1.0
       params['B_{0}_{1}'.format(n,m)]=1.0
+  for cn in range(1,cns+1):
+    for cm in range(1,cms+1):
+      params['C_{0}_{1}'.format(cn,cm)]=1.0
 
   #f_c = brzphi_3d_producer_c(zz,rr,pp,9000,ns,ms)
   #fout_c = f_c(zz,rr,pp,9000,ns,ms,0.5,0,**params)
   f = brzphi_3d_producer(ZZ,RR,PP,9000,ns,ms)
-  fout = f(ZZ,RR,PP,9000,0,ns,ms,**params)
+  fout = f(ZZ,RR,PP,9000,ns,ms,cns,cms,**params)
   #src.helloworld.say_hello()

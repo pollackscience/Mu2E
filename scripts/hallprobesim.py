@@ -13,7 +13,8 @@ def hallprobesim(magnet = 'DS',A='Y',B='Z',fullsim=False,suffix='halltoy',
         ns = 10, ms = 40, cns = 10, cms = 10, use_pickle = False, pickle_name='default',
         conditions = ('X==0','Z>4000','Z<14000')):
     plt.close('all')
-    data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
+    #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
+    data_maker=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
     input_data = data_maker.data_frame
     for condition in conditions:
         input_data = input_data.query(condition)
@@ -88,6 +89,6 @@ if __name__ == "__main__":
     r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
     data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy3d_test',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 20, ms = 40, cns = 10, cms = 10,
-          use_pickle = False, pickle_name='eight_phi',
+          ns = 20, ms = 40, cns = 0, cms = 0,
+          use_pickle = True, pickle_name='eight_phi',
           conditions = ('Z>5000','Z<13000','R!=0'))
