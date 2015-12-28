@@ -89,6 +89,6 @@ if __name__ == "__main__":
     r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
     data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy3d_test',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 20, ms = 40, cns = 0, cms = 0,
+          ns = 20, ms = 40, cns = 10, cms = 10,
           use_pickle = True, pickle_name='eight_phi',
           conditions = ('Z>5000','Z<13000','R!=0'))

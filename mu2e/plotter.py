@@ -514,6 +514,83 @@ class Plotter:
 
         return surf,data_frame_dict
 
+    def plot_A_v_B_and_C_ratio_plotly(self,A='Bz',B='X',C='Z', *conditions):
+        """Plot A vs B and C given some set of comma seperated boolean conditions.
+        B and C are the independent, A is the dependent.
+
+        The ratio plotter will plot 2N-1 plots, where N is the number of items in the data dictionary.
+        Each data set will be plotted, and ratios will also be plotted for main/extras.
+        """
+        init_notebook_mode()
+        layout = go.Layout(
+                        #title='Plot of {0}/{1}, {2} vs {3} and {4} for DS, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]),
+                        autosize=False,
+                        width=675,
+                        height=650,
+                        scene=dict(
+                                xaxis=dict(
+                                        title='{} (mm)'.format(C),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                yaxis=dict(
+                                        title='{} (mm)'.format(B),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                zaxis=dict(
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                cameraposition=[[-0.1, 0.5, -0.7, -0.2], [0.0, 0, 0.0], 2.8]
+                                ),
+                        showlegend=True,
+                        )
+
+
+        labels = self.data_frame_dict.keys()
+        labels = [re.sub('_','\_',i) for i in labels]
+
+        data_frame_dict = OrderedDict()
+        piv_dict = OrderedDict()
+        X = None
+        Y = None
+        Xi = None
+        Yi = None
+        surf = None
+        for i,key in enumerate(self.data_frame_dict):
+            data_frame_dict[key] = self.data_frame_dict[key].query(' and '.join(conditions))
+            data_frame_dict[key] = data_frame_dict[key].reindex(columns=[A,B,C])
+
+            piv_dict[key] = data_frame_dict[key].pivot(B,C,A)
+            if i==0:
+                X=piv_dict[key].columns.values
+                Y=piv_dict[key].index.values
+                Xi,Yi = np.meshgrid(X, Y)
+            Z=piv_dict[key].values
+
+            if i>0:
+                surface = go.Surface(x=Xi, y=Yi, z=piv_dict.values()[0].values/Z, colorbar = go.ColorBar(title='{0}/{1}'.format(piv_dict.keys()[0],key),titleside='right'), colorscale = 'Viridis')
+                data = [surface]
+
+                layout['title']=('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
+                #layout['scene']['zaxis']['title']='{0}/{1}'.format(piv_dict.keys()[0],key)
+                fig = go.Figure(data=data, layout=layout)
+                plot_html = new_iplot(fig,show_link=False)
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key)
+                with open(savename,'w') as html_file:
+                    #html_file.write('<script type="text/javascript">'
+                    #        +get_plotlyjs()
+                    #        +'</script>'
+                    #        +plot_html)
+                    html_file.write(plot_html)
+
     @plot_wrapper
     def plot_A_v_B_and_C_fit(self,A='Bz',B='X',C='Z', sim=False, do_3d=False, do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.

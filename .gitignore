@@ -65,6 +65,7 @@ target/
 *.gz
 *.p
 *.csv
+*.table
 
 # MSFT Files
 *.doc*

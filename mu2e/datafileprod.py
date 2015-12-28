@@ -8,14 +8,16 @@ import re
 
 class DataFileMaker:
   """Convert Field Map plain text into pandas Data File"""
-  def __init__(self, file_name,header_names = None,use_pickle = False,field_map_version='Mau'):
+  def __init__(self, file_name,header_names = None,use_pickle = False,field_map_version='Mau9'):
     self.file_name = re.sub('\.\w*$','',file_name)
     self.field_map_version = field_map_version
     if header_names == None: header_names = ['X','Y','Z','Bx','By','Bz']
     if use_pickle:
       self.data_frame = pkl.load(open(self.file_name+'.p',"rb"))
-    elif 'Mau' in self.field_map_version:
+    elif 'Mau9' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.txt', header=None, names = header_names, delim_whitespace=True)
+    elif 'Mau10' in self.field_map_version:
+      self.data_frame = pd.read_csv(self.file_name+'.table', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     elif 'GA01' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.1', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     elif 'GA02' in self.field_map_version:
@@ -50,7 +52,7 @@ class DataFileMaker:
 
     self.data_frame['R'] = rt.apply_make_r(self.data_frame['X'].values, self.data_frame['Y'].values)
     self.data_frame['Br'] = rt.apply_make_r(self.data_frame['Bx'].values, self.data_frame['By'].values)
-    if any([vers in self.field_map_version for vers in ['Mau','GA01']]):
+    if any([vers in self.field_map_version for vers in ['Mau9','Mau10','GA01']]):
       data_frame_lower = self.data_frame.query('Y >0')
       data_frame_lower.eval('Y = Y*-1')
       data_frame_lower.eval('By = By*-1')
@@ -86,7 +88,10 @@ if __name__ == "__main__":
   #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
-  data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
+  #data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
+  #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
+  #data_maker = DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
+  data_maker = DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()
