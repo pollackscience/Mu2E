@@ -91,7 +91,7 @@ if __name__ == "__main__":
     data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy_DS_only',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
           ns = 10, ms = 50, cns =0, cms = 0,
-          use_pickle = False, pickle_name='eight_phi',
+          use_pickle = True, pickle_name='eight_phi',
           conditions = ('Z>5000','Z<13000','R!=0'))
 
 #four-phi settings, half rotation

@@ -36,12 +36,9 @@ class FieldFitter:
 
             input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
             input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
-            if phi>np.pi/2:
-                input_data_phi_bottom = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
-                input_data_phi_top = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
-            else:
-                input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
-                input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
+
+            input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
+            input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
             input_data_phi_ext = input_data_phi_top.copy()
             input_data_phi_ext['Bphi_ext'] = -(input_data_phi_top['Bphi']+input_data_phi_bottom['Bphi'])
             input_data_phi_ext['Br_ext'] = input_data_phi_top['Br']-input_data_phi_bottom['Br']
@@ -117,6 +114,9 @@ class FieldFitter:
 
             input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
             input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
+            if phi>np.pi/2:
+                input_data_phi.Phi=input_data_phi.Phi+np.pi
+                input_data_phi.ix[input_data_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
             #print input_data_phi.Phi.unique()
 
             piv_bz = input_data_phi.pivot('Z','R','Bz')
