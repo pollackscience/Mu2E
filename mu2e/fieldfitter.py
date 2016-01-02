@@ -36,8 +36,12 @@ class FieldFitter:
 
             input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
             input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
-            input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
-            input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
+            if phi>np.pi/2:
+                input_data_phi_bottom = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
+                input_data_phi_top = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
+            else:
+                input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
+                input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
             input_data_phi_ext = input_data_phi_top.copy()
             input_data_phi_ext['Bphi_ext'] = -(input_data_phi_top['Bphi']+input_data_phi_bottom['Bphi'])
             input_data_phi_ext['Br_ext'] = input_data_phi_top['Br']-input_data_phi_bottom['Br']
@@ -172,7 +176,7 @@ class FieldFitter:
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
                     #value=delta_seeds[n], min=0, max=np.pi, vary=True)
-                    value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
+                    value=n*(2*np.pi/ns), min=0, max=2*np.pi, vary=True)
             else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
                 #if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
@@ -199,11 +203,11 @@ class FieldFitter:
         elif use_pickle:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':500})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':500})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 

@@ -699,6 +699,8 @@ class Plotter:
 
             data_frame = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
             data_frame.ix[np.abs(data_frame.Phi-nphi)<1e-6, 'R']*=-1
+            if phi>np.pi/2:
+                data_frame.R=data_frame.R*-1
 
             print data_frame.head()
             if not self.fit_result: raise Exception('no fit available')

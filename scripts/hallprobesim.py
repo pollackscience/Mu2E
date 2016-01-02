@@ -14,7 +14,8 @@ def hallprobesim(magnet = 'DS',A='Y',B='Z',fullsim=False,suffix='halltoy',
         conditions = ('X==0','Z>4000','Z<14000')):
     plt.close('all')
     #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
-    data_maker=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
+    #data_maker=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
+    data_maker= DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
     input_data = data_maker.data_frame
     for condition in conditions:
         input_data = input_data.query(condition)
@@ -87,8 +88,26 @@ if __name__ == "__main__":
 
     phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
     r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
-    data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy3d_test',
+    data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy_DS_only',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 20, ms = 40, cns = 10, cms = 10,
-          use_pickle = True, pickle_name='eight_phi',
+          ns = 10, ms = 50, cns =0, cms = 0,
+          use_pickle = False, pickle_name='eight_phi',
           conditions = ('Z>5000','Z<13000','R!=0'))
+
+#four-phi settings, half rotation
+    '''
+    pi8r = [55.90169944,   111.80339887,   167.70509831,   223.60679775,
+            279.50849719,   335.41019662,   391.31189606]
+    pi4r = [35.35533906,    106.06601718,   141.42135624,
+            212.13203436,   282.84271247, 318.19805153, 388.90872965]
+    pi2r = range(25,326,50)
+
+    #phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444)
+    phi_steps = (2.034444,  3*np.pi/4, 2.677945)
+    r_steps = (pi8r, pi4r, pi8r)
+    data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy_DS_only',
+          r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
+          ns = 10, ms = 50, cns =0, cms = 0,
+          use_pickle = True, pickle_name='three_phi',
+          conditions = ('Z>5000','Z<13000','R!=0'))
+    '''
