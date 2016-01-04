@@ -366,9 +366,9 @@ class Plotter:
         init_notebook_mode()
         layout = go.Layout(
                         title='Plot of {0} vs {1} and {2} for DS, {3}'.format(A,B,C,conditions[0]),
-                        autosize=False,
-                        width=675,
-                        height=650,
+                        #autosize=False,
+                        #width=675,
+                        #height=650,
                         scene=dict(
                                 xaxis=dict(
                                         title='{} (mm)'.format(C),
@@ -867,10 +867,9 @@ class Plotter:
         """
         init_notebook_mode()
         layout = go.Layout(
-                        title='Plot of Bz for DS',
                         autosize=False,
-                        width=1000,
-                        height=1000,
+                        width=675,
+                        height=650,
                         scene=dict(
                                 xaxis=dict(
                                         title='R (mm)',
@@ -897,9 +896,16 @@ class Plotter:
                         showlegend=True,
                         )
 
+        layout_heat = go.Layout(
+                        autosize=False,
+                        width=675,
+                        height=650,
+                        xaxis=dict(title='R (mm)'),
+                        yaxis=dict(title='Z (mm)'),
+        )
+
         #phi_steps = (0,)
         for i,phi in enumerate(phi_steps):
-            if i!=0: continue
             data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
             if phi==0: nphi = np.pi
             else: nphi=phi-np.pi
@@ -954,8 +960,27 @@ class Plotter:
                 else:
                         lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines', line=line_marker, name='fit',legendgroup='fitgroup',showlegend=False))
                 do_leg = False
+            layout['title']='Plot of {0} vs {1} and {2} for {3}, phi={4}'.format(A,B,C,self.suffix,phi),
             fig = go.Figure(data=lines, layout=layout)
-            plot_url = iplot(fig)
+
+            plot_html = new_iplot(fig,show_link=False)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            with open(savename,'w') as html_file:
+                html_file.write(plot_html)
+
+            data_fit_diff = (Z - bf.reshape(Z.shape))*10000
+            Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+            Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+
+            trace = go.Heatmap(x=Xa, y=Ya, z=data_fit_diff, colorscale='Viridis', colorbar=dict(title='Data-Fit (G)'),zmin=-2,zmax=2)
+            layout_heat['title']='Residuals of {0} vs {1} and {2} for {3}, phi={4}'.format(A,B,C,self.suffix,phi),
+
+            fig = go.Figure(data=[trace], layout = layout_heat)
+            plot_html = new_iplot(fig,show_link=False)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            with open(savename,'w') as html_file:
+                html_file.write(plot_html)
+            #plot_url = iplot(fig)
 
     def make_gif(self, fig,outname):
 

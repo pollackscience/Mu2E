@@ -11,11 +11,12 @@ from mu2e.plotter import Plotter
 def hallprobesim(magnet = 'DS',A='Y',B='Z',fullsim=False,suffix='halltoy',
         r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', phi_steps = (0,np.pi/2),
         ns = 10, ms = 40, cns = 10, cms = 10, use_pickle = False, pickle_name='default',
-        conditions = ('X==0','Z>4000','Z<14000')):
+        conditions = ('X==0','Z>4000','Z<14000'), recreate=False ):
     plt.close('all')
     #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
     #data_maker=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
     data_maker= DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
+    #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = True)
     input_data = data_maker.data_frame
     for condition in conditions:
         input_data = input_data.query(condition)
@@ -29,18 +30,26 @@ def hallprobesim(magnet = 'DS',A='Y',B='Z',fullsim=False,suffix='halltoy',
     elif A=='R':Br='Br'
 
     ff = FieldFitter(toy,phi_steps,r_steps)
-    ff.fit_3d_v4(ns=ns,ms=ms,cns=cns,cms=cms,use_pickle=use_pickle,pickle_name = pickle_name)
+    ff.fit_3d_v4(ns=ns,ms=ms,cns=cns,cms=cms,use_pickle=use_pickle,pickle_name = pickle_name,recreate=recreate)
 
-    if fullsim:
-        df = data_maker.data_frame
-        df.By = abs(df.By)
-        df.Bx = abs(df.Bx)
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau':df},fit_result = ff.result)
+    if recreate:
+        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
         plot_maker.extra_suffix = suffix
-        plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,sim=True,do_3d=True,do_eval=True,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit(Br,A,B,sim=True,do_3d=True,do_eval=True,*conditions)
+        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly('Bz',A,B,phi_steps,False,*conditions)
+        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(Br,A,B,phi_steps,False,*conditions)
+        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly('Bphi',A,B,phi_steps,False,*conditions)
+    elif fullsim:
+        pass
+#fix this
+        #df = data_maker.data_frame
+        #df.By = abs(df.By)
+        #df.Bx = abs(df.Bx)
+        #plot_maker = Plotter.from_hall_study({magnet+'_Mau10':df},fit_result = ff.result)
+        #plot_maker.extra_suffix = suffix
+        #plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,sim=True,do_3d=True,do_eval=True,*conditions)
+        #plot_maker.plot_A_v_B_and_C_fit(Br,A,B,sim=True,do_3d=True,do_eval=True,*conditions)
     else:
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau':ff.input_data},fit_result = ff.result)
+        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
         plot_maker.extra_suffix = suffix
         plot_maker.plot_A_v_B_and_C_fit_cyl_v2('Bz',A,B,phi_steps,False,*conditions)
         plot_maker.plot_A_v_B_and_C_fit_cyl_v2(Br,A,B,phi_steps,False,*conditions)
@@ -91,8 +100,9 @@ if __name__ == "__main__":
     data_maker,hpg,plot_maker,ff = hallprobesim(magnet = 'DS',A='R',B='Z',fullsim=False,suffix='halltoy_DS_only',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
           ns = 10, ms = 50, cns =0, cms = 0,
+          #use_pickle = True, pickle_name='eight_phi_and_ext',
           use_pickle = True, pickle_name='eight_phi',
-          conditions = ('Z>5000','Z<13000','R!=0'))
+          conditions = ('Z>5000','Z<13000','R!=0'),recreate=True)
 
 #four-phi settings, half rotation
     '''
