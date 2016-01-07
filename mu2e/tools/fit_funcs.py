@@ -28,16 +28,13 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
 
     def brzphi_3d_fast(z,r,phi,R,ns,ms,cns,cms,**AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
-        #def model_r_calc(z,phi,n,D,A,B,ivp,kms):
-        #        return np.cos(n*phi+D)*ivp*kms*(A*np.cos(kms*z) + B*np.sin(-kms*z))
-        #jit_model_r_calc = jit(double[:,:](double[:,:],double[:,:],int32,double,double,double,double[:,:],double))(model_r_calc)
 
         def numexpr_model_r_calc(z,phi,n,D,A,B,ivp,kms):
-                return ne.evaluate('cos(n*phi+D)*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
+            return ne.evaluate('cos(n*phi+D)*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
         def numexpr_model_z_calc(z,phi,n,D,A,B,iv,kms):
-                return ne.evaluate('-cos(n*phi+D)*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
+            return ne.evaluate('-cos(n*phi+D)*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
         def numexpr_model_phi_calc(z,r,phi,n,D,A,B,iv,kms):
-                return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
+            return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
 
         def numexpr_model_r_ext_calc(z,r,phi,C,alpha,beta,gamma):
             return ne.evaluate('C*sinh(gamma*z)*(beta*sin(phi)*sin(alpha*abs(r)*cos(phi))*cos(beta*abs(r)*sin(phi))+alpha*cos(phi)*cos(alpha*abs(r)*cos(phi))*sin(beta*abs(r)*sin(phi)))')

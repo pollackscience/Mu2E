@@ -19,84 +19,6 @@ class FieldFitter:
         else: self.r_steps = (range(25,625,50),)
         self.no_save = no_save
 
-    def fit_external_field(self,ns=5,ms=10,use_pickle = False, line_profile=False, recreate=False):
-        Reff=9000
-        Bz = []
-        Br =[]
-        Bphi = []
-        Bzerr = []
-        Brerr =[]
-        Bphierr = []
-        RR =[]
-        ZZ = []
-        PP = []
-        for phi in self.phi_steps:
-            if phi==0: nphi = np.pi
-            else: nphi=phi-np.pi
-
-            input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
-            input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
-
-            input_data_phi_top = input_data_phi[input_data_phi['R']>0].sort(['Z','R']).reset_index(drop=True)
-            input_data_phi_bottom = input_data_phi[input_data_phi['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
-            input_data_phi_ext = input_data_phi_top.copy()
-            input_data_phi_ext['Bphi_ext'] = -(input_data_phi_top['Bphi']+input_data_phi_bottom['Bphi'])
-            input_data_phi_ext['Br_ext'] = input_data_phi_top['Br']-input_data_phi_bottom['Br']
-            input_data_phi_ext['Bz_ext'] = input_data_phi_top['Bz']-input_data_phi_bottom['Bz']
-
-            piv_bz = input_data_phi_ext.pivot('Z','R','Bz_ext')
-            piv_br = input_data_phi_ext.pivot('Z','R','Br_ext')
-            piv_bphi = input_data_phi_ext.pivot('Z','R','Bphi_ext')
-            #print input_data_phi.Phi.unique()
-            R = piv_br.columns.values
-            Z = piv_br.index.values
-            Bz.append(piv_bz.values)
-            Br.append(piv_br.values)
-            Bphi.append(piv_bphi.values)
-            RR_slice,ZZ_slice = np.meshgrid(R, Z)
-            RR.append(RR_slice)
-            ZZ.append(ZZ_slice)
-            PP_slice = np.full_like(RR_slice,input_data_phi_ext.Phi.unique()[0])
-            PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi_ext.Phi.unique()[0]
-            PP.append(PP_slice)
-
-        ZZ = np.concatenate(ZZ)
-        RR = np.concatenate(RR)
-        PP = np.concatenate(PP)
-        Bz = np.concatenate(Bz)
-        Br = np.concatenate(Br)
-        Bphi = np.concatenate(Bphi)
-        if line_profile:
-            return ZZ,RR,PP,Bz,Br,Bphi
-
-        brzphi_ext_fast = brzphi_ext_producer(ZZ,RR,PP,ns,ms)
-        self.mod = Model(brzphi_ext_fast, independent_vars=['r','z','phi'])
-        self.params = Parameters()
-        if 'ns' not in self.params: self.params.add('ns',value=ns,vary=False)
-        else: self.params['ns'].value=ns
-        if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
-        else: self.params['ms'].value=ms
-
-        for n in range(ns):
-            for m in range(ms):
-                if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=1)
-                else: self.params['A_{0}_{1}'.format(n,m)].vary=True
-
-        if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
-        start_time=time()
-        self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-            #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-            #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':100})
-            r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
-
-        self.params = self.result.params
-        end_time=time()
-        if not recreate:
-            print("Elapsed time was %g seconds" % (end_time - start_time))
-            report_fit(self.result, show_correl=False)
-        if not self.no_save and not recreate: self.pickle_results()
-
-
     def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         Reff=9000
         Bz = []
@@ -187,7 +109,7 @@ class FieldFitter:
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
         for cn in range(1,cns+1):
             for cm in range(1,cms+1):
-                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=0.0001,vary=True)
+                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=-10000,vary=True)
                 else:
                     #self.params['C_{0}_{1}'.format(cn,cm)].value=0
                     self.params['C_{0}_{1}'.format(cn,cm)].vary=True
@@ -203,13 +125,13 @@ class FieldFitter:
         elif use_pickle:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
 
         self.params = self.result.params
         end_time=time()

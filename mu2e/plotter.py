@@ -32,6 +32,7 @@ if platform == 'darwin':
 from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
 import plotly.graph_objs as go
 from tools.new_iplot import new_iplot, get_plotlyjs
+import plotly.plotly as py
 
 
 class Plotter:
@@ -366,9 +367,9 @@ class Plotter:
         init_notebook_mode()
         layout = go.Layout(
                         title='Plot of {0} vs {1} and {2} for DS, {3}'.format(A,B,C,conditions[0]),
-                        #autosize=False,
-                        #width=675,
-                        #height=650,
+                        autosize=False,
+                        width=675,
+                        height=650,
                         scene=dict(
                                 xaxis=dict(
                                         title='{} (mm)'.format(C),
@@ -756,7 +757,7 @@ class Plotter:
 
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10,cmap=plt.get_cmap('viridis'))
+            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-2,vmax=2,cmap=plt.get_cmap('viridis'))
             plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
 
             cb = plt.colorbar(heat, aspect=7)
@@ -965,6 +966,7 @@ class Plotter:
 
             plot_html = new_iplot(fig,show_link=False)
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
 
@@ -978,6 +980,7 @@ class Plotter:
             fig = go.Figure(data=[trace], layout = layout_heat)
             plot_html = new_iplot(fig,show_link=False)
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
             #plot_url = iplot(fig)
