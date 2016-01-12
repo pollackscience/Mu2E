@@ -121,10 +121,21 @@ def field_comps_set1D(plotter):
     #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==5671','-300<X<300','-300<Y<300')
     plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==4146','-300<X<300','-300<Y<300')
 
-def scalar_field_plotter(plotter,*conditions):
+def scalar_field_plotter(plotter,z_low_cond,z_high_cond,*other_conds):
     '''Only use with single df'''
-    plotter.set_df(calc_scalar_field(plotter.get_df(),conditions))
-    plotter.plot_A_v_B_and_C('Scalar','X','Z',False,0,*conditions)
+    y_cond1 = 'Y==0'
+    y_cond2 = 'Y==-600'
+    y_cond3 = 'Y==600'
+    z_cond = 'Z==5021'
+    plotter.set_df(calc_scalar_field(plotter.get_df(),z_low_cond,z_high_cond,*other_conds))
+    xz1_conditions = (y_cond1,z_low_cond,z_high_cond,)+other_conds
+    xz2_conditions = (y_cond2,z_low_cond,z_high_cond,)+other_conds
+    xz3_conditions = (y_cond3, z_low_cond,z_high_cond,)+other_conds
+    xy_conditions = (z_cond,z_low_cond,z_high_cond,)+other_conds
+    plotter.plot_A_v_B_and_C('Scalar','X','Z',False,0,*xz1_conditions)
+    plotter.plot_A_v_B_and_C('Scalar','X','Z',False,0,*xz2_conditions)
+    plotter.plot_A_v_B_and_C('Scalar','X','Z',False,0,*xz3_conditions)
+    plotter.plot_A_v_B_and_C('Scalar','X','Y',False,0,*xy_conditions)
 
 
 if __name__=="__main__":
@@ -204,6 +215,6 @@ if __name__=="__main__":
     #plot_maker.plot_A_v_B_and_C_plotly('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
     #fig, df_int = plot_maker.plot_A_v_B_and_C('Br','X','Y',True,1000,'Z==9021','-501<X<501','-501<Y<501')
     #plot_maker.plot_A_v_B_and_C_plotly('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
-    scalar_field_plotter(plot_maker,'Y==0','R<651','Z>5000','Z<13000')
+    scalar_field_plotter(plot_maker,'Z>5000','Z<13000','X>-650','X<650','Y>-650','Y<650')
     plt.show()
 
