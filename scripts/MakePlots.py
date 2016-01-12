@@ -2,6 +2,7 @@
 
 from mu2e.datafileprod import DataFileMaker
 from mu2e.plotter import *
+from mu2e.tools.physics_funcs import *
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -120,6 +121,10 @@ def field_comps_set1D(plotter):
     #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==5671','-300<X<300','-300<Y<300')
     plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==4146','-300<X<300','-300<Y<300')
 
+def scalar_field_plotter(plotter,*conditions):
+    '''Only use with single df'''
+    plotter.set_df(calc_scalar_field(plotter.get_df(),conditions))
+    plotter.plot_A_v_B_and_C('Scalar','X','Z',False,0,*conditions)
 
 
 if __name__=="__main__":
@@ -188,9 +193,9 @@ if __name__=="__main__":
     #plot_maker.plot_symmetry('X','Z',False,0,'Y==300','-600<X<600','5000<Z<13000')
     #plot_maker.plot_symmetry('X','Z',False,0,'Y==400','-600<X<600','5000<Z<13000')
     #plot_maker.plot_symmetry('X','Z',False,0,'Y==500','-600<X<600','5000<Z<13000')
-    plot_maker.plot_A_v_B_and_C_plotly('Bz','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
-    plot_maker.plot_A_v_B_and_C_plotly('Br','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
-    plot_maker.plot_A_v_B_and_C_plotly('Bphi','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C_plotly('Bz','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C_plotly('Br','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C_plotly('Bphi','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
     #plot_maker.plot_A_v_B_and_C_plotly('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
     #plot_maker.plot_A_v_B_and_C_ratio_plotly('Bz','Y','Z','X==0','R<651','Z>5000','Z<13000')
     #plot_maker.plot_A_v_B_and_C_ratio_plotly('Bx','Y','Z','X==0','R<651','Z>5000','Z<13000')
@@ -199,5 +204,6 @@ if __name__=="__main__":
     #plot_maker.plot_A_v_B_and_C_plotly('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
     #fig, df_int = plot_maker.plot_A_v_B_and_C('Br','X','Y',True,1000,'Z==9021','-501<X<501','-501<Y<501')
     #plot_maker.plot_A_v_B_and_C_plotly('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
-    #plt.show()
+    scalar_field_plotter(plot_maker,'Y==0','R<651','Z>5000','Z<13000')
+    plt.show()
 

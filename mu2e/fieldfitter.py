@@ -98,7 +98,7 @@ class FieldFitter:
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
                     #value=delta_seeds[n], min=0, max=np.pi, vary=True)
-                    value=n*(2*np.pi/ns), min=0, max=2*np.pi, vary=True)
+                    value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
             else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
                 #if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
@@ -125,11 +125,11 @@ class FieldFitter:
         elif use_pickle:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
 

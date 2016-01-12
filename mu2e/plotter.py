@@ -88,6 +88,14 @@ class Plotter:
             self.MultiScreen = False
         self.no_show= no_show
 
+    def set_df(self,df):
+        self.data_frame_dict[self.data_frame_dict.keys()[0]] = df
+
+    def get_df(self):
+        return self.data_frame_dict[self.data_frame_dict.keys()[0]]
+
+
+
     @classmethod
     def from_hall_study(cls, data_frame_dict, fit_result):
         "Initialize plotter from a hall probe study"
