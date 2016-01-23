@@ -95,6 +95,21 @@ class FieldFitter:
         if 'cms' not in self.params: self.params.add('cms',value=cms,vary=False)
         else: self.params['cms'].value=cms
 
+        #if 'x0' not in self.params: self.params.add('x0',value=1,vary=True)
+        #if 'x1' not in self.params: self.params.add('x1',value=-1,vary=True)
+        #if 'y0' not in self.params: self.params.add('y0',value=1,vary=True)
+        #if 'y1' not in self.params: self.params.add('y1',value=1,vary=True)
+        if 'a' not in self.params: self.params.add('a',value= 3.0368e5,min=0,vary=False)
+        else: self.params['a'].vary=False
+        if 'b' not in self.params: self.params.add('b',value=83795.4340,min=0,vary=False)
+        else: self.params['b'].vary=False
+        if 'c' not in self.params: self.params.add('c',value=12354.7856,min=0,vary=False)
+        else: self.params['c'].vary=False
+        if 'epsilon1' not in self.params: self.params.add('epsilon1',value=0.1,min=0,max=2*np.pi,vary=True)
+        else: self.params['epsilon1'].vary=False
+        if 'epsilon2' not in self.params: self.params.add('epsilon2',value=0.1,min=0,max=2*np.pi,vary=True)
+        else: self.params['epsilon2'].vary=False
+
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
                     #value=delta_seeds[n], min=0, max=np.pi, vary=True)
@@ -109,12 +124,12 @@ class FieldFitter:
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
         for cn in range(1,cns+1):
             for cm in range(1,cms+1):
-                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=-10000,vary=True)
-                else:
-                    #self.params['C_{0}_{1}'.format(cn,cm)].value=0
-                    self.params['C_{0}_{1}'.format(cn,cm)].vary=True
+                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=1,vary=True)
+                else: self.params['C_{0}_{1}'.format(cn,cm)].vary=True
+                #if 'D_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('D_{0}_{1}'.format(cn,cm),value=1,vary=True)
+                #else: self.params['D_{0}_{1}'.format(cn,cm)].vary=True
 
-        if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
+        if not recreate: print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns,ms,cns,cms)
         start_time=time()
         if recreate:
             for param in self.params:
@@ -129,9 +144,9 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params
         end_time=time()

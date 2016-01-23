@@ -320,7 +320,7 @@ class Plotter:
         if self.no_show:
             return fig,data_frame
         else:
-            surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+            surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
                                     linewidth=0, antialiased=False)
             fig.zaxis.set_major_locator(LinearLocator(10))
             fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
@@ -351,7 +351,7 @@ class Plotter:
 
             self.plot_count+=1
             fig = plt.figure(self.plot_count)
-            heat = plt.pcolormesh(Xi,Yi,Z)
+            heat = plt.pcolormesh(Xi,Yi,Z, cmap=plt.get_cmap('viridis'))
 
             cb = plt.colorbar(heat, shrink=0.5, aspect=5)
             cb.set_label(A)
@@ -895,7 +895,7 @@ class Plotter:
                                         backgroundcolor='rgb(230, 230,230)'
                                         ),
                                 zaxis=dict(
-                                        title='Bz (T)',
+                                        title='{} (T)'.format(A),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
@@ -909,8 +909,8 @@ class Plotter:
                         autosize=False,
                         width=675,
                         height=650,
-                        xaxis=dict(title='R (mm)'),
-                        yaxis=dict(title='Z (mm)'),
+                        xaxis=dict(title='R (mm)', tickfont=dict(size=20)),
+                        yaxis=dict(title='Z (mm)', tickfont=dict(size=20)),
         )
 
         #phi_steps = (0,)
@@ -982,7 +982,8 @@ class Plotter:
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
 
-            trace = go.Heatmap(x=Xa, y=Ya, z=data_fit_diff, colorscale='Viridis', colorbar=dict(title='Data-Fit (G)'),zmin=-2,zmax=2)
+            trace = go.Heatmap(x=Xa, y=Ya, z=data_fit_diff, colorscale='Viridis',
+                    colorbar=dict(title='Data-Fit (G)', titlefont=dict(size=18),tickfont=dict(size=20)),zmin=-2,zmax=2)
             layout_heat['title']='Residuals of {0} vs {1} and {2} for {3}, phi={4}'.format(A,B,C,self.suffix,phi),
 
             fig = go.Figure(data=[trace], layout = layout_heat)
@@ -1089,8 +1090,10 @@ class Plotter:
         data_frame_diff['Br_add'] = data_frame_top['Br']+data_frame_bottom['Br']
         #self.plot_A_v_B_and_C('Bz_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bz_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C_plotly('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
-        self.plot_A_v_B_and_C_plotly('Bx_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C_plotly('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        #self.plot_A_v_B_and_C_plotly('Bx_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        self.plot_A_v_B_and_C('Bx_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
+        self.plot_A_v_B_and_C('Bx_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('By_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('By_add',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
         #self.plot_A_v_B_and_C('Bphi_diff',reflect,const,interp,interp_num,*conditions,data_frame = data_frame_diff)
