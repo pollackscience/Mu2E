@@ -74,7 +74,7 @@ class HallProbeGenerator:
                     coord_vals = np.sort(np.unique([val for sublist in steps for val in sublist]))
                 else:
                     coord_vals = steps
-            elif coord == 'Z':
+            elif coord in ['Z','X','Y']:
                 coord_vals = steps
         elif steps=='all':
                 coord_vals = np.sort(self.full_field[coord].unique())

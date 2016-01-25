@@ -11,12 +11,13 @@ from time import time
 
 class FieldFitter:
     """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
-    def __init__(self, input_data, phi_steps = None, r_steps = None, no_save = False):
+    def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
         self.input_data = input_data
         if phi_steps: self.phi_steps = phi_steps
         else: self.phi_steps = (np.pi/2,)
         if r_steps: self.r_steps = r_steps
         else: self.r_steps = (range(25,625,50),)
+        if xy_steps: self.xy_steps= xy_steps
         self.no_save = no_save
 
     def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
@@ -155,150 +156,113 @@ class FieldFitter:
             report_fit(self.result, show_correl=False)
         if not self.no_save and not recreate: self.pickle_results(pickle_name)
 
+    def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):):
+        Bz = []
+        Bx =[]
+        By = []
+        Bzerr = []
+        Bxerr =[]
+        Byerr = []
+        ZZ = []
+        XX =[]
+        YY = []
+        for y in self.xy_steps:
 
-    def fit_2d_sim(self,B,C,nparams = 20,use_pickle = False):
+            input_data_y = self.input_data[self.input_data.Y==y]
+            #print input_data_phi.Phi.unique()
 
-        if B=='X':Br='Bx'
-        elif B=='Y':Br='By'
-        piv_bz = self.input_data.pivot(C,B,'Bz')
-        piv_br = self.input_data.pivot(C,B,Br)
-        X=piv_br.columns.values
-        Y=piv_br.index.values
-        self.Bz=piv_bz.values
-        self.Br=abs(piv_br.values)
-        self.X,self.Y = np.meshgrid(X, Y)
+            piv_bz = input_data_y.pivot('Z','X','Bz')
+            piv_bx = input_data_y.pivot('Z','X','Bx')
+            piv_by = input_data_y.pivot('Z','X','By')
+            piv_bz_err = input_data_y.pivot('Z','X','Bzerr')
+            piv_bx_err = input_data_y.pivot('Z','X','Bxerr')
+            piv_by_err = input_data_y.pivot('Z','X','Byerr')
 
-        piv_bz_err = self.input_data.pivot(C,B,'Bzerr')
-        piv_br_err = self.input_data.pivot(C,B,Br+'err')
-        self.Bzerr=piv_bz_err.values
-        self.Brerr=piv_br_err.values
+            X = piv_bx.columns.values
+            Z = piv_bx.index.values
+            Bz.append(piv_bz.values)
+            Bx.append(piv_bx.values)
+            By.append(piv_by.values)
+            Bzerr.append(piv_bz_err.values)
+            Bxerr.append(piv_bx_err.values)
+            Byerr.append(piv_by_err.values)
+            XX_slice,ZZ_slice = np.meshgrid(X, Z)
+            XX.append(XX_slice)
+            ZZ.append(ZZ_slice)
+            YY_slice = np.full_like(XX_slice,y)
+            YY.append(YY_slice)
 
-        self.mod = Model(brz_2d_trig, independent_vars=['r','z'])
+        ZZ = np.concatenate(ZZ)
+        XX = np.concatenate(XX)
+        YY = np.concatenate(YY)
+        Bz = np.concatenate(Bz)
+        Bx = np.concatenate(Bx)
+        By = np.concatenate(By)
+        Bzerr = np.concatenate(Bzerr)
+        Bxerr = np.concatenate(Bxerr)
+        Byerr = np.concatenate(Byerr)
+        if line_profile:
+            return ZZ,XX,YY,Bz,Bx,By
 
-        if use_pickle:
-            self.params = pkl.load(open('result.p',"rb"))
-            #for param in self.params:
-            #    self.params[param].vary = False
-            self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-                    r=self.X,z=self.Y, params = self.params,method='leastsq')
+        b_external_3d_fast = b_external_3d_producer(ZZ,XX,YY,cns,cms)
+        self.mod = Model(b_external_3d_fast, independent_vars=['x','y','z'])
+
+        if use_pickle or recreate:
+            self.params = pkl.load(open(pickle_name+'_results.p',"rb"))
         else:
             self.params = Parameters()
-            #self.params.add('R',value=1000,vary=False)
-            #self.params.add('R',value=22000,vary=False)
-            self.params.add('R',value=9000,vary=False)
-            #self.params.add('offset',value=-14000,vary=False)
-            self.params.add('offset',value=0,vary=False)
-            #self.params.add('C',value=0)
-            self.params.add('A0',value=0)
-            self.params.add('B0',value=0)
-            #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
 
-            for i in range(nparams):
-                print 'refitting with params:',i+1
-                self.params.add('A'+str(i+1),value=0)
-                self.params.add('B'+str(i+1),value=0)
-                #if (i+1)%10==0:
-                #    self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
-                #    self.params = self.result.params
 
-            #        fit_kws={'xtol':1e-100,'ftol':1e-100,'maxfev':5000,'epsfcn':1e-40})
-            self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-                    r=self.X,z=self.Y, params = self.params,method='leastsq')
-            #self.result = self.mod.fit(np.concatenate([self.Br,self.Bz]).ravel(), weights = np.concatenate([self.Brerr,self.Bzerr]).ravel(),
-                    #r=self.X,z=self.Y, params = self.params,method='lbfgsb',fit_kws= {'options':{'factr':0.1}})
+        if 'R' not in    self.params: self.params.add('R',value=Reff,vary=False)
+        if 'cns' not in self.params: self.params.add('cns',value=cns,vary=False)
+        else: self.params['cns'].value=cns
+        if 'cms' not in self.params: self.params.add('cms',value=cms,vary=False)
+        else: self.params['cms'].value=cms
+
+        if 'a' not in self.params: self.params.add('a',value= 3.0368e5,min=0,vary=False)
+        else: self.params['a'].vary=False
+        if 'b' not in self.params: self.params.add('b',value=83795.4340,min=0,vary=False)
+        else: self.params['b'].vary=False
+        if 'c' not in self.params: self.params.add('c',value=12354.7856,min=0,vary=False)
+        else: self.params['c'].vary=False
+        if 'epsilon1' not in self.params: self.params.add('epsilon1',value=0.1,min=0,max=2*np.pi,vary=True)
+        else: self.params['epsilon1'].vary=False
+        if 'epsilon2' not in self.params: self.params.add('epsilon2',value=0.1,min=0,max=2*np.pi,vary=True)
+        else: self.params['epsilon2'].vary=False
+
+        for cn in range(1,cns+1):
+            for cm in range(1,cms+1):
+                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=1,vary=True)
+                else: self.params['C_{0}_{1}'.format(cn,cm)].vary=True
+                #if 'D_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('D_{0}_{1}'.format(cn,cm),value=1,vary=True)
+                #else: self.params['D_{0}_{1}'.format(cn,cm)].vary=True
+
+        if not recreate: print 'fitting external with cn={0}, cm={1}'.format(cns,cms)
+        start_time=time()
+        if recreate:
+            for param in self.params:
+                self.params[param].vary=False
+            self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
+                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
+                x=XX, y=YY, z=YY, params = self.params, method='leastsq',fit_kws={'maxfev':1})
+        elif use_pickle:
+            self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
+                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
+                x=XX, y=YY, z=ZZ, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+        else:
+            self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
+                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
+                x=XX, y=YY, z=ZZ, params = self.params, method='leastsq')
 
         self.params = self.result.params
-        report_fit(self.result)
+        end_time=time()
+        if not recreate:
+            print("Elapsed time was %g seconds" % (end_time - start_time))
+            report_fit(self.result, show_correl=False)
+        if not self.no_save and not recreate: self.pickle_results(pickle_name)
 
-
-    def fit_2d(self,A,B,C,use_pickle = False):
-        self.mag_field = A
-        self.axis2 = B
-        self.axis1 = C
-
-        piv = self.input_data.pivot(C,B,A)
-        X=piv.columns.values
-        Y=piv.index.values
-        self.Z=piv.values
-        self.X,self.Y = np.meshgrid(X, Y)
-
-        piv_err = self.input_data.pivot(C,B,A+'err')
-        self.Zerr = piv_err.values
-        if A == 'Bz':
-            #self.mod = Model(bz_2d, independent_vars=['r','z'])
-            self.mod = Model(bz_2d, independent_vars=['r','z'])
-        elif A == 'Br':
-            self.mod = Model(br_2d, independent_vars=['r','z'])
-        else:
-            raise KeyError('No function available for '+A)
-
-        if use_pickle:
-            self.params = pkl.load(open('result.p',"rb"))
-            self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params, weights    = self.Zerr.ravel(), method='leastsq')
-            #for param in self.params:
-            #    self.params[param].vary = False
-            self.params = self.result.params
-        else:
-            self.params = Parameters()
-            #self.params.add('R',value=1000,vary=False)
-            #self.params.add('R',value=22000,vary=False)
-            self.params.add('R',value=11000,vary=False)
-            #if A == 'Br':
-            self.params.add('C',value=0)
-            self.params.add('A0',value=0)
-            self.params.add('B0',value=0)
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq')
-
-            for i in range(60):
-                print 'refitting with params:',i+1
-                #self.params = self.result.params
-                self.params.add('A'+str(i+1),value=0)
-                self.params.add('B'+str(i+1),value=0)
-                #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='nelder')
-
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='leastsq',
-            #        fit_kws={'xtol':1e-100,'ftol':1e-100,'maxfev':5000,'epsfcn':1e-40})
-            self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params, weights    = self.Zerr.ravel(), method='leastsq')
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='powell')
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.result.params,method='lbfgsb')
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.result.params,method='lbfgsb')
-            self.params = self.result.params
-            #self.params['R'].vary=True
-            #self.result = self.mod.fit(self.Z.ravel(),r=self.X,z=self.Y, params = self.params,method='slsqp')
-
-        report_fit(self.result)
-
-    def fit_1d(self,A,B):
-
-        if A == 'Bz':
-            self.mod = Model(bz_2d)
-        elif A == 'Br':
-            self.mod = Model(br_2d, independent_vars=['r','z'])
-        else:
-            raise KeyError('No function available for '+A)
-
-
-        data_1d = self.input_data.query('X==0 & Y==0')
-        self.X=data_1d[B].values
-        self.Z=data_1d[A].values
-        self.mod = Model(bz_r0_1d)
-
-        self.params = Parameters()
-        self.params.add('R',value=100000,vary=False)
-        self.params.add('A0',value=0)
-        self.params.add('B0',value=0)
-
-        self.result = self.mod.fit(self.Z,z=self.X, params = self.params,method='nelder')
-        for i in range(9):
-            print 'refitting with params:',i+1
-            self.params = self.result.params
-            self.params.add('A'+str(i+1),value=0)
-            self.params.add('B'+str(i+1),value=0)
-            self.result = self.mod.fit(self.Z,z=self.X, params = self.params,method='nelder')
-
-        self.params = self.result.params
-        report_fit(self.result)
-        #report_fit(self.params)
 
     def pickle_results(self,pickle_name='default'):
         pkl.dump( self.result.params, open( pickle_name+'_results.p', "wb" ),pkl.HIGHEST_PROTOCOL )

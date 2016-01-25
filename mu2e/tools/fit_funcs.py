@@ -101,33 +101,40 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
         return np.concatenate([model_r,model_z,model_phi]).ravel()
     return brzphi_3d_fast
 
-def brzphi_ext_producer(z,r,phi,ns,ms):
-    a = 100000
-    b = 100000
+def b_external_3d_producer(x,y,z,cns,cms):
 
-    def brzphi_ext_fast(z,r,phi,ns,ms,**A_params):
-        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
-        def numexpr_model_r_calc(z,r,phi,A,n,m,alpha,beta,gamma):
-            return ne.evaluate('A*sin(gamma*z)*(beta*sin(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))+alpha*cos(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
-        def numexpr_model_phi_calc(z,r,phi,A,n,m,alpha,beta,gamma):
-            return ne.evaluate('A*sin(gamma*z)*(beta*cos(phi)*sinh(alpha*r*cos(phi))*cosh(beta*r*sin(phi))-alpha*sin(phi)*cosh(alpha*r*cos(phi))*sinh(beta*r*sin(phi)))')
-        def numexpr_model_z_calc(z,r,phi,A,n,m,alpha,beta,gamma):
-            return ne.evaluate('A*gamma*cos(gamma*z)*sinh(alpha*r*cos(phi))*sinh(beta*r*sin(phi))')
+    def b_external_3d_fast(x,y,z,cns,cms,a,b,c,epsilon1,epsilon2,**AB_params):
+        """ 3D model for Bz Bx and By vs Z and X. Can take any number of Cnm terms."""
 
-        model_r = 0.0
+        def numexpr_model_x_ext_calc(x,y,z,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('C*(alpha*cos(phi)*cos(epsilon2 + beta*abs(r)*sin(phi))*sin(epsilon1 + alpha*abs(r)*cos(phi)) + beta*cos(epsilon1 + alpha*abs(r)*cos(phi))*sin(phi)*sin(epsilon2 + beta*abs(r)*sin(phi)))*sinh(gamma*(-c + z))')
+        def numexpr_model_y_ext_calc(x,y,z,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('C*((-alpha)*cos(epsilon2 + beta*abs(r)*sin(phi))*sin(phi)*sin(epsilon1 + alpha*abs(r)*cos(phi)) + beta*cos(phi)*cos(epsilon1 + alpha*abs(r)*cos(phi))*sin(epsilon2 + beta*abs(r)*sin(phi)))*sinh(gamma*(-c + z))')
+        def numexpr_model_z_ext_calc(x,y,z,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('(-C)*gamma*cos(epsilon1 + alpha*abs(r)*cos(phi))*cos(epsilon2 + beta*abs(r)*sin(phi))*cosh(gamma*(-c + z))')
+
+        model_x = 0.0
+        model_y = 0.0
         model_z = 0.0
-        model_phi = 0.0
-        As = sorted({k:v for (k,v) in A_params.iteritems()})
-        for n in range(ns):
-            for m,A_nm in enumerate(As[n*ms:(n+1)*ms]):
-                alpha = n*np.pi/a
-                beta = m*np.pi/b
-                gamma = np.pi*np.sqrt(n**2/a**2+m**2/b**2)
+        Cs = sorted({k:v for (k,v) in AB_params.iteritems() if 'C' in k})
 
-                model_r += numexpr_model_r_calc(z,r,phi,A_params[A_nm],n,m,alpha,beta,gamma)
-                model_z += numexpr_model_z_calc(z,r,phi,A_params[A_nm],n,m,alpha,beta,gamma)
-                model_phi += numexpr_model_phi_calc(z,r,phi,A_params[A_nm],n,m,alpha,beta,gamma)
+        for cn in range(1, cns+1):
+            for cm in range(1, cms+1):
+            #for cm,cd in enumerate(pairwise(CDs[cn*cms*2:(cn+1)*cms*2])):
+                #alpha = (cn*np.pi-np.pi/2)/a
+                #beta = (cm*np.pi-np.pi/2)/b
+                #gamma = np.pi*np.sqrt((cn-1/2)**2/a**2+(cm-1/2)**2/b**2)
 
-        model_phi[np.isinf(model_phi)]=0
-        return np.concatenate([model_r,model_z,model_phi]).ravel()
-    return brzphi_ext_fast
+                alpha = (cn*np.pi-np.pi/2)/a
+                beta = (cm*np.pi-np.pi/2)/b
+                gamma = np.sqrt(alpha**2+beta**2)
+
+                #using C's
+                model_x += numexpr_model_x_ext_calc(x,y,z,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+                model_y += numexpr_model_y_ext_calc(x,y,z,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+                model_z += numexpr_model_z_ext_calc(x,y,z,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+
+
+        return np.concatenate([model_x,model_y,model_z]).ravel()
+    return b_external_3d_fast
+
