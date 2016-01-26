@@ -699,9 +699,9 @@ class Plotter:
         The distribution will be fit, or a previously made fit will displayed.
         """
         self.plot_count-=1
+        data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
 
         for i,phi in enumerate(phi_steps):
-            data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
             self.plot_count+=1
             if phi==0: nphi = np.pi
             else: nphi=phi-np.pi
@@ -779,7 +779,7 @@ class Plotter:
             outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
     @plot_wrapper
-    def plot_A_v_B_and_C_fit_cyl_ext(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
+    def plot_A_v_B_and_C_fit_ext(self,A='Bz',B='X',C='Z', xy_steps = (0,), do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.
 
@@ -787,22 +787,12 @@ class Plotter:
         """
         self.plot_count-=1
 
-        for i,phi in enumerate(phi_steps):
-            data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+        data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+        for i,y in enumerate(xy_steps):
             self.plot_count+=1
-            if phi==0: nphi = np.pi
-            else: nphi=phi-np.pi
 
-            data_frame = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
-            data_frame.ix[np.abs(data_frame.Phi-nphi)<1e-6, 'R']*=-1
-            data_frame_top = data_frame[data_frame['R']>0].sort(['Z','R']).reset_index(drop=True)
-            data_frame_bottom = data_frame[data_frame['R']<0].sort(['Z','R'],ascending=[True,False]).reset_index(drop=True)
-            data_frame_ext = data_frame_top.copy()
-            data_frame_ext['Bphi_ext'] = -(data_frame_top['Bphi']+data_frame_bottom['Bphi'])
-            data_frame_ext['Br_ext'] = data_frame_top['Br']-data_frame_bottom['Br']
-            data_frame_ext['Bz_ext'] = data_frame_top['Bz']-data_frame_bottom['Bz']
-
-            print data_frame.head()
+            data_frame_ext = data_frame[data_frame.Y==y]
+            print data_frame_ext.head()
             if not self.fit_result: raise Exception('no fit available')
             fig1 = plt.figure(self.plot_count)
 
@@ -827,16 +817,16 @@ class Plotter:
                 best_fit = self.fit_result.best_fit
 
             l = len(best_fit)/3
-            if A=='Br_ext':
+            if A=='Bx':
                 bf = best_fit[:l]
-            elif A=='Bz_ext':
+            elif A=='By':
                 bf = best_fit[l:2*l]
-            elif A=='Bphi_ext':
+            elif A=='Bz':
                 bf = best_fit[2*l:]
             p = len(bf)
-            bf = bf[(i/len(phi_steps))*p:((i+1)/len(phi_steps))*p]
+            bf = bf[(i/len(xy_steps))*p:((i+1)/len(xy_steps))*p]
             surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
-            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+            plt.title('{0}_v_{1}_and_{2}_y={3}'.format(A,B,C,y))
 
             if A=='Bz':
                 ax1.view_init(elev=20., azim=59)
@@ -844,7 +834,7 @@ class Plotter:
                 ax1.view_init(elev=35., azim=15)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_fit.pdf'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
             plt.savefig(savename,transparent = True)
 
             self.plot_count+=1
@@ -855,8 +845,8 @@ class Plotter:
 
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-10,vmax=10)
-            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
+            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-2,vmax=2, cmap=plt.get_cmap('viridis'))
+            plt.title('{0}_v_{1}_and_{2}_y={3}'.format(A,B,C,y))
 
             cb = plt.colorbar(heat, aspect=7)
             cb.set_label('Data-Fit (G)')
@@ -864,7 +854,7 @@ class Plotter:
             ax3.set_ylabel(C)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_residual.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_residual.pdf'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
             plt.savefig(savename,transparent = True)
             outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
@@ -989,6 +979,129 @@ class Plotter:
             fig = go.Figure(data=[trace], layout = layout_heat)
             plot_html = new_iplot(fig,show_link=False)
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            py.image.save_as(fig, savename[:-5]+'.png')
+            with open(savename,'w') as html_file:
+                html_file.write(plot_html)
+            #plot_url = iplot(fig)
+
+    def plot_A_v_B_and_C_fit_ext_plotly(self,A='Bz',B='X',C='Z', xy_steps= (0,), do_eval = False, *conditions):
+        """Plot A vs B and C given some set of comma seperated boolean conditions.
+        B and C are the independent, A is the dependent.
+
+        The distribution will be fit, or a previously made fit will displayed.
+        """
+        init_notebook_mode()
+        layout = go.Layout(
+                        autosize=False,
+                        width=675,
+                        height=650,
+                        scene=dict(
+                                xaxis=dict(
+                                        title='X (mm)',
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                yaxis=dict(
+                                        title='Z (mm)',
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                zaxis=dict(
+                                        title='{} (T)'.format(A),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        )
+                                ),
+                        showlegend=True,
+                        )
+
+        layout_heat = go.Layout(
+                        autosize=False,
+                        width=675,
+                        height=650,
+                        xaxis=dict(title='X (mm)', tickfont=dict(size=20)),
+                        yaxis=dict(title='Z (mm)', tickfont=dict(size=20)),
+        )
+
+        #phi_steps = (0,)
+        data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+        for i,y in enumerate(xy_steps):
+
+            data_frame_ext = data_frame[data_frame.Y==y]
+
+            #print data_frame.head()
+            if not self.fit_result: raise Exception('no fit available')
+
+            data_frame_ext = data_frame_ext.reindex(columns=[A,B,C])
+            piv = data_frame_ext.pivot(C,B,A)
+            Xa=piv.columns.values
+            Ya=piv.index.values
+            X,Y = np.meshgrid(Xa, Ya)
+            Z=piv.values
+
+            #scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
+            scat = go.Scatter3d(x=X.ravel(), y=Y.ravel(), z=Z.ravel(),
+                            mode='markers',
+                            marker=dict(
+                                size=3,
+                                color='rgb(0, 0, 0)',
+                                line=dict(
+                                        color='rgb(0, 0, 0)',
+                                ),
+                                opacity=1
+                                ),
+                                name = 'data'
+                            )
+            if do_eval:
+                best_fit = self.fit_result.eval(x=X,z=Z)
+            else:
+                best_fit = self.fit_result.best_fit
+
+            l = len(best_fit)/3
+            if A=='Bx':
+                bf = best_fit[:l]
+            elif A=='By':
+                bf = best_fit[l:2*l]
+            elif A=='Bz':
+                bf = best_fit[2*l:]
+            p = len(bf)
+            bf = bf[(i/len(xy_steps))*p:((i+1)/len(xy_steps))*p]
+
+            lines = [scat]
+            line_marker = dict(color='green', width=2)
+            do_leg = True
+            for i, j, k in zip(X, Y, bf.reshape(Z.shape)):
+                if do_leg:
+                        lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines', line=line_marker,name='fit',legendgroup='fitgroup'))
+                else:
+                        lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines', line=line_marker, name='fit',legendgroup='fitgroup',showlegend=False))
+                do_leg = False
+            layout['title']='Plot of {0} vs {1} and {2} for {3}, y={4}'.format(A,B,C,self.suffix,y),
+            fig = go.Figure(data=lines, layout=layout)
+
+            plot_html = new_iplot(fig,show_link=False)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_fit.html'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            py.image.save_as(fig, savename[:-5]+'.png')
+            with open(savename,'w') as html_file:
+                html_file.write(plot_html)
+
+            data_fit_diff = (Z - bf.reshape(Z.shape))*10000
+            Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
+            Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
+
+            trace = go.Heatmap(x=Xa, y=Ya, z=data_fit_diff, colorscale='Viridis',
+                    colorbar=dict(title='Data-Fit (G)', titlefont=dict(size=18),tickfont=dict(size=20)),zmin=-2,zmax=2)
+            layout_heat['title']='Residuals of {0} vs {1} and {2} for {3}, y={4}'.format(A,B,C,self.suffix,y),
+
+            fig = go.Figure(data=[trace], layout = layout_heat)
+            plot_html = new_iplot(fig,show_link=False)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_heat.html'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
             py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)

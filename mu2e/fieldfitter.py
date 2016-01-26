@@ -20,7 +20,7 @@ class FieldFitter:
         if xy_steps: self.xy_steps= xy_steps
         self.no_save = no_save
 
-    def fit_3d_v4(self,ns=5,ms=10,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
+    def fit_solenoid(self,ns=5,ms=10, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         Reff=9000
         Bz = []
         Br =[]
@@ -91,25 +91,6 @@ class FieldFitter:
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
         else: self.params['ms'].value=ms
-        if 'cns' not in self.params: self.params.add('cns',value=cns,vary=False)
-        else: self.params['cns'].value=cns
-        if 'cms' not in self.params: self.params.add('cms',value=cms,vary=False)
-        else: self.params['cms'].value=cms
-
-        #if 'x0' not in self.params: self.params.add('x0',value=1,vary=True)
-        #if 'x1' not in self.params: self.params.add('x1',value=-1,vary=True)
-        #if 'y0' not in self.params: self.params.add('y0',value=1,vary=True)
-        #if 'y1' not in self.params: self.params.add('y1',value=1,vary=True)
-        if 'a' not in self.params: self.params.add('a',value= 3.0368e5,min=0,vary=False)
-        else: self.params['a'].vary=False
-        if 'b' not in self.params: self.params.add('b',value=83795.4340,min=0,vary=False)
-        else: self.params['b'].vary=False
-        if 'c' not in self.params: self.params.add('c',value=12354.7856,min=0,vary=False)
-        else: self.params['c'].vary=False
-        if 'epsilon1' not in self.params: self.params.add('epsilon1',value=0.1,min=0,max=2*np.pi,vary=True)
-        else: self.params['epsilon1'].vary=False
-        if 'epsilon2' not in self.params: self.params.add('epsilon2',value=0.1,min=0,max=2*np.pi,vary=True)
-        else: self.params['epsilon2'].vary=False
 
         for n in range(ns):
             if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
@@ -123,14 +104,8 @@ class FieldFitter:
                 #if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=100)
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
-        for cn in range(1,cns+1):
-            for cm in range(1,cms+1):
-                if 'C_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('C_{0}_{1}'.format(cn,cm),value=1,vary=True)
-                else: self.params['C_{0}_{1}'.format(cn,cm)].vary=True
-                #if 'D_{0}_{1}'.format(cn,cm) not in self.params: self.params.add('D_{0}_{1}'.format(cn,cm),value=1,vary=True)
-                #else: self.params['D_{0}_{1}'.format(cn,cm)].vary=True
 
-        if not recreate: print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns,ms,cns,cms)
+        if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         start_time=time()
         if recreate:
             for param in self.params:
@@ -145,9 +120,9 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params
         end_time=time()
@@ -156,7 +131,11 @@ class FieldFitter:
             report_fit(self.result, show_correl=False)
         if not self.no_save and not recreate: self.pickle_results(pickle_name)
 
-    def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):):
+    def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
+        a = 3e4
+        b = 3e4
+        c = 3e4
+
         Bz = []
         Bx =[]
         By = []
@@ -204,7 +183,7 @@ class FieldFitter:
         if line_profile:
             return ZZ,XX,YY,Bz,Bx,By
 
-        b_external_3d_fast = b_external_3d_producer(ZZ,XX,YY,cns,cms)
+        b_external_3d_fast = b_external_3d_producer(a,b,c,ZZ,XX,YY,cns,cms)
         self.mod = Model(b_external_3d_fast, independent_vars=['x','y','z'])
 
         if use_pickle or recreate:
@@ -213,18 +192,17 @@ class FieldFitter:
             self.params = Parameters()
 
 
-        if 'R' not in    self.params: self.params.add('R',value=Reff,vary=False)
         if 'cns' not in self.params: self.params.add('cns',value=cns,vary=False)
         else: self.params['cns'].value=cns
         if 'cms' not in self.params: self.params.add('cms',value=cms,vary=False)
         else: self.params['cms'].value=cms
 
-        if 'a' not in self.params: self.params.add('a',value= 3.0368e5,min=0,vary=False)
-        else: self.params['a'].vary=False
-        if 'b' not in self.params: self.params.add('b',value=83795.4340,min=0,vary=False)
-        else: self.params['b'].vary=False
-        if 'c' not in self.params: self.params.add('c',value=12354.7856,min=0,vary=False)
-        else: self.params['c'].vary=False
+        #if 'a' not in self.params: self.params.add('a',value= 3.0368e5,min=0,vary=False)
+        #else: self.params['a'].vary=False
+        #if 'b' not in self.params: self.params.add('b',value=83795.4340,min=0,vary=False)
+        #else: self.params['b'].vary=False
+        #if 'c' not in self.params: self.params.add('c',value=12354.7856,min=0,vary=False)
+        #else: self.params['c'].vary=False
         if 'epsilon1' not in self.params: self.params.add('epsilon1',value=0.1,min=0,max=2*np.pi,vary=True)
         else: self.params['epsilon1'].vary=False
         if 'epsilon2' not in self.params: self.params.add('epsilon2',value=0.1,min=0,max=2*np.pi,vary=True)
@@ -243,16 +221,16 @@ class FieldFitter:
             for param in self.params:
                 self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
-                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
-                x=XX, y=YY, z=YY, params = self.params, method='leastsq',fit_kws={'maxfev':1})
+                #weights = np.concatenate([Bxerr,Byerr,Bzerr]).ravel(),
+                x=XX, y=YY, z=ZZ, params = self.params, method='leastsq',fit_kws={'maxfev':1})
         elif use_pickle:
             self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
-                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
+                #weights = np.concatenate([Bxerr,Byerr,Bzerr]).ravel(),
                 x=XX, y=YY, z=ZZ, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
         else:
             self.result = self.mod.fit(np.concatenate([Bx,By,Bz]).ravel(),
-                #weights = np.concatenate([Bxerr,Bzerr,Byerr]).ravel(),
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                #weights = np.concatenate([Bxerr,Byerr,Bzerr]).ravel(),
+                #x=XX, y=YY, z=ZZ, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 x=XX, y=YY, z=ZZ, params = self.params, method='leastsq')
 
