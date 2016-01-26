@@ -706,19 +706,19 @@ class Plotter:
             if phi==0: nphi = np.pi
             else: nphi=phi-np.pi
 
-            data_frame = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
-            data_frame.ix[np.abs(data_frame.Phi-nphi)<1e-6, 'R']*=-1
+            data_frame_phi = data_frame[(np.abs(data_frame.Phi-phi)<1e-6)|(np.abs(data_frame.Phi-nphi)<1e-6)]
+            data_frame_phi.ix[np.abs(data_frame_phi.Phi-nphi)<1e-6, 'R']*=-1
             if phi>np.pi/2:
-                data_frame.Phi=data_frame.Phi+np.pi
-                data_frame.ix[data_frame.Phi>np.pi, 'Phi']-=(2*np.pi)
+                data_frame_phi.Phi=data_frame_phi.Phi+np.pi
+                data_frame_phi.ix[data_frame_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
 
             print data_frame.head()
             if not self.fit_result: raise Exception('no fit available')
             fig1 = plt.figure(self.plot_count)
 
             plt.rc('font', family='serif')
-            data_frame = data_frame.reindex(columns=[A,B,C])
-            piv = data_frame.pivot(C,B,A)
+            data_frame_phi = data_frame_phi.reindex(columns=[A,B,C])
+            piv = data_frame_phi.pivot(C,B,A)
             Xa=piv.columns.values
             Ya=piv.index.values
             X,Y = np.meshgrid(Xa, Ya)

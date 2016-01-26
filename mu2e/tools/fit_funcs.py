@@ -26,29 +26,41 @@ def brzphi_3d_producer(z,r,phi,R,ns,ms):
             iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
-    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+    #def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+    def brzphi_3d_fast(z,r,phi,R,ns,ms,delta1,**AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
 
-        def numexpr_model_r_calc(z,phi,n,D,A,B,ivp,kms):
-            return ne.evaluate('cos(n*phi+D)*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
-        def numexpr_model_z_calc(z,phi,n,D,A,B,iv,kms):
-            return ne.evaluate('-cos(n*phi+D)*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
-        def numexpr_model_phi_calc(z,r,phi,n,D,A,B,iv,kms):
-            return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
+        #def numexpr_model_r_calc(z,phi,n,D,A,B,ivp,kms):
+        #    return ne.evaluate('cos(n*phi+D)*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
+        #def numexpr_model_z_calc(z,phi,n,D,A,B,iv,kms):
+        #    return ne.evaluate('-cos(n*phi+D)*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
+        #def numexpr_model_phi_calc(z,r,phi,n,D,A,B,iv,kms):
+        #    return ne.evaluate('-n*sin(n*phi+D)*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
+
+        def numexpr_model_r_calc(z,phi,n,D1,A,B,ivp,kms):
+            return ne.evaluate('(cos(n*phi+D1))*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
+        def numexpr_model_z_calc(z,phi,n,D1,A,B,iv,kms):
+            return ne.evaluate('-(cos(n*phi+D1))*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
+        def numexpr_model_phi_calc(z,r,phi,n,D1,A,B,iv,kms):
+            return ne.evaluate('n*(-sin(n*phi+D1))*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
 
         model_r = 0.0
         model_z = 0.0
         model_phi = 0.0
         R = R
         ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-        Deltas = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' in k})
+        #Deltas = sorted({k:v for (k,v) in AB_params.iteritems() if 'delta' in k})
 
         for n in range(ns):
             for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
-                model_r += numexpr_model_r_calc(z,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
-                model_z += numexpr_model_z_calc(z,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
-                model_phi += numexpr_model_phi_calc(z,r,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+                model_r += numexpr_model_r_calc(z,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
+                model_z += numexpr_model_z_calc(z,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+                model_phi += numexpr_model_phi_calc(z,r,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+
+                #model_r += numexpr_model_r_calc(z,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
+                #model_z += numexpr_model_z_calc(z,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+                #model_phi += numexpr_model_phi_calc(z,r,phi,n,AB_params[Deltas[n]],AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
 
         model_phi[np.isinf(model_phi)]=0
         return np.concatenate([model_r,model_z,model_phi]).ravel()

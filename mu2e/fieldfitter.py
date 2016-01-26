@@ -91,12 +91,14 @@ class FieldFitter:
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
         else: self.params['ms'].value=ms
+        if 'delta1' not in self.params: self.params.add('delta1',value=0.0,min=0,max=np.pi,vary=False)
+        else: self.params['delta1'].vary=False
 
         for n in range(ns):
-            if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
-                    #value=delta_seeds[n], min=0, max=np.pi, vary=True)
-                    value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
-            else: self.params['delta_{0}'.format(n)].vary=True
+            #if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
+            #        #value=delta_seeds[n], min=0, max=np.pi, vary=True)
+            #        value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
+            #else: self.params['delta_{0}'.format(n)].vary=True
             for m in range(ms):
                 #if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=-100)
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0)
