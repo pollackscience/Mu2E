@@ -113,3 +113,73 @@ def b_external_3d_producer(a,b,c,x,y,z,cns,cms):
         return np.concatenate([model_x,model_y,model_z]).ravel()
     return b_external_3d_fast
 
+def b_full_3d_producer(a,b,c,R,z,r,phi,ns,ms,cns,cms):
+    b_zeros = []
+    a = a
+    b = b
+    c = c
+    for n in range(ns):
+        b_zeros.append(special.jn_zeros(n,ms))
+    kms = np.asarray([b0/R for b0 in b_zeros])
+    iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
+            ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
+
+    alpha_2d = np.zeros((cns,cms))
+    beta_2d = np.zeros((cns,cms))
+    gamma_2d = np.zeros((cns,cms))
+
+    for cn in range(1, cns+1):
+        for cm in range(1, cms+1):
+            alpha_2d[cn-1][cm-1] = (cn*np.pi-np.pi/2)/a
+            beta_2d[cn-1][cm-1] = (cm*np.pi-np.pi/2)/b
+            gamma_2d[cn-1][cm-1] = np.sqrt(alpha_2d[cn-1][cm-1]**2+beta_2d[cn-1][cm-1]**2)
+
+
+    def b_full_3d_fast(z,r,phi,R,ns,ms,delta1,cns,cms,epsilon1,epsilon2,**AB_params):
+        """ 3D model for Bz Bx and By vs Z and X. Can take any number of Cnm terms."""
+        def numexpr_model_r_calc(z,phi,n,D1,A,B,ivp,kms):
+            return ne.evaluate('(cos(n*phi+D1))*ivp*kms*(A*cos(kms*z) + B*sin(-kms*z))')
+        def numexpr_model_z_calc(z,phi,n,D1,A,B,iv,kms):
+            return ne.evaluate('-(cos(n*phi+D1))*iv*kms*(A*sin(kms*z) + B*cos(-kms*z))')
+        def numexpr_model_phi_calc(z,r,phi,n,D1,A,B,iv,kms):
+            return ne.evaluate('n*(-sin(n*phi+D1))*(1/abs(r))*iv*(A*cos(kms*z) + B*sin(-kms*z))')
+
+        def numexpr_model_r_ext_calc(z,r,phi,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('C*(alpha*cos(phi)*cos(epsilon2 + beta*abs(r)*sin(phi))*sin(epsilon1 + alpha*abs(r)*cos(phi)) + beta*cos(epsilon1 + alpha*abs(r)*cos(phi))*sin(phi)*sin(epsilon2 + beta*abs(r)*sin(phi)))*sinh(gamma*(-c + z))')
+        def numexpr_model_phi_ext_calc(z,r,phi,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('C*((-alpha)*cos(epsilon2 + beta*abs(r)*sin(phi))*sin(phi)*sin(epsilon1 + alpha*abs(r)*cos(phi)) + beta*cos(phi)*cos(epsilon1 + alpha*abs(r)*cos(phi))*sin(epsilon2 + beta*abs(r)*sin(phi)))*sinh(gamma*(-c + z))')
+        def numexpr_model_z_ext_calc(z,r,phi,C,alpha,beta,gamma,c,epsilon1,epsilon2):
+            return ne.evaluate('(-C)*gamma*cos(epsilon1 + alpha*abs(r)*cos(phi))*cos(epsilon2 + beta*abs(r)*sin(phi))*cosh(gamma*(-c + z))')
+
+        model_r = 0.0
+        model_z = 0.0
+        model_phi = 0.0
+        R = R
+        ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        Cs = sorted({k:v for (k,v) in AB_params.iteritems() if 'C' in k})
+
+        for n in range(ns):
+            for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                model_r += numexpr_model_r_calc(z,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],ivp[n][i],kms[n][i])
+                model_z += numexpr_model_z_calc(z,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+                model_phi += numexpr_model_phi_calc(z,r,phi,n,delta1,AB_params[ab[0]],AB_params[ab[1]],iv[n][i],kms[n][i])
+
+
+        for cn in range(1, cns+1):
+            for cm in range(1, cms+1):
+                alpha = alpha_2d[cn-1][cm-1]
+                beta = beta_2d[cn-1][cm-1]
+                gamma = gamma_2d[cn-1][cm-1]
+
+                model_r += numexpr_model_r_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+                model_z += numexpr_model_z_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+                model_phi += numexpr_model_phi_ext_calc(z,r,phi,AB_params[Cs[cm-1+(cn-1)*cms]],alpha,beta,gamma,c,epsilon1,epsilon2)
+
+
+        return np.concatenate([model_r,model_z,model_phi]).ravel()
+    return b_full_3d_fast

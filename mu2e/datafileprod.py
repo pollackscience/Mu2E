@@ -51,7 +51,6 @@ class DataFileMaker:
     if offset: self.data_frame.eval('X = X-{0}'.format(offset))
 
     self.data_frame['R'] = rt.apply_make_r(self.data_frame['X'].values, self.data_frame['Y'].values)
-    self.data_frame['Br'] = rt.apply_make_r(self.data_frame['Bx'].values, self.data_frame['By'].values)
     if any([vers in self.field_map_version for vers in ['Mau9','Mau10','GA01']]):
       data_frame_lower = self.data_frame.query('Y >0')
       data_frame_lower.eval('Y = Y*-1')
@@ -59,6 +58,7 @@ class DataFileMaker:
       self.data_frame = pd.concat([self.data_frame, data_frame_lower])
     self.data_frame['Phi'] = rt.apply_make_theta(self.data_frame['X'].values, self.data_frame['Y'].values)
     self.data_frame['Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values, self.data_frame['Bx'].values, self.data_frame['By'].values)
+    self.data_frame['Br'] = rt.apply_make_br(self.data_frame['Phi'].values, self.data_frame['Bx'].values, self.data_frame['By'].values)
     self.data_frame.sort(['X','Y','Z'],inplace=True)
     self.data_frame.reset_index(inplace = True, drop=True)
     self.data_frame = self.data_frame.round(9)
@@ -88,10 +88,10 @@ if __name__ == "__main__":
   #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
-  #data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
+  data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
   #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
-  data_maker = DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
+  #data_maker = DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   data_maker.do_basic_modifications(-3896)
   data_maker.make_dump()
   print data_maker.data_frame.head()
