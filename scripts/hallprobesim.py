@@ -149,15 +149,15 @@ if __name__ == "__main__":
     pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
     pi2r = [25,150,325,475,600]
 
-    phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
-    r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
-    #phi_steps = (0, 0.463648, np.pi/4, 1.107149)
-    #r_steps = (pi2r, pi8r, pi4r, pi8r)
-    #data_maker,hpg,plot_maker,ff = solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full_Mau10',
+    #phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
+    #r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
+    phi_steps = (0, 0.463648, np.pi/4, 1.107149)
+    r_steps = (pi2r, pi8r, pi4r, pi8r)
+    #data_maker,hpg,plot_maker,ff = solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full_Mau10_v2',
     data_maker,hpg,plot_maker,ff = solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full_GA04',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 3, ms = 40,
-          #use_pickle = True, pickle_name='eight_phi_full_Mau10',
+          ns = 9, ms = 50,
+          #use_pickle = False, pickle_name='eight_phi_full_Mau10_v2',
           use_pickle = True, pickle_name='eight_phi_full_GA04',
           conditions = ('Z>5000','Z<13000','R!=0'),recreate=False)
 #cartestian settings, external field

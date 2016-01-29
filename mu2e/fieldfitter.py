@@ -81,14 +81,14 @@ class FieldFitter:
         if line_profile:
             return ZZ,RR,PP,Bz,Br,Bphi
 
-        brzphi_3d_fast = brzphi_3d_producer(ZZ,RR,PP,Reff,ns,ms)
+        brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if use_pickle or recreate:
             self.params = pkl.load(open(pickle_name+'_results.p',"rb"))
         else:
             self.params = Parameters()
-        delta_seeds = [0, 0.00059746, 0.00452236, 1.82217664, 1.54383364, 0.92910890, 2.3320e-6, 1.57188824, 3.02599942, 3.04222595]
+        #delta_seeds = [0, 0.00059746, 0.00452236, 1.82217664, 1.54383364, 0.92910890, 2.3320e-6, 1.57188824, 3.02599942, 3.04222595]
 
 
         if 'R' not in    self.params: self.params.add('R',value=Reff,vary=False)
@@ -96,14 +96,14 @@ class FieldFitter:
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
         else: self.params['ms'].value=ms
-        if 'delta1' not in self.params: self.params.add('delta1',value=0.0,min=-np.pi,max=np.pi,vary=False)
-        else: self.params['delta1'].vary=False
+        #if 'delta1' not in self.params: self.params.add('delta1',value=0.0,min=-np.pi,max=np.pi,vary=False)
+        #else: self.params['delta1'].vary=False
 
         for n in range(ns):
-            #if 'delta_{0}'.format(n) not in self.params: self.params.add('delta_{0}'.format(n),
-            #        #value=delta_seeds[n], min=0, max=np.pi, vary=True)
-            #        value=n*(np.pi/ns), min=0, max=np.pi, vary=True)
-            #else: self.params['delta_{0}'.format(n)].vary=True
+            if 'C_{0}'.format(n) not in self.params: self.params.add('C_{0}'.format(n),value=1,)
+            else: self.params['C_{0}'.format(n)].vary=True
+            if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001,)
+            else: self.params['D_{0}'.format(n)].vary=True
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0)
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
@@ -119,9 +119,12 @@ class FieldFitter:
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
         elif use_pickle:
+            #for param in self.params:
+            #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
