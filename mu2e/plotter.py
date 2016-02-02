@@ -33,12 +33,13 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
 import plotly.graph_objs as go
 from tools.new_iplot import new_iplot, get_plotlyjs
 import plotly.plotly as py
+from time import sleep
 
 
 class Plotter:
     """Class that takes prepped dataframes and produces all kinds of neat plots and things"""
 
-    def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None, no_show=False):
+    def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None, no_show=False, use_html_dir = False):
         """Default constructor, takes a dict of pandas DataFrame.
         (optional suffix and save dir)"""
         if clear: plt.close('all')
@@ -87,6 +88,7 @@ class Plotter:
         if platform=='darwin' and len(AppKit.NSScreen.screens())==1:
             self.MultiScreen = False
         self.no_show= no_show
+        self.use_html_dir = use_html_dir
 
     def set_df(self,df):
         self.data_frame_dict[self.data_frame_dict.keys()[0]] = df
@@ -97,10 +99,10 @@ class Plotter:
 
 
     @classmethod
-    def from_hall_study(cls, data_frame_dict, fit_result):
+    def from_hall_study(cls, data_frame_dict, fit_result, use_html_dir = False):
         "Initialize plotter from a hall probe study"
         alt_save_dir =    os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/field_fits'
-        return cls(data_frame_dict,fit_result = fit_result, alt_save_dir = alt_save_dir)
+        return cls(data_frame_dict,fit_result = fit_result, alt_save_dir = alt_save_dir, use_html_dir = use_html_dir)
 
     def plot_wrapper(func):
         def inner(self,*args,**kwargs):
@@ -372,7 +374,7 @@ class Plotter:
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent. A bit complicated right now to get
         proper setup for contour plotting."""
-        init_notebook_mode()
+        #init_notebook_mode()
         layout = go.Layout(
                         title='Plot of {0} vs {1} and {2} for DS, {3}'.format(A,B,C,conditions[0]),
                         autosize=False,
@@ -530,7 +532,7 @@ class Plotter:
         The ratio plotter will plot 2N-1 plots, where N is the number of items in the data dictionary.
         Each data set will be plotted, and ratios will also be plotted for main/extras.
         """
-        init_notebook_mode()
+        #init_notebook_mode()
         layout = go.Layout(
                         #title='Plot of {0}/{1}, {2} vs {3} and {4} for DS, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]),
                         autosize=False,
@@ -754,7 +756,10 @@ class Plotter:
                 ax1.view_init(elev=35., azim=15)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            if self.use_html_dir:
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            else:
+                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
             plt.savefig(savename,transparent = True)
 
             self.plot_count+=1
@@ -774,9 +779,13 @@ class Plotter:
             ax3.set_ylabel(C)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_phi={3}_{4}_residual.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            if self.use_html_dir:
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            else:
+                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+
             plt.savefig(savename,transparent = True)
-            outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+            outname = '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
     @plot_wrapper
     def plot_A_v_B_and_C_fit_ext(self,A='Bz',B='X',C='Z', xy_steps = (0,), do_eval = False, *conditions):
@@ -864,7 +873,7 @@ class Plotter:
 
         The distribution will be fit, or a previously made fit will displayed.
         """
-        init_notebook_mode()
+        #init_notebook_mode()
         layout = go.Layout(
                         autosize=False,
                         width=675,
@@ -964,9 +973,11 @@ class Plotter:
 
             plot_html = new_iplot(fig,show_link=False)
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
-            py.image.save_as(fig, savename[:-5]+'.png')
+            print 'plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            #py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
+
 
             data_fit_diff = (Z - bf.reshape(Z.shape))*10000
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
@@ -979,10 +990,10 @@ class Plotter:
             fig = go.Figure(data=[trace], layout = layout_heat)
             plot_html = new_iplot(fig,show_link=False)
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
-            py.image.save_as(fig, savename[:-5]+'.png')
+            print 'plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            #py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
-            #plot_url = iplot(fig)
 
     def plot_A_v_B_and_C_fit_ext_plotly(self,A='Bz',B='X',C='Z', xy_steps= (0,), do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.

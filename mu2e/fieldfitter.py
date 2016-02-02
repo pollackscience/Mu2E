@@ -122,7 +122,7 @@ class FieldFitter:
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
 
         if not cfg_pickle.recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
-        else: print 'recreating fit with n={0}, m={1}, pickle_file={3}'.format(ns,ms,cfg_pickle.load_name)
+        else: print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns,ms,cfg_pickle.load_name)
         start_time=time()
         if cfg_pickle.recreate:
             for param in self.params:
@@ -149,7 +149,7 @@ class FieldFitter:
         if not cfg_pickle.recreate:
             print("Elapsed time was %g seconds" % (end_time - start_time))
             report_fit(self.result, show_correl=False)
-        if cfg_pickle.save_pickle: self.pickle_results(cfg_pickle.save_name+'_results.p')
+        if cfg_pickle.save_pickle: self.pickle_results(cfg_pickle.save_name)
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         a = 3e4

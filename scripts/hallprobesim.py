@@ -1,201 +1,94 @@
 #! /usr/bin/env python
 
-#import matplotlib.pyplot as plt
-#import numpy as np
-#from mu2e.datafileprod import DataFileMaker
-from mu2e.hallprober import *
-#from mu2e.fieldfitter import FieldFitter
-#from mu2e.plotter import Plotter
-
+from mu2e.hallprober import field_map_analysis
 from collections import namedtuple
+import numpy as np
 
+############################
+# defining the cfg structs #
+############################
 cfg_data = namedtuple('cfg_data', 'datatype magnet path conditions')
 cfg_geom = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps xy_steps')
 cfg_params = namedtuple('cfg_params', 'ns ms cns cms Reff a b c')
 cfg_pickle = namedtuple('cfg_pickle', 'use_pickle save_pickle load_name save_name recreate')
-cfg_plot = namedtuple('cfg_plot', 'plot_type')
+cfg_plot = namedtuple('cfg_plot', 'plot_type html_loc')
 
-pi8r = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
-pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
-pi2r = [25,150,325,475,600]
+#################
+# the data cfgs #
+#################
+cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
+cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
 
-cfg_data_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap',('Z>5000','Z<13000','R!=0'))
+#################
+# the geom cfgs #
+#################
+pi8r_600mm = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
+pi4r_600mm = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
+pi2r_600mm = [25,150,325,475,600]
 
-cfg_geom_cyl_600mm = cfg_geom('cyl',range(5021,13021,50),
-        r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r),
-        phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945),
-        xy_steps = None)
+pi8r_700mm = [55.90169944, 167.70509831, 335.41019663, 559.01699437, 726.72209269]
+pi4r_700mm = [35.35533906, 176.7766953, 353.55339059, 530.33008589, 707.10678119]
+pi2r_700mm = [25,175,375,525,700]
 
-cfg_params_Mau_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 9000, a=None,b=None,c=None)
+pi8r_700mm2 = [55.90169944, 167.70509831, 335.41019663, 559.01699437,614.91869381, 726.72209269]
+pi4r_700mm2 = [35.35533906, 176.7766953, 353.55339059, 530.33008589, 601.04076401, 707.10678119]
+pi2r_700mm2 = [25,175,375,525,600,700]
 
+pi8r_150mm = [55.90169944, 111.80339887, 167.70509831]
+pi4r_150mm = [35.35533906, 106.06601718, 141.42135624]
+pi2r_150mm = [25,100,150]
+
+r_steps_150mm = (pi2r_150mm, pi8r_150mm, pi4r_150mm, pi8r_150mm,
+        pi2r_150mm, pi8r_150mm, pi4r_150mm, pi8r_150mm)
+r_steps_600mm = (pi2r_600mm, pi8r_600mm, pi4r_600mm, pi8r_600mm,
+        pi2r_600mm, pi8r_600mm, pi4r_600mm, pi8r_600mm)
+r_steps_700mm = (pi2r_700mm, pi8r_700mm, pi4r_700mm, pi8r_700mm,
+        pi2r_700mm, pi8r_700mm, pi4r_700mm, pi8r_700mm)
+r_steps_700mm2 = (pi2r_700mm2, pi8r_700mm2, pi4r_700mm2, pi8r_700mm2,
+        pi2r_700mm2, pi8r_700mm2, pi4r_700mm2, pi8r_700mm2)
+phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
+z_steps_DS = range(5021,13021,50)
+z_steps_PS = range(-7879,-4004,50)
+
+
+cfg_geom_cyl_600mm = cfg_geom('cyl',z_steps_DS, r_steps_600mm, phi_steps_8, xy_steps = None)
+cfg_geom_cyl_700mm = cfg_geom('cyl',z_steps_DS, r_steps_700mm, phi_steps_8, xy_steps = None)
+cfg_geom_cyl_700mm2 = cfg_geom('cyl',z_steps_DS, r_steps_700mm2, phi_steps_8, xy_steps = None)
+cfg_geom_cyl_150mm = cfg_geom('cyl',z_steps_PS, r_steps_150mm, phi_steps_8, xy_steps = None)
+
+
+###################
+# the params cfgs #
+###################
+cfg_params_Mau_DS_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 9000, a=None,b=None,c=None)
+cfg_params_Mau_DS_700 = cfg_params(ns = 3, ms = 70, cns = 0, cms=0, Reff = 9000, a=None,b=None,c=None)
+cfg_params_Mau_PS_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 9000, a=None,b=None,c=None)
+
+###################
+# the pickle cfgs #
+###################
 cfg_pickle_new_Mau = cfg_pickle(use_pickle = False, save_pickle = True, load_name = None, save_name = 'Mau10_opt', recreate = False)
+cfg_pickle_Mau_700 = cfg_pickle(use_pickle = True, save_pickle = False, load_name = 'Mau10_700', save_name = 'Mau10_700', recreate = True)
+cfg_pickle_Mau_700_plotly = cfg_pickle(use_pickle = True, save_pickle = False, load_name = 'Mau10_700', save_name = 'Mau10_700', recreate = True)
+cfg_pickle_new_Mau_PS = cfg_pickle(use_pickle = True, save_pickle = False, load_name = 'Mau10_PS', save_name = 'Mau10_PS', recreate = True)
+cfg_pickle_new_Mau_PS_plotly = cfg_pickle(use_pickle = True, save_pickle = False, load_name = 'Mau10_PS', save_name = 'Mau10_PS', recreate = True)
 
-cfg_plot_mpl = cfg_plot('mpl')
-
-
-
-def solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy',
-        r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', phi_steps = (0,np.pi/2),
-        ns = 10, ms = 40, use_pickle = False, pickle_name='default',
-        conditions = ('X==0','Z>4000','Z<14000'), recreate=False ):
-    plt.close('all')
-    #data_maker= DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
-    #data_maker= DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = True)
-    #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = True)
-    input_data = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
-    input_data = data_maker.data_frame
-    for condition in conditions:
-        input_data = input_data.query(condition)
-    hpg = HallProbeGenerator(input_data, z_steps = z_steps, r_steps = r_steps, phi_steps = phi_steps)
-    toy = hpg.get_toy()
-
-    ff = FieldFitter(toy,phi_steps,r_steps)
-    ff.fit_solenoid(ns=ns,ms=ms,use_pickle=use_pickle,pickle_name = pickle_name,recreate=recreate)
-
-    plot_maker = Plotter.from_hall_study({magnet+'_GA04':ff.input_data},fit_result = ff.result)
-
-    make_fit_plots(plot_maker, plot_type, suffix, geom,
-        phi_steps = phi_steps, conditions = conditions)
+#################
+# the plot cfgs #
+#################
+cfg_plot_mpl = cfg_plot('mpl',True)
+cfg_plot_plotly = cfg_plot('plotly',True)
 
 
-    return data_maker, hpg, plot_maker, ff
-
-def external_field_cart(magnet = 'DS',fullsim=False,suffix='halltoy',
-        xy_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all',
-        cns = 10, cms = 10, use_pickle = False, pickle_name='default',
-        conditions = ('Z>4000','Z<14000'), recreate=False ):
-
-    plt.close('all')
-    #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
-    #data_maker=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
-    #data_maker= DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
-    data_maker= DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = True)
-    #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = True)
-    input_data = data_maker.data_frame
-    for condition in conditions:
-        input_data = input_data.query(condition)
-    hpg = HallProbeGenerator(input_data, z_steps = z_steps, x_steps = xy_steps, y_steps = xy_steps)
-    toy = hpg.get_toy()
-
-    ff = FieldFitter(toy,xy_steps=xy_steps)
-    ff.fit_external(cns=cns,cms=cms,use_pickle=use_pickle,pickle_name = pickle_name,recreate=recreate)
-
-    if recreate:
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
-        plot_maker.extra_suffix = suffix
-        plot_maker.plot_A_v_B_and_C_fit_ext_plotly('Bz','X','Z',xy_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_ext_plotly('Bx','X','Z',xy_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_ext_plotly('By','X','Z',xy_steps,False,*conditions)
-    elif fullsim:
-        pass
-#fix this
-        #df = data_maker.data_frame
-        #df.By = abs(df.By)
-        #df.Bx = abs(df.Bx)
-        #plot_maker = Plotter.from_hall_study({magnet+'_Mau10':df},fit_result = ff.result)
-        #plot_maker.extra_suffix = suffix
-        #plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,sim=True,do_3d=True,do_eval=True,*conditions)
-        #plot_maker.plot_A_v_B_and_C_fit(Br,A,B,sim=True,do_3d=True,do_eval=True,*conditions)
-    else:
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
-        plot_maker.extra_suffix = suffix
-        plot_maker.plot_A_v_B_and_C_fit_ext('Bz','X','Z',xy_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_ext('Bx','X','Z',xy_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_ext('By','X','Z',xy_steps,False,*conditions)
-
-    return data_maker, hpg, plot_maker, ff
-
-def full_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy',
-        r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', phi_steps = (0,np.pi/2),
-        ns = 7, ms = 40, cns= 7, cms = 7, use_pickle = True, pickle_name='default',
-        conditions = ('R!=0','Z>5000','Z<13000'), recreate=False ):
-    plt.close('all')
-    #data_maker= DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
-    #data_maker= DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = True)
-    data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = True)
-    input_data = data_maker.data_frame
-    for condition in conditions:
-        input_data = input_data.query(condition)
-    hpg = HallProbeGenerator(input_data, z_steps = z_steps, r_steps = r_steps, phi_steps = phi_steps)
-    toy = hpg.get_toy()
-
-    ff = FieldFitter(toy,phi_steps,r_steps)
-    ff.fit_full(ns=ns, ms=ms, cns=cns, cms=cms,
-            use_pickle=use_pickle, pickle_name=pickle_name, recreate=recreate)
-
-    if recreate:
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
-        plot_maker.extra_suffix = suffix
-        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly('Bz','R','Z',phi_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly('Br','R','Z',phi_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_cyl_plotly('Bphi','R','Z',phi_steps,False,*conditions)
-    elif fullsim:
-        pass
-#fix this
-        #df = data_maker.data_frame
-        #df.By = abs(df.By)
-        #df.Bx = abs(df.Bx)
-        #plot_maker = Plotter.from_hall_study({magnet+'_Mau10':df},fit_result = ff.result)
-        #plot_maker.extra_suffix = suffix
-        #plot_maker.plot_A_v_B_and_C_fit('Bz',A,B,sim=True,do_3d=True,do_eval=True,*conditions)
-        #plot_maker.plot_A_v_B_and_C_fit(Br,A,B,sim=True,do_3d=True,do_eval=True,*conditions)
-    else:
-        plot_maker = Plotter.from_hall_study({magnet+'_Mau10':ff.input_data},fit_result = ff.result)
-        plot_maker.extra_suffix = suffix
-        plot_maker.plot_A_v_B_and_C_fit_cyl_v2('Bz','R','Z',phi_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_cyl_v2('Br','R','Z',phi_steps,False,*conditions)
-        plot_maker.plot_A_v_B_and_C_fit_cyl_v2('Bphi','R','Z',phi_steps,False,*conditions)
-
-    return data_maker, hpg, plot_maker, ff
 
 
 if __name__ == "__main__":
 
-#eight-phi settings, DS only, R values similar to hall probe
-    '''
-    pi8r = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
-    pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
-    pi2r = [25,150,325,475,600]
-
-    #phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
-    #r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
-    phi_steps = (0, 0.463648, np.pi/4, 1.107149)
-    r_steps = (pi2r, pi8r, pi4r, pi8r)
-    #data_maker,hpg,plot_maker,ff = solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full_Mau10_v2',
-    data_maker,hpg,plot_maker,ff = solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full_GA04',
-          r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 10, ms = 50,
-          #use_pickle = False, pickle_name='eight_phi_full_Mau10_v2',
-          use_pickle = False, pickle_name='eight_phi_full_GA04',
-          conditions = ('Z>5000','Z<13000','R!=0'),recreate=False)
-    '''
-#cartestian settings, external field
-    '''
-    xy_steps = [-600,-450,-300,-150,0,150,300,450,600]
-    data_maker,hpg,plot_maker,ff = external_field_cart(magnet = 'DS',fullsim=False,suffix='halltoy_ext_only',
-          xy_steps = xy_steps, z_steps = range(5021,13021,50),
-          cns = 7, cms = 7,
-          #use_pickle = True, pickle_name='eight_phi_and_ext',
-          use_pickle = False, pickle_name='cart_ext_only',
-          conditions = ('Z>5000','Z<13000'),recreate=False)
-    '''
-
-#eight-phi settings, DS and External combined fit, R values similar to hall probe
-    '''
-    pi8r = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
-    pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
-    pi2r = [25,150,325,475,600]
-
-    phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
-    r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r)
-    #phi_steps = (0, 0.463648, np.pi/4, 1.107149)
-    #r_steps = (pi2r, pi8r, pi4r, pi8r)
-    data_maker,hpg,plot_maker,ff = full_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy_full',
-          r_steps = r_steps, phi_steps = phi_steps, z_steps = range(5021,13021,50),
-          ns = 7, ms = 40, cns=7, cms=7,
-          use_pickle = True, pickle_name=['eight_phi_DS_only_probeRs','cart_ext_only'],
-          conditions = ('Z>5000','Z<13000','R!=0'),recreate=False)
-    '''
-
-    field_map_analysis('halltoy_600mm', cfg_data_Mau10, cfg_geom_cyl_600mm, cfg_params_Mau_opt,
-            cfg_pickle_new_Mau, cfg_plot_mpl)
+    #field_map_analysis('halltoy_600mm', cfg_data_Mau10, cfg_geom_cyl_600mm, cfg_params_Mau_opt, cfg_pickle_new_Mau, cfg_plot_mpl)
+#do 700
+    #field_map_analysis('halltoy_700mm', cfg_data_DS_Mau10, cfg_geom_cyl_700mm, cfg_params_Mau_DS_700, cfg_pickle_Mau_700, cfg_plot_mpl)
+#create 700 in plotly
+    field_map_analysis('halltoy_700mm', cfg_data_DS_Mau10, cfg_geom_cyl_700mm, cfg_params_Mau_DS_700, cfg_pickle_Mau_700_plotly, cfg_plot_plotly)
+#do PS stuff
+    #field_map_analysis('halltoy_150mm', cfg_data_PS_Mau10, cfg_geom_cyl_150mm, cfg_params_Mau_PS_opt, cfg_pickle_new_Mau_PS, cfg_plot_mpl)
+    #field_map_analysis('halltoy_150mm', cfg_data_PS_Mau10, cfg_geom_cyl_150mm, cfg_params_Mau_PS_opt, cfg_pickle_new_Mau_PS_plotly, cfg_plot_plotly)

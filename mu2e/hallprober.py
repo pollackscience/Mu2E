@@ -161,7 +161,7 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     ff = FieldFitter(hall_measure_data, cfg_geom)
     ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
 
-    plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result)
+    plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
     plot_maker.extra_suffix=suffix
 
     make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)

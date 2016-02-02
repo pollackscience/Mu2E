@@ -80,20 +80,20 @@ class DataFileMaker:
 
 if __name__ == "__main__":
   #for PS
-  #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_PSMap',use_pickle = False)
-  #data_maker.do_basic_modifications(-3904)
-  #data_maker.make_dump()
+  data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False, field_map_version='Mau10')
+  data_maker.do_basic_modifications(3904)
+  data_maker.make_dump()
 
   #for DS
   #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
-  data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
+  #data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
   #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
-  data_maker.do_basic_modifications(-3896)
-  data_maker.make_dump()
+  #data_maker.do_basic_modifications(-3896)
+  #data_maker.make_dump()
   print data_maker.data_frame.head()
   print data_maker.data_frame.tail()
 
