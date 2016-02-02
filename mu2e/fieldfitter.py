@@ -12,17 +12,28 @@ import collections
 
 class FieldFitter:
     """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
-    def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
+    #def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
+    def __init__(self, input_data, cfg_geom)
         self.input_data = input_data
-        if phi_steps: self.phi_steps = phi_steps
-        else: self.phi_steps = (np.pi/2,)
-        if r_steps: self.r_steps = r_steps
-        else: self.r_steps = (range(25,625,50),)
-        if xy_steps: self.xy_steps= xy_steps
-        self.no_save = no_save
+        if cfg_geom.geom == 'cyl':
+            self.phi_steps = cfg_geom.phi_steps
+            self.r_steps= cfg_geom.r_steps
+        elif cfg_geom.geom == 'cart':
+            self.xy_steps = cfg_geom.xy_steps
 
-    def fit_solenoid(self,ns=5,ms=10, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
-        Reff=9000
+
+    def fit(self, geom, cfg_params, cfg_pickle):
+        if geom=='cyl':
+            self.fit_solenoid(cfg_params, cfg_pickle)
+        elif geom=='cart':
+            self.fit_external(cfg_params, cfg_pickle)
+
+
+    #def fit_solenoid(self,ns=5,ms=10, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
+    def fit_solenoid(self,cfg_params, cfg_pickle):
+        Reff = cfg_params.Reff
+        ns = cfg_params.ns
+        ms = cfg_params.ms
         Bz = []
         Br =[]
         Bphi = []
@@ -84,14 +95,14 @@ class FieldFitter:
         brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
-        if use_pickle or recreate:
-            self.params = pkl.load(open(pickle_name+'_results.p',"rb"))
+        if cfg_pickle.use_pickle or cfg_pickle.recreate:
+            self.params = pkl.load(open(cfg_pickle.load_name+'_results.p',"rb"))
         else:
             self.params = Parameters()
         #delta_seeds = [0, 0.00059746, 0.00452236, 1.82217664, 1.54383364, 0.92910890, 2.3320e-6, 1.57188824, 3.02599942, 3.04222595]
 
 
-        if 'R' not in    self.params: self.params.add('R',value=Reff,vary=False)
+        if 'R' not in self.params: self.params.add('R',value=Reff,vary=False)
         if 'ns' not in self.params: self.params.add('ns',value=ns,vary=False)
         else: self.params['ns'].value=ns
         if 'ms' not in self.params: self.params.add('ms',value=ms,vary=False)
@@ -110,34 +121,35 @@ class FieldFitter:
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
 
-        if not recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
+        if not cfg_pickle.recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
+        else: print 'recreating fit with n={0}, m={1}, pickle_file={3}'.format(ns,ms,cfg_pickle.load_name)
         start_time=time()
-        if recreate:
+        if cfg_pickle.recreate:
             for param in self.params:
                 self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
-        elif use_pickle:
+        elif cfg_pickle.use_pickle:
             #for param in self.params:
             #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':20000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':20000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
         self.params = self.result.params
         end_time=time()
-        if not recreate:
+        if not cfg_pickle.recreate:
             print("Elapsed time was %g seconds" % (end_time - start_time))
             report_fit(self.result, show_correl=False)
-        if not self.no_save and not recreate: self.pickle_results(pickle_name)
+        if not cfg_pickle.no_save and not cfg_pickle.recreate: self.pickle_results(cfg_pickle.save_name)
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         a = 3e4
@@ -250,7 +262,7 @@ class FieldFitter:
         if not self.no_save and not recreate: self.pickle_results(pickle_name)
 
     def fit_full(self,ns=7, ms=40, cns=7, cms=7, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
-        Reff=9000
+        Reff=11000
         a = 3e4
         b = 3e4
         c = 3e4
