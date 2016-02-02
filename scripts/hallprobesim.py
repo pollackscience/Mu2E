@@ -15,10 +15,24 @@ cfg_params = namedtuple('cfg_params', 'ns ms cns cms Reff a b c')
 cfg_pickle = namedtuple('cfg_pickle', 'use_pickle save_pickle load_name save_name recreate')
 cfg_plot = namedtuple('cfg_plot', 'plot_type')
 
+pi8r = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
+pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
+pi2r = [25,150,325,475,600]
+
 cfg_data_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap',('Z>5000','Z<13000','R!=0'))
 
+cfg_geom_cyl_600mm = cfg_geom('cyl',range(5021,13021,50),
+        r_steps = (pi2r, pi8r, pi4r, pi8r, pi2r, pi8r, pi4r, pi8r),
+        phi_steps = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945),
+        xy_steps = None)
 
-field_map_analysis('halltoy_600mm', cfg_data_Mau10,
+cfg_params_Mau_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 9000, a=None,b=None,c=None)
+
+cfg_pickle_new_Mau = cfg_pickle(use_pickle = False, save_pickle = True, load_name = None, save_name = 'Mau10_opt', recreate = False)
+
+cfg_plot_mpl = cfg_plot('mpl')
+
+
 
 def solenoid_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy',
         r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', phi_steps = (0,np.pi/2),
@@ -138,6 +152,7 @@ def full_field_cyl(magnet = 'DS',fullsim=False,suffix='halltoy',
 if __name__ == "__main__":
 
 #eight-phi settings, DS only, R values similar to hall probe
+    '''
     pi8r = [55.90169944, 167.70509831, 279.50849719, 447.2135955, 614.91869381]
     pi4r = [35.35533906, 141.42135624, 318.19805153, 494.97474683, 601.04076401]
     pi2r = [25,150,325,475,600]
@@ -153,6 +168,7 @@ if __name__ == "__main__":
           #use_pickle = False, pickle_name='eight_phi_full_Mau10_v2',
           use_pickle = False, pickle_name='eight_phi_full_GA04',
           conditions = ('Z>5000','Z<13000','R!=0'),recreate=False)
+    '''
 #cartestian settings, external field
     '''
     xy_steps = [-600,-450,-300,-150,0,150,300,450,600]
@@ -180,3 +196,6 @@ if __name__ == "__main__":
           use_pickle = True, pickle_name=['eight_phi_DS_only_probeRs','cart_ext_only'],
           conditions = ('Z>5000','Z<13000','R!=0'),recreate=False)
     '''
+
+    field_map_analysis('halltoy_600mm', cfg_data_Mau10, cfg_geom_cyl_600mm, cfg_params_Mau_opt,
+            cfg_pickle_new_Mau, cfg_plot_mpl)

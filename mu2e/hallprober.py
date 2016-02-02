@@ -19,6 +19,8 @@ import statsmodels.api as sm
 from statsmodels.formula.api import wls
 from statsmodels.graphics.regressionplots import abline_plot
 import matplotlib.ticker as mtick
+from mu2e.fieldfitter import FieldFitter
+from mu2e.plotter import Plotter
 import re
 
 
@@ -114,35 +116,38 @@ class HallProbeGenerator:
                     self.sparse_field.ix[self.sparse_field.Y==-probe, 'Y'] -= pos_offset[i]
 
 
-def make_fit_plots(plot_maker, cfg_plot, geom, **extra_args):
+def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
     '''make a series of fit plots, given a plotter class and some information
         on the kind of plots you want. must specify phi steps or xy_steps'''
 
-    ABC_geom = {'cylindical':[['Bz','R','Z'],['Br','R','Z'],['Bphi','R','Z']],
-                'cartesian':[['Bx','Y','Z'],['By','Y','Z'],['Bz','Y','Z'],
-                             ['Bx','X','Z'],['By','X','Z'],['Bz','X','Z']]}
+    geom = cfg_geom.geom
+    plot_type = cfg_plot.plot_type
+    if geom == 'cyl': steps = cfg_geom.phi_steps
+    if geom == 'cart': steps = cfg_geom.xy_steps
+    conditions = cfg_data.conditions
 
-    if suffix: plot_maker.extra_suffix = suffix
-    if geom=='cyl'.lower(): geom = 'cylindical'
-    elif geom=='cart'.lower(): geom = 'cartesian'
+    ABC_geom = {'cyl':[['Bz','R','Z'],['Br','R','Z'],['Bphi','R','Z']],
+                'cart':[['Bx','Y','Z'],['By','Y','Z'],['Bz','Y','Z'],
+                       ['Bx','X','Z'],['By','X','Z'],['Bz','X','Z']]}
 
-    if plot_type == 'mpl':
-        if geom == 'cartesian':
+    if cfg_plot.plot_type == 'mpl':
+        if cfg_geom.geom == 'cart':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext(ABC[0],ABC[1],ABC[2],xy_steps,False,*conditions)
-        elif geom == 'cylindical'
+                plot_maker.plot_A_v_B_and_C_fit_ext(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+        elif geom == 'cyl':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl(ABC[0],ABC[1],ABC[2],phi_steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_cyl(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
     elif plot_type == 'plotly':
-        if geom == 'cartesian':
+        if geom == 'cart':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext_plotly(ABC[0],ABC[1],ABC[2],xy_steps,False,*conditions)
-        elif geom == 'cylindical'
+                plot_maker.plot_A_v_B_and_C_fit_ext_plotly(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+        elif geom == 'cyl':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(ABC[0],ABC[1],ABC[2],phi_steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+    if cfg_plot.plot_type=='mpl':plt.show()
 
 
-def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot)
+def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot):
     '''Universal function to perform all types of hall probe measurements, plots,
     and further analysis.  Takes input cfg namedtuples to determine analysis'''
 
@@ -151,16 +156,15 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     input_data.query(' and '.join(cfg_data.conditions))
     hall_measure_data = hpg = HallProbeGenerator(input_data, z_steps = cfg_geom.z_steps,
             r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
-            xy_steps = cfg_geom.xy_steps)).get_toy()
+            x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps).get_toy()
 
     ff = FieldFitter(hall_measure_data, cfg_geom)
-    ff.fit(cfg_geom.geom, cfg_params)
+    ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
 
-    plot_maker = Plotter.from_hall_study({'_'.join(cfg_data.magnet,cfg_data.datatype):hall_measure_data},fit_result = ff.result)
+    plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result)
     plot_maker.extra_suffix=suffix
 
-    make_fit_plots(plot_maker, cfg_plot, geom,
-        phi_steps = phi_steps, conditions = conditions)
+    make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)
 
 
 if __name__=="__main__":

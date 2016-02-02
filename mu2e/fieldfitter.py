@@ -13,7 +13,7 @@ import collections
 class FieldFitter:
     """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
     #def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
-    def __init__(self, input_data, cfg_geom)
+    def __init__(self, input_data, cfg_geom):
         self.input_data = input_data
         if cfg_geom.geom == 'cyl':
             self.phi_steps = cfg_geom.phi_steps
@@ -89,8 +89,8 @@ class FieldFitter:
         Bzerr = np.concatenate(Bzerr)
         Brerr = np.concatenate(Brerr)
         Bphierr = np.concatenate(Bphierr)
-        if line_profile:
-            return ZZ,RR,PP,Bz,Br,Bphi
+        #if line_profile:
+        #    return ZZ,RR,PP,Bz,Br,Bphi
 
         brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
@@ -135,12 +135,12 @@ class FieldFitter:
             #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':20000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':20000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
@@ -149,7 +149,7 @@ class FieldFitter:
         if not cfg_pickle.recreate:
             print("Elapsed time was %g seconds" % (end_time - start_time))
             report_fit(self.result, show_correl=False)
-        if not cfg_pickle.no_save and not cfg_pickle.recreate: self.pickle_results(cfg_pickle.save_name)
+        if cfg_pickle.save_pickle: self.pickle_results(cfg_pickle.save_name+'_results.p')
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         a = 3e4
