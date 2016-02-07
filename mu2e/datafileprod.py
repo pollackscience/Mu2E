@@ -26,6 +26,8 @@ class DataFileMaker:
       self.data_frame = pd.read_csv(self.file_name+'.3', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     elif 'GA04' in self.field_map_version:
       self.data_frame = pd.read_csv(self.file_name+'.4', header=None, names = header_names, delim_whitespace=True, skiprows=8)
+    elif 'GA05' in self.field_map_version:
+      self.data_frame = pd.read_csv(self.file_name+'.5', header=None, names = header_names, delim_whitespace=True, skiprows=8)
     else:
       raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
@@ -37,7 +39,7 @@ class DataFileMaker:
     and reflect the map about the Y-axis, if applicable.
 
     -Default offset is 0
-    -The PS offset is -3904 (for Mau)
+    -The PS offset is +3904 (for Mau)
     -The DS offset is -3896 (for Mau)
 
     GA field maps are converted from meters to millimeters'''
@@ -80,20 +82,22 @@ class DataFileMaker:
 
 if __name__ == "__main__":
   #for PS
-  data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False, field_map_version='Mau10')
-  data_maker.do_basic_modifications(3904)
-  data_maker.make_dump()
+  #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False, field_map_version='Mau10')
+  #data_maker.do_basic_modifications(3904)
+  #data_maker.make_dump()
 
   #for DS
   #data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
   #data_maker = DataFileMaker('../FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
   #data_maker = DataFileMaker('../FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
   #data_maker = DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
+  #data_maker = DataFileMaker('../FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',use_pickle = False,field_map_version='GA05')
+  data_maker = DataFileMaker('../FieldMapsGA_Special/Mu2e_DS_noDS_GA0',use_pickle = False,field_map_version='GA05')
   #data_maker = DataFileMaker('../Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
-  #data_maker.do_basic_modifications(-3896)
-  #data_maker.make_dump()
+  data_maker.do_basic_modifications(-3896)
+  data_maker.make_dump()
   print data_maker.data_frame.head()
   print data_maker.data_frame.tail()
 

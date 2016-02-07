@@ -694,7 +694,7 @@ class Plotter:
         #return fig1, outname
 
     @plot_wrapper
-    def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
+    def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', phi_steps = (0,), zlims = [-2,2], do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.
 
@@ -770,7 +770,7 @@ class Plotter:
 
             Xa = np.concatenate(([Xa[0]],0.5*(Xa[1:]+Xa[:-1]),[Xa[-1]]))
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
-            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=-2,vmax=2,cmap=plt.get_cmap('viridis'))
+            heat = ax3.pcolormesh(Xa,Ya,data_fit_diff,vmin=zlims[0],vmax=zlims[1],cmap=plt.get_cmap('viridis'))
             plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
 
             cb = plt.colorbar(heat, aspect=7)
@@ -867,7 +867,7 @@ class Plotter:
             plt.savefig(savename,transparent = True)
             outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
-    def plot_A_v_B_and_C_fit_cyl_plotly(self,A='Bz',B='R',C='Z', phi_steps = (0,), do_eval = False, *conditions):
+    def plot_A_v_B_and_C_fit_cyl_plotly(self,A='Bz',B='R',C='Z', phi_steps = (0,), zlims = [-2,2], do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.
 
@@ -984,7 +984,7 @@ class Plotter:
             Ya = np.concatenate(([Ya[0]],0.5*(Ya[1:]+Ya[:-1]),[Ya[-1]]))
 
             trace = go.Heatmap(x=Xa, y=Ya, z=data_fit_diff, colorscale='Viridis',
-                    colorbar=dict(title='Data-Fit (G)', titlefont=dict(size=18),tickfont=dict(size=20)),zmin=-2,zmax=2)
+                    colorbar=dict(title='Data-Fit (G)', titlefont=dict(size=18),tickfont=dict(size=20)),zmin=zlims[0],zmax=zlims[1])
             layout_heat['title']='Residuals of {0} vs {1} and {2} for {3}, phi={4}'.format(A,B,C,self.suffix,phi),
 
             fig = go.Figure(data=[trace], layout = layout_heat)

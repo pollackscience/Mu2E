@@ -134,15 +134,15 @@ class FieldFitter:
             #for param in self.params:
             #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-                #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
+                #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-                #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
+                #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
-                #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
 
         self.params = self.result.params
         end_time=time()
@@ -368,11 +368,11 @@ class FieldFitter:
                 self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':6000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 

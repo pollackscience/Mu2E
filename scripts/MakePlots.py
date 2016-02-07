@@ -216,9 +216,9 @@ if __name__=="__main__":
     #fig, df_int = plot_maker.plot_A_v_B_and_C('Br','X','Y',True,1000,'Z==9021','-501<X<501','-501<Y<501')
     #plot_maker.plot_A_v_B_and_C_plotly('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
     #scalar_field_plotter(plot_maker,'Z>5000','Z<13000','X>-650','X<650','Y>-650','Y<650')
-    plot_maker.plot_A_v_B_and_C('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-    plot_maker.plot_A_v_B_and_C('By','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-    plot_maker.plot_A_v_B_and_C('Bx','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
-    plot_maker.plot_A_v_B_and_C('By','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C('By','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C('Bx','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C('By','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
     plt.show()
 

@@ -36,13 +36,13 @@ class HallProbeGenerator:
         if r_steps:
             self.apply_selection('R',r_steps)
             self.apply_selection('Phi',phi_steps)
+            self.phi_steps = phi_steps
         else:
             self.apply_selection('X',x_steps)
             self.apply_selection('Y',y_steps)
 
         for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
-            self.sparse_field.eval('{0}err = 0.0001*{0}'.format(mag))
-            #self.sparse_field[self.sparse_field.Z > 8000][self.sparse_field.Z < 13000].eval('{0}err = 0.0000001*{0}'.format(mag))
+            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag))
 
     def takespread(self, sequence, num):
         length = float(len(sequence))
@@ -99,21 +99,24 @@ class HallProbeGenerator:
     def bad_calibration(self,measure = True, position=False):
         measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
         pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
-        probes = abs(self.sparse_field.Y).unique()
-        if measure:
-            if len(probes)<len(measure_sf): raise IndexError('need more measure_sf, too many probes')
-            for i,probe in enumerate(probes):
-                self.sparse_field.ix[abs(self.sparse_field.Y)==probe, 'Bz'] *= measure_sf[i]
-                self.sparse_field.ix[abs(self.sparse_field.Y)==probe, 'By'] *= measure_sf[i]
+        for phi in self.phi_steps:
+            probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
+            print phi
+            if measure:
+                if len(probes)>len(measure_sf): raise IndexError('need more measure_sf, too many probes')
+                for i,probe in enumerate(probes):
+                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bz'] *= measure_sf[i]
+                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Br'] *= measure_sf[i]
+                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bphi'] *= measure_sf[i]
 
-        if position:
-            if len(probes)<len(pos_offset): raise IndexError('need more pos_offset, too many probes')
-            for i,probe in enumerate(probes):
-                if probe==0:
-                    self.sparse_field.ix[self.sparse_field.Y==probe, 'Y'] += pos_offset[i]
-                else:
-                    self.sparse_field.ix[self.sparse_field.Y==probe, 'Y'] += pos_offset[i]
-                    self.sparse_field.ix[self.sparse_field.Y==-probe, 'Y'] -= pos_offset[i]
+            if position:
+                if len(probes)>len(pos_offset): raise IndexError('need more pos_offset, too many probes')
+                for i,probe in enumerate(probes):
+                    if probe==0:
+                        self.sparse_field.ix[abs(self.sparse_field.R)==probe, 'R'] += pos_offset[i]
+                    else:
+                        self.sparse_field.ix[abs(self.sparse_field.R)==probe, 'R'] += pos_offset[i]
+                        self.sparse_field.ix[abs(self.sparse_field.R)==-probe, 'R'] -= pos_offset[i]
 
 
 def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
@@ -125,6 +128,7 @@ def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
     if geom == 'cyl': steps = cfg_geom.phi_steps
     if geom == 'cart': steps = cfg_geom.xy_steps
     conditions = cfg_data.conditions
+    zlims = cfg_plot.zlims
 
     ABC_geom = {'cyl':[['Bz','R','Z'],['Br','R','Z'],['Bphi','R','Z']],
                 'cart':[['Bx','Y','Z'],['By','Y','Z'],['Bz','Y','Z'],
@@ -133,17 +137,17 @@ def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
     if cfg_plot.plot_type == 'mpl':
         if cfg_geom.geom == 'cart':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_ext(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
         elif geom == 'cyl':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_cyl(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
     elif plot_type == 'plotly':
         if geom == 'cart':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext_plotly(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_ext_plotly(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
         elif geom == 'cyl':
             for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(ABC[0],ABC[1],ABC[2],steps,False,*conditions)
+                plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
     if cfg_plot.plot_type=='mpl':plt.show()
 
 
@@ -154,9 +158,16 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     plt.close('all')
     input_data = DataFileMaker(cfg_data.path, use_pickle=True).data_frame
     input_data.query(' and '.join(cfg_data.conditions))
-    hall_measure_data = hpg = HallProbeGenerator(input_data, z_steps = cfg_geom.z_steps,
+    hpg = HallProbeGenerator(input_data, z_steps = cfg_geom.z_steps,
             r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
-            x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps).get_toy()
+            x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+
+    if cfg_geom.bad_calibration[0]:
+        hpg.bad_calibration(measure = True, position = False)
+    if cfg_geom.bad_calibration[1]:
+        hpg.bad_calibration(measure = False, position = True)
+
+    hall_measure_data = hpg.get_toy()
 
     ff = FieldFitter(hall_measure_data, cfg_geom)
     ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
@@ -165,6 +176,7 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     plot_maker.extra_suffix=suffix
 
     make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)
+    return hall_measure_data, ff, plot_maker
 
 
 if __name__=="__main__":
