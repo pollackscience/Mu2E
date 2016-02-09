@@ -96,12 +96,13 @@ class HallProbeGenerator:
     def get_toy(self):
         return self.sparse_field
 
-    def bad_calibration(self,measure = True, position=False):
+    def bad_calibration(self,measure = False, position=False, rotation=False):
         measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
         pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+        rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
+        #rotation_angle = [ 0.4,  0.35,  0.55, 0.22,  0.18]
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
-            print phi
             if measure:
                 if len(probes)>len(measure_sf): raise IndexError('need more measure_sf, too many probes')
                 for i,probe in enumerate(probes):
@@ -117,6 +118,14 @@ class HallProbeGenerator:
                     else:
                         self.sparse_field.ix[abs(self.sparse_field.R)==probe, 'R'] += pos_offset[i]
                         self.sparse_field.ix[abs(self.sparse_field.R)==-probe, 'R'] -= pos_offset[i]
+
+            if rotation:
+                if len(probes)>len(rotation_angle): raise IndexError('need more rotation_angle, too many probes')
+                for i,probe in enumerate(probes):
+                    tmp_Bz = self.sparse_field[self.sparse_field.R==probe].Bz
+                    tmp_Br = self.sparse_field[self.sparse_field.R==probe].Br
+                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bz'] = tmp_Br*np.sin(rotation_angle[i])+tmp_Bz*np.cos(rotation_angle[i])
+                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Br'] = tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i])
 
 
 def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
@@ -163,9 +172,11 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
             x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
 
     if cfg_geom.bad_calibration[0]:
-        hpg.bad_calibration(measure = True, position = False)
+        hpg.bad_calibration(measure = True, position = False, rotation = False)
     if cfg_geom.bad_calibration[1]:
-        hpg.bad_calibration(measure = False, position = True)
+        hpg.bad_calibration(measure = False, position = True, rotation=False)
+    if cfg_geom.bad_calibration[2]:
+        hpg.bad_calibration(measure = False, position = False, rotation = True)
 
     hall_measure_data = hpg.get_toy()
 

@@ -149,7 +149,7 @@ class FieldFitter:
         if not cfg_pickle.recreate:
             print("Elapsed time was %g seconds" % (end_time - start_time))
             report_fit(self.result, show_correl=False)
-        if cfg_pickle.save_pickle: self.pickle_results(cfg_pickle.save_name)
+        if cfg_pickle.save_pickle and not cfg_pickle.recreate: self.pickle_results(cfg_pickle.save_name)
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         a = 3e4
