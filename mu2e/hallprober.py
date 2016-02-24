@@ -99,7 +99,8 @@ class HallProbeGenerator:
     def bad_calibration(self,measure = False, position=False, rotation=False):
         measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
         pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
-        rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
+        #rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
+        rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
         #rotation_angle = [ 0.4,  0.35,  0.55, 0.22,  0.18]
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
@@ -160,7 +161,7 @@ def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
     if cfg_plot.plot_type=='mpl':plt.show()
 
 
-def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot):
+def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
     '''Universal function to perform all types of hall probe measurements, plots,
     and further analysis.  Takes input cfg namedtuples to determine analysis'''
 
@@ -181,7 +182,11 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     hall_measure_data = hpg.get_toy()
 
     ff = FieldFitter(hall_measure_data, cfg_geom)
-    ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+    if profile:
+        ZZ,RR,PP,Bz,Br,Bphi = ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile = profile)
+        return ZZ,RR,PP,Bz,Br,Bphi
+    else:
+        ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile = profile)
 
     plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
     plot_maker.extra_suffix=suffix

@@ -17,6 +17,7 @@ cfg_plot = namedtuple('cfg_plot', 'plot_type zlims html_loc')
 # the data cfgs #
 #################
 cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS2_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4000','Z<14000','R!=0'))
 cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
 
 
@@ -41,6 +42,10 @@ pi2r_825mm_v1 = [25,175,375,525,825]
 pi8r_825mm_v2 = [55.90169944, 335.41019663, 503.11529494, 726.72209269, 838.52549156]
 pi4r_825mm_v2 = [35.35533906, 318.19805153, 494.97474683, 707.10678119, 813.17279836]
 pi2r_825mm_v2 = [25,325,500,725,825]
+
+pi8r_800mm = [55.90169944, 335.41019663, 503.11529494, 726.72209269, 782.62379213]
+pi4r_800mm = [35.35533906, 318.19805153, 494.97474683, 707.10678119, 813.17279836]
+pi2r_800mm = [25,325,500,725,800]
 
 
 pi8r_fullsim = [55.90169944, 111.80339887, 167.70509831, 223.60679775, 279.50849719,
@@ -74,6 +79,9 @@ r_steps_825mm_v1 = (pi2r_825mm_v1, pi8r_825mm_v1, pi4r_825mm_v1, pi8r_825mm_v1,
 r_steps_825mm_v2 = (pi2r_825mm_v2, pi8r_825mm_v2, pi4r_825mm_v2, pi8r_825mm_v2,
         pi2r_825mm_v2, pi8r_825mm_v2, pi4r_825mm_v2, pi8r_825mm_v2)
 
+r_steps_800mm = (pi2r_800mm, pi8r_800mm, pi4r_800mm, pi8r_800mm,
+        pi2r_800mm, pi8r_800mm, pi4r_800mm, pi8r_800mm)
+
 r_steps_fullsim = (pi2r_fullsim, pi8r_fullsim, pi4r_fullsim, pi8r_fullsim,
         pi2r_fullsim, pi8r_fullsim, pi4r_fullsim, pi8r_fullsim)
 r_steps_fullsim_trunc = (pi2r_fullsim[:-2], pi8r_fullsim[:-2], pi4r_fullsim[:-2], pi8r_fullsim[:-2],
@@ -82,7 +90,9 @@ r_steps_fullsim_trunc = (pi2r_fullsim[:-2], pi8r_fullsim[:-2], pi4r_fullsim[:-2]
 phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
 
 z_steps_DS = range(5021,13021,50)
+z_steps_DS2 = range(4171,13921,50)
 z_steps_DS_fullsim = range(5021,13021,25)
+z_steps_DS_fullsim2 = range(4171,13921,25)
 z_steps_PS = range(-7879,-4004,50)
 
 
@@ -91,11 +101,14 @@ cfg_geom_cyl_600mm = cfg_geom('cyl',z_steps_DS, r_steps_600mm, phi_steps_8, xy_s
 cfg_geom_cyl_700mm = cfg_geom('cyl',z_steps_DS, r_steps_700mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_825mm_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_825mm_v2 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v2, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
+cfg_geom_cyl_800mm = cfg_geom('cyl',z_steps_DS2, r_steps_800mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_fullsim = cfg_geom('cyl',z_steps_DS_fullsim, r_steps_fullsim, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_fullsim_trunc = cfg_geom('cyl',z_steps_DS_fullsim, r_steps_fullsim_trunc, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
+cfg_geom_cyl_fullsim2 = cfg_geom('cyl',z_steps_DS_fullsim2, r_steps_fullsim, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_bad_measure_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [True, False, False])
 cfg_geom_cyl_bad_position_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [False, True, False])
 cfg_geom_cyl_bad_rotation_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [False, False, True])
+cfg_geom_cyl_bad_rotation2_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [False, False, True])
 cfg_geom_cyl_bad_measure_v2 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v2, phi_steps_8, xy_steps = None, bad_calibration = [True, False, False])
 cfg_geom_cyl_bad_position_v2 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v2, phi_steps_8, xy_steps = None, bad_calibration = [False, True, False])
 cfg_geom_cyl_bad_rotation_v2 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v2, phi_steps_8, xy_steps = None, bad_calibration = [False, False, True])
@@ -109,6 +122,7 @@ cfg_geom_cyl_150mm = cfg_geom('cyl',z_steps_PS, r_steps_150mm, phi_steps_8, xy_s
 cfg_params_Mau_DS_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
 cfg_params_Mau_DS_825mm_v1 = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
 cfg_params_Mau_DS_825mm_v2 = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
+cfg_params_Mau_DS_800mm = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
 cfg_params_Mau_DS_700 = cfg_params(ns = 3, ms = 70, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
 cfg_params_Mau_DS_bad = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, a=None,b=None,c=None)
 
@@ -125,9 +139,12 @@ cfg_pickle_Mau_700 = cfg_pickle(use_pickle = True, save_pickle = False, load_nam
 cfg_pickle_Mau_825mm_v1 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v1', save_name = 'Mau10_825mm_v1', recreate = True)
 cfg_pickle_Mau_825mm_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v2', save_name = 'Mau10_825mm_v2', recreate = True)
 
+cfg_pickle_Mau_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm', save_name = 'Mau10_800mm', recreate = False)
+
 cfg_pickle_Mau_bad_m_test_v1 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_m_test_v1', save_name = 'Mau10_bad_m_test_v1', recreate = True)
 cfg_pickle_Mau_bad_p_test_v1 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_p_test_v1', save_name = 'Mau10_bad_p_test_v1', recreate = True)
 cfg_pickle_Mau_bad_r_test_v1 = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_bad_r_test_v1', save_name = 'Mau10_bad_r_test_v1', recreate = True)
+cfg_pickle_Mau_bad_r2_test_v1 = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_bad_r2_test_v1', save_name = 'Mau10_bad_r2_test_v1', recreate = True)
 
 cfg_pickle_Mau_bad_m_test_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_m_test_v2', save_name = 'Mau10_bad_m_test_v2', recreate = True)
 cfg_pickle_Mau_bad_p_test_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_p_test_v2', save_name = 'Mau10_bad_p_test_v2', recreate = True)
@@ -147,7 +164,7 @@ cfg_pickle_Mau_fullsim = cfg_pickle(use_pickle = True, save_pickle = False, load
 # the plot cfgs #
 #################
 cfg_plot_mpl = cfg_plot('mpl',[-2,2],True)
-cfg_plot_mpl_high_lim = cfg_plot('mpl',[-30,30],True)
+cfg_plot_mpl_high_lim = cfg_plot('mpl',[-5,5],True)
 cfg_plot_plotly = cfg_plot('plotly',[-2,2],True)
 cfg_plot_plotly_high_lim = cfg_plot('plotly',[-10,10],True)
 
@@ -156,7 +173,7 @@ cfg_plot_plotly_high_lim = cfg_plot('plotly',[-10,10],True)
 
 if __name__ == "__main__":
 
-    #field_map_analysis('halltoy_600mm', cfg_data_Mau10, cfg_geom_cyl_600mm, cfg_params_Mau_opt, cfg_pickle_new_Mau, cfg_plot_mpl)
+    field_map_analysis('halltoy_600mm', cfg_data_DS_Mau10, cfg_geom_cyl_600mm, cfg_params_Mau_DS_opt, cfg_pickle_new_Mau, cfg_plot_mpl)
 #do 700
 #create 700 in plotly
     #df, ff, plotter = field_map_analysis('halltoy_700mm', cfg_data_DS_Mau10, cfg_geom_cyl_700mm, cfg_params_Mau_DS_700, cfg_pickle_Mau_700_plotly, cfg_plot_plotly)
@@ -171,9 +188,12 @@ if __name__ == "__main__":
     #field_map_analysis('halltoy_825mm_v1_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim, cfg_params_Mau_DS_825mm_v1, cfg_pickle_Mau_825mm_v1, cfg_plot_plotly)
     #field_map_analysis('halltoy_825mm_v2_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim, cfg_params_Mau_DS_825mm_v2, cfg_pickle_Mau_825mm_v2, cfg_plot_plotly)
 
+    #field_map_analysis('halltoy_800mm', cfg_data_DS2_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
+
     #field_map_analysis('halltoy_825mm_v1_bad_measure', cfg_data_DS_Mau10, cfg_geom_cyl_bad_measure_v1, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_m_test_v1, cfg_plot_mpl_high_lim)
     #field_map_analysis('halltoy_825mm_v1_bad_position', cfg_data_DS_Mau10, cfg_geom_cyl_bad_position_v1, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_p_test_v1, cfg_plot_plotly_high_lim)
-    field_map_analysis('halltoy_825mm_v1_bad_rotation', cfg_data_DS_Mau10, cfg_geom_cyl_bad_rotation_v1, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r_test_v1, cfg_plot_mpl_high_lim)
+    #field_map_analysis('halltoy_825mm_v1_bad_rotation', cfg_data_DS_Mau10, cfg_geom_cyl_bad_rotation_v1, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r_test_v1, cfg_plot_mpl_high_lim)
+    #field_map_analysis('halltoy_825mm_v1_bad_rotation2', cfg_data_DS_Mau10, cfg_geom_cyl_bad_rotation2_v1, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r2_test_v1, cfg_plot_mpl_high_lim)
 
     #field_map_analysis('halltoy_825mm_v2_bad_measure', cfg_data_DS_Mau10, cfg_geom_cyl_bad_measure_v2, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_m_test_v2, cfg_plot_plotly_high_lim)
     #field_map_analysis('halltoy_825mm_v2_bad_position', cfg_data_DS_Mau10, cfg_geom_cyl_bad_position_v2, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_p_test_v2, cfg_plot_plotly_high_lim)
@@ -183,6 +203,8 @@ if __name__ == "__main__":
     #field_map_analysis('halltoy_825mm_v1_bad_position_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim_trunc, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_p_test_v1, cfg_plot_mpl_high_lim)
     #field_map_analysis('halltoy_825mm_v1_bad_rotation_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim_trunc, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r_test_v1, cfg_plot_mpl_high_lim)
     #field_map_analysis('halltoy_825mm_v1_bad_rotation_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r_test_v1, cfg_plot_plotly_high_lim)
+
+    #field_map_analysis('halltoy_825mm_v1_bad_rotation_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim_trunc, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_r2_test_v1, cfg_plot_mpl_high_lim)
 
     #field_map_analysis('halltoy_825mm_v2_bad_measure_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_m_test_v2, cfg_plot_plotly_high_lim)
     #field_map_analysis('halltoy_825mm_v2_bad_position_fullsim', cfg_data_DS_Mau10, cfg_geom_cyl_fullsim, cfg_params_Mau_DS_bad, cfg_pickle_Mau_bad_p_test_v2, cfg_plot_plotly_high_lim)

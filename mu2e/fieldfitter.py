@@ -22,15 +22,16 @@ class FieldFitter:
             self.xy_steps = cfg_geom.xy_steps
 
 
-    def fit(self, geom, cfg_params, cfg_pickle):
+    def fit(self, geom, cfg_params, cfg_pickle, profile=False):
+        if profile:
+            return self.fit_solenoid(cfg_params, cfg_pickle, profile)
         if geom=='cyl':
-            self.fit_solenoid(cfg_params, cfg_pickle)
+            self.fit_solenoid(cfg_params, cfg_pickle, profile)
         elif geom=='cart':
             self.fit_external(cfg_params, cfg_pickle)
 
 
-    #def fit_solenoid(self,ns=5,ms=10, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
-    def fit_solenoid(self,cfg_params, cfg_pickle):
+    def fit_solenoid(self,cfg_params, cfg_pickle, profile):
         Reff = cfg_params.Reff
         ns = cfg_params.ns
         ms = cfg_params.ms
@@ -89,10 +90,11 @@ class FieldFitter:
         Bzerr = np.concatenate(Bzerr)
         Brerr = np.concatenate(Brerr)
         Bphierr = np.concatenate(Bphierr)
-        #if line_profile:
-        #    return ZZ,RR,PP,Bz,Br,Bphi
+        if profile:
+            return ZZ,RR,PP,Bz,Br,Bphi
 
-        brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
+        #brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
+        brzphi_3d_fast = brzphi_3d_producer_profile(ZZ,RR,PP,Reff,ns,ms)
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
@@ -120,6 +122,7 @@ class FieldFitter:
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
+
 
         if not cfg_pickle.recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
         else: print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns,ms,cfg_pickle.load_name)
@@ -372,7 +375,7 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':6000})
+                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':500})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 
