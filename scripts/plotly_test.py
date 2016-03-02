@@ -14,7 +14,7 @@ pd.options.mode.chained_assignment = None
 def gen_fit_result(magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='halltoy',
         r_steps = (-825,-650,-475,-325,0,325,475,650,825), z_steps = 'all', phi_steps = (0,np.pi/2), conditions = ('X==0','Z>4000','Z<14000')):
     plt.close('all')
-    data_maker = DataFileMaker('../FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
+    data_maker = DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_'+magnet+'map',use_pickle = True)
     input_data = data_maker.data_frame
     for condition in conditions:
         input_data = input_data.query(condition)

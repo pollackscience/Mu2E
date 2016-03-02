@@ -196,6 +196,6 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
 
 
 if __name__=="__main__":
-    data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+    data_maker1=DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
     hpg = HallProbeGenerator(data_maker1.data_frame)
     hall_toy = hpg.get_toy()

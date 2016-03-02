@@ -16,13 +16,13 @@ cfg_plot = namedtuple('cfg_plot', 'plot_type zlims html_loc')
 #################
 # the data cfgs #
 #################
-cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS2_Mau10 = cfg_data('Mau10', 'DS', '../Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4000','Z<14000','R!=0'))
-cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
+cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS2_Mau10 = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4000','Z<14000','R!=0'))
+cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../datafiles/Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
 
 
-cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', '../FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', '../FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
 #################
 # the geom cfgs #
 #################

@@ -13,8 +13,8 @@ from mu2e.tools.new_iplot import new_iplot, get_plotlyjs
 
 '''
 plt.close('all')
-data_maker1=DataFileMaker('../FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
-data_maker5=DataFileMaker('../FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
+data_maker1=DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+data_maker5=DataFileMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
 plot_maker = Plotter({'DS_GA04':data_maker5.data_frame},no_show=True)
 #plot_maker = Plotter({'DS_Mau':data_maker1.data_frame},no_show=True)
 

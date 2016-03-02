@@ -75,3 +75,6 @@ target/
 plots/
 FieldMap*
 Presentations/
+docs/
+datafiles/
+

@@ -29,7 +29,7 @@ from images2gif import writeGif
 from sys import platform
 if platform == 'darwin':
     import AppKit
-from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
+from plotly.offline import download_plotlyjs, init_notebook_mode, iplot, plot
 import plotly.graph_objs as go
 from tools.new_iplot import new_iplot, get_plotlyjs
 import plotly.plotly as py
@@ -434,12 +434,78 @@ class Plotter:
         else:
             savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix)
         with open(savename,'w') as html_file:
+            html_file.write(plot_html)
+
+    def plot_A_v_B_and_C_plotly_v2(self,A='Bz',B='X',C='Z',interp=False,interp_num=300, *conditions,**kwargs):
+        """Plot A vs B and C given some set of comma seperated boolean conditions.
+        B and C are the independent, A is the dependent. A bit complicated right now to get
+        proper setup for contour plotting."""
+        #init_notebook_mode()
+        layout = go.Layout(
+                        title='Plot of {0} vs {1} and {2} for DS, {3}'.format(A,B,C,conditions[0]),
+                        autosize=False,
+                        width=675,
+                        height=650,
+                        scene=dict(
+                                xaxis=dict(
+                                        title='{} (mm)'.format(C),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                yaxis=dict(
+                                        title='{} (mm)'.format(B),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                zaxis=dict(
+                                        title='{} (T)'.format(A),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)'
+                                        ),
+                                cameraposition=[[-0.1, 0.5, -0.7, -0.2], [0.0, 0, 0.0], 2.8]
+                                ),
+                        showlegend=True,
+                        )
+
+        if 'data_frame' in kwargs:
+            data_frame = kwargs['data_frame']
+        else:
+            data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
+
+        if interp:
+            data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
+                    data_frame_orig=data_frame,val_name=A,interp_num=interp_num)
+            data_frame = self.interpolate_data(data_frame, data_frame_interp_grid, field = A, x_ax = B, y_ax =C, method='cubic')
+
+        data_frame = data_frame.reindex(columns=[A,B,C])
+        piv = data_frame.pivot(B,C,A)
+        X=piv.columns.values
+        Y=piv.index.values
+        Z=piv.values
+        Xi,Yi = np.meshgrid(X, Y)
+
+        surface = go.Surface(x=Xi, y=Yi, z=Z, colorbar = go.ColorBar(title='Tesla',titleside='right'), colorscale = 'Viridis')
+        data = [surface]
+
+        fig = go.Figure(data=data, layout=layout)
+        #plot_html = new_iplot(fig,show_link=False)
+        plot(fig)
+        #if interp:
+        #    savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),  self.suffix)
+        #else:
+        #    savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix)
+        #with open(savename,'w') as html_file:
             #html_file.write('<script type="text/javascript">'
             #        +get_plotlyjs()
             #        +'</script>'
             #        +plot_html)
-            html_file.write(plot_html)
-
+         #   html_file.write(plot_html)
 
     @plot_wrapper
     def plot_A_v_B_and_C_ratio(self,A='Bz',B='X',C='Z', *conditions):
@@ -1315,7 +1381,7 @@ class Plotter:
         return lm
 
 if __name__=="__main__":
-    data_maker=DataFileMaker('FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
+    data_maker=DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_PSMap_fastTest',use_pickle = True)
     plot_maker = Plotter(data_maker.data_frame)
     #fit_compare_sweep()
 
