@@ -106,7 +106,7 @@ def do_field_comps():
     plotter = Plotter({'DS_Mau':data_maker1.data_frame,'DS_GA03':data_maker4.data_frame},'DS_Mau')
     field_comps_set1D(plotter)
 
-def field_comps_set1D(plotter):
+def field_comps_set(plotter):
     #plotter.plot_A_v_B_ratio('Bz','Z','Y==0','X==0')
     #plotter.plot_A_v_B_ratio('Bz','Z','Y==0','X==300')
     #plotter.plot_A_v_B_ratio('Bz','Z','Y==0','X==-300')
@@ -119,7 +119,20 @@ def field_comps_set1D(plotter):
     #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==9671')
     #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==11671')
     #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==5671','-300<X<300','-300<Y<300')
-    plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==4146','-300<X<300','-300<Y<300')
+    #plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==4146','-300<X<300','-300<Y<300')
+
+    plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==5671')
+    plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==7671')
+    plotter.plot_A_v_B_and_C_ratio('Br','X','Y','Z==9671')
+
+    plotter.plot_A_v_B_and_C_ratio('Bphi','X','Y','Z==5671')
+    plotter.plot_A_v_B_and_C_ratio('Bphi','X','Y','Z==7671')
+    plotter.plot_A_v_B_and_C_ratio('Bphi','X','Y','Z==9671')
+
+    plotter.plot_A_v_B_and_C_ratio('Br','X','Z','Y==0','R<1001','Z>5000','Z<13000')
+    plotter.plot_A_v_B_and_C_ratio('Bphi','X','Z','Y==0','R<1001','Z>5000','Z<13000')
+    plotter.plot_A_v_B_and_C_ratio('Bz','X','Z','Y==0','R<1001','Z>5000','Z<13000')
+
 
 def scalar_field_plotter(plotter,z_low_cond,z_high_cond,*other_conds):
     '''Only use with single df'''
@@ -144,17 +157,19 @@ if __name__=="__main__":
     #data_maker2=DataFileMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = True)
     #data_maker3=DataFileMaker('../datafiles/FieldMapsGA02/Mu2e_DS_GA0',use_pickle = True)
     #data_maker4=DataFileMaker('../datafiles/FieldMapsGA03/Mu2e_DS_GA0',use_pickle = True)
-    #data_maker5=DataFileMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
+    data_maker5=DataFileMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = True)
     #data_maker6 = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = True)
     #data_maker7 = DataFileMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = True)
-    data_maker8 = DataFileMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle = True)
+    #data_maker8 = DataFileMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle = True)
+    data_maker9 = DataFileMaker('../datafiles/FieldMapsGA05/DSMap',use_pickle = True)
     #plot_maker = Plotter({'DS_Mau':data_maker1.data_frame,'DS_GA01':data_maker2.data_frame,'DS_GA02':data_maker3.data_frame,'DS_GA03':data_maker4.data_frame},'DS_Mau')
     #plot_maker = Plotter({'DS_Mau9':data_maker1.data_frame,'DS_Mau10':data_maker6.data_frame},'DS_Mau10')
     #plot_maker = Plotter({'DS_Mau10':data_maker6.data_frame})
     #plot_maker = Plotter({'DS_GA04':data_maker5.data_frame})
     #plot_maker = Plotter({'DS_Mau':data_maker1.data_frame})
     #plot_maker = Plotter({'DS_Mau10_DS_only':data_maker7.data_frame})
-    plot_maker = Plotter({'DS_Mau10_DS_off':data_maker8.data_frame})
+    #plot_maker = Plotter({'DS_Mau10_DS_off':data_maker8.data_frame})
+    plot_maker = Plotter({'DS_GA05':data_maker9.data_frame,'DS_GA04':data_maker5.data_frame},'DS_GA05')
     #plot_maker_ps = Plotter({'PS_Mau':data_maker0.data_frame})
     #do_sym()
     #plot_maker = Plotter(data_maker1.data_frame,suffix='DS_Mau',data_frame_dict={'DS_GA01':data_maker2.data_frame})
@@ -214,12 +229,13 @@ if __name__=="__main__":
     #plot_maker.plot_symmetry('X','Z',False,0,'Y==0','R<651','5000<Z<13000')
     #plot_maker.plot_A_v_B_and_C_plotly('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
     #fig, df_int = plot_maker.plot_A_v_B_and_C('Br','X','Y',True,1000,'Z==9021','-501<X<501','-501<Y<501')
-    plot_maker.plot_A_v_B_and_C_plotly_v2('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
-    plot_maker.plot_A_v_B_and_C_plotly('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
+    #plot_maker.plot_A_v_B_and_C_plotly_v2('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
+    #plot_maker.plot_A_v_B_and_C_plotly('Br','X','Y',True,300,'Z==9521','-301<X<301','-301<Y<301')
     #scalar_field_plotter(plot_maker,'Z>5000','Z<13000','X>-650','X<650','Y>-650','Y<650')
-    #plot_maker.plot_A_v_B_and_C('Bx','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-    #plot_maker.plot_A_v_B_and_C('By','Y','Z',False,0,'X==0','R<651','Z>5000','Z<13000')
-    #plot_maker.plot_A_v_B_and_C('Bx','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    #plot_maker.plot_A_v_B_and_C('Br','X','Z',False,0,'Y==0','R<=600','Z>12600','Z<13200')
+    #plot_maker.plot_A_v_B_and_C('Bphi','X','Z',False,0,'Y==0','R<=600','Z>12600','Z<13200')
+    #plot_maker.plot_A_v_B_and_C('Bz','X','Z',False,0,'Y==0','R<=600','Z>12600','Z<13200')
     #plot_maker.plot_A_v_B_and_C('By','X','Z',False,0,'Y==0','R<651','Z>5000','Z<13000')
+    field_comps_set(plot_maker)
     plt.show()
 

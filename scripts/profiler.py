@@ -37,5 +37,5 @@ if __name__ == "__main__":
             params['B_{0}_{1}'.format(n,m)]=0
 
 
-    f = brzphi_3d_producer_profile(ZZ.T,RR.T,PP.T,R,ns,ms)
+    f = brzphi_3d_producer_profile(ZZ,RR,PP,R,ns,ms)
     #fout = f(ZZ,RR,PP,R,ns,ms,**params)

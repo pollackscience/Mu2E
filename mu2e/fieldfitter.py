@@ -94,7 +94,7 @@ class FieldFitter:
             return ZZ,RR,PP,Bz,Br,Bphi
 
         #brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
-        brzphi_3d_fast = brzphi_3d_producer_profile(ZZ,RR,PP,Reff,ns,ms)
+        brzphi_3d_fast = brzphi_3d_producer_numba(ZZ,RR,PP,Reff,ns,ms)
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
@@ -113,9 +113,9 @@ class FieldFitter:
         #else: self.params['delta1'].vary=False
 
         for n in range(ns):
-            if 'C_{0}'.format(n) not in self.params: self.params.add('C_{0}'.format(n),value=1,)
+            if 'C_{0}'.format(n) not in self.params: self.params.add('C_{0}'.format(n),value=1)
             else: self.params['C_{0}'.format(n)].vary=True
-            if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001,)
+            if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001)
             else: self.params['D_{0}'.format(n)].vary=True
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0)
@@ -149,9 +149,9 @@ class FieldFitter:
 
         self.params = self.result.params
         end_time=time()
-        if not cfg_pickle.recreate:
-            print("Elapsed time was %g seconds" % (end_time - start_time))
-            report_fit(self.result, show_correl=False)
+        #if not cfg_pickle.recreate:
+        print("Elapsed time was %g seconds" % (end_time - start_time))
+        report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle and not cfg_pickle.recreate: self.pickle_results(cfg_pickle.save_name)
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
@@ -371,11 +371,11 @@ class FieldFitter:
                 self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
+                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':500})
+                r=RR, z=ZZ, phi=PPs, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq')
 

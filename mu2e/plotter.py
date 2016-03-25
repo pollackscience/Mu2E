@@ -820,7 +820,7 @@ class Plotter:
                 ax1.view_init(elev=20., azim=59)
             else:
                 ax1.view_init(elev=35., azim=15)
-            plt.show()
+            #plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             if self.use_html_dir:
                 savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
@@ -843,7 +843,7 @@ class Plotter:
             cb.set_label('Data-Fit (G)')
             ax3.set_xlabel(B)
             ax3.set_ylabel(C)
-            plt.show()
+            #plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             if self.use_html_dir:
                 savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
