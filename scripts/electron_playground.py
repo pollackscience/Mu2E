@@ -47,34 +47,35 @@ ax.quiver(qxx,qyy,qzz, qbxx,qbyy,qbzz, length=3,linewidths=(2,),arrow_length_rat
 #vf = vi+at
 
 def calc_lorentz_accel(v_vec,b_vec):
-    return -1*np.cross(v_vec,b_vec)
+    return -1*np.cross(v_vec,b_vec/1.4440271e9)
 
 def update_kinematics(p_vec,v_vec,b_vec,dt):
 #not sure how to approach this in incremental steps
     a_vec = calc_lorentz_accel(v_vec,b_vec)
-    p_vec_new = p_vec+v_vec*dt+0.5*a_vec*dt**2
+    p_vec_new = p_vec+(v_vec*dt+0.5*a_vec*dt**2)*1.9732705e-10
     v_vec_new = v_vec+a_vec*dt
     return (p_vec_new,v_vec_new)
 
-p = np.array([0,0,0])
-v = np.array([0,8,1])
+p = np.array([0,0,25])
+init_p = p
+v = np.array([0.0,0.2,0.999])
+init_v = v
 path_x = [p[0]]
 path_y = [p[1]]
 path_z = [p[2]]
-dt = 0.001
-while (p[0]<=x[-1] and p[1]<=y[-1] and p[2]<=z[-1]):
-    p,v = update_kinematics(p,v,np.array([0,0,3]),dt)
+dt = 1e8
+while (x[0]<=p[0]<=x[-1] and y[0]<=p[1]<=y[-1] and z[0]<=p[2]<=z[-1]):
+    p,v = update_kinematics(p,v,np.asarray([0.,0.,3.]),dt)
     path_x.append(p[0])
     path_y.append(p[1])
     path_z.append(p[2])
-
 
 ax.plot(path_x,path_y,zs=path_z,linewidth=2)
 ax.set_title('Path of electron through magnetic field')
 
 
 # these are matplotlib.patch.Patch properties
-textstr = 'init pos={0}\ninit v={1}\nB={2}'.format([0,0,0], [0,8,1], [0,0,3])
+textstr = 'init pos={0}\ninit v={1}\nB={2}'.format(init_p, init_v, [0,0,3])
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 
 # place a text box in upper left in axes coords

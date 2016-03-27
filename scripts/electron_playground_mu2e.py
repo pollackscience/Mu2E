@@ -51,29 +51,39 @@ plt.show()
 #x = x0 + vt + 1/2at^2
 #vf = vi+at
 
+#natural units conversion:
+# B: 1 MeV^2 = 1.4440271e9 T
+# L: 1/MeV = 1.9732705e-13 m
+
 def calc_lorentz_accel(v_vec,b_vec):
-    return -1*np.cross(v_vec,b_vec)
+    return -1*np.cross(v_vec,b_vec/1.4440271e9)
+def gamma(v):
+    return 1/np.sqrt(1-v**2)
 
 def update_kinematics(p_vec,v_vec,b_vec,dt):
 #not sure how to approach this in incremental steps
     a_vec = calc_lorentz_accel(v_vec,b_vec)
-    p_vec_new = p_vec+(v_vec*dt+0.5*a_vec*dt**2)
-    v_vec_new = v_vec+a_vec*dt
+    p_vec_new = p_vec+(v_vec*dt+0.5*a_vec*dt**2)*1.9732705e-10
+    #v_vec_new = v_vec+a_vec*dt
+    v_vec_new = 1/(1+np.dot(v_vec,a_vec*dt))*(v_vec+a_vec*dt/gamma(v_vec)+gamma(v_vec)/(1+gamma(v_vec))*(np.dot(v_vec,a_vec*dt)*v_vec))
     return (p_vec_new,v_vec_new)
 
-p = np.array([1,1,8000])
-v = np.array([0.5,0.5,0.5])
+pos = np.array([1,1,8000])
+init_pos = pos
+mom = np.array([1,1,6]) #in MeV
+init_mom = mom
+v = np.sign(mom)*2*mom/np.sqrt(4*mom**2+1)
 init_v = v
-path_x = [p[0]]
-path_y = [p[1]]
-path_z = [p[2]]
-dt = 1e-2
-while (p[0]<=x[-1] and p[1]<=y[-1] and p[2]<=z[-1]):
-    print p
-    p,v = update_kinematics(p,v,np.array(mag_field_function(p[0],p[1],p[2],True)),dt)
-    path_x.append(p[0])
-    path_y.append(p[1])
-    path_z.append(p[2])
+path_x = [pos[0]]
+path_y = [pos[1]]
+path_z = [pos[2]]
+dt = 1e8
+while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1]):
+    pos,v = update_kinematics(pos,v,np.array(mag_field_function(pos[0],pos[1],pos[2],True)),dt)
+    print pos
+    path_x.append(pos[0])
+    path_y.append(pos[1])
+    path_z.append(pos[2])
 
 
 ax.plot(path_z,path_x,zs=path_y,linewidth=2)
