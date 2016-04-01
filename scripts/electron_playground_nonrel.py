@@ -47,8 +47,9 @@ ax.quiver(qxx,qyy,qzz, qbxx,qbyy,qbzz, length=3,linewidths=(2,),arrow_length_rat
 # B: 1 MeV^2 = 1.4440271e9 T
 # L: 1/MeV = 1.9732705e-7 m
 # s: 1/MeV = 6.582122e-22 s
-q = 1.60217662e-19
-me = 9.10938356e-31
+q = 1.60217662e-19 #kg
+me = 9.10938356e-31 #C
+c = 299792458 #m/s
 
 def calc_lorentz_accel(v_vec,b_vec):
     return -1*(q/me)*np.cross(v_vec,b_vec)

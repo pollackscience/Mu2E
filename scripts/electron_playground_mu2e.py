@@ -16,7 +16,7 @@ mag_field_function = get_mag_field_function()
 
 #generate a uniform cube grid, and a uniform mag field in the z direction
 x = y = np.linspace(-700,700,9)
-z = np.linspace(6000,12000,9)
+z = np.linspace(5500,12000,9)
 xx,yy,zz = np.meshgrid(x,y,z)
 
 df = pd.DataFrame(np.array([xx,yy,zz]).reshape(3,-1).T,columns=['X','Y','Z'])
@@ -48,53 +48,61 @@ plt.show()
 #x = x0 + vt + 1/2at^2
 #vf = vi+at
 
-#natural units conversion:
-# B: 1 MeV^2 = 1.4440271e9 T
-# L: 1/MeV = 1.9732705e-13 m
-# s: 1/MeV = 6.582122e-22 s
+#units conversion:
+q = 1.60217662e-19 #kg
+me = 9.10938356e-31 #C
+c = 299792458 #m/s
 
 def gamma(v):
-    return 1/np.sqrt(1-np.dot(v,v))
+    beta = v/c
+    return 1/np.sqrt(1-np.dot(beta,beta))
 def calc_lorentz_accel(v_vec,b_vec):
-    return -1*np.cross(v_vec,b_vec/1.4440271e9)/(gamma(v_vec)*0.511)
+    a = -1*q*np.cross(v_vec,b_vec)/(gamma(v_vec)*me)
+    return a
 def add_vel(u,v):
     return 1/(1+np.dot(u,v))*(u+v/gamma(u)+(gamma(u)/(1+gamma(u)))*(np.dot(u,v)*u))
 
-def update_kinematics(p_vec,v_vec,b_vec,dt):
-#not sure how to approach this in incremental steps
-    a_vec = calc_lorentz_accel(v_vec,b_vec)
-    p_vec_new = p_vec+(v_vec*dt+0.5*a_vec*dt**2)*1.9732705e-10
-    v_vec_new = add_vel(v_vec,a_vec*dt)
-    return (p_vec_new,v_vec_new)
+def update_kinematics(p_vec_0,v_vec_0,dt):
+# RK4
+    k1 = dt*calc_lorentz_accel(v_vec_0,mag_field_function(p_vec_0[0],p_vec_0[1],p_vec_0[2],True))
+    l1 = dt*v_vec_0
+    x1 = p_vec_0+l1*0.5
+    v1 = v_vec_0+k1*0.5
+    k2 = dt*calc_lorentz_accel(v1,mag_field_function(x1[0],x1[1],x1[2],True))
+    l2 = dt*(v_vec_0+k1*0.5)
+    x2 = p_vec_0+l2*0.5
+    v2 = v_vec_0+k2*0.5
+    k3 = dt*calc_lorentz_accel(v2,mag_field_function(x2[0],x2[1],x2[2],True))
+    l3 = dt*(v_vec_0+k2*0.5)
+    x3 = p_vec_0+l3
+    v3 = v_vec_0+k3
+    k4 = dt*calc_lorentz_accel(v3,mag_field_function(x3[0],x3[1],x3[2],True))
+    l4 = dt*(v_vec_0+k3)
+    v_vec_1 = v_vec_0+(1/6.0)*(k1+2*k2+2*k3+k4)
+    p_vec_1 = p_vec_0+(1/6.0)*(l1+2*l2+2*l3+l4)*1e3
+    return (p_vec_1,v_vec_1)
 
-pos = np.array([1,1,8000])
+pos = np.array([0,0,6000])
 init_pos = pos
-mom = np.array([10,10,60]) #in MeV
+mom = np.array([10,60,10]) #in MeV
 init_mom = mom
-v = mom/(0.511*np.sqrt(1+np.dot(mom,mom)/0.511**2))
+v = mom/(0.511*np.sqrt(1+np.dot(mom,mom)/0.511**2))*c
 init_v = v
 path_x = [pos[0]]
 path_y = [pos[1]]
 path_z = [pos[2]]
 path = [pos]
-dt = 1e9
+dt = 1e-12
 total_time = 0
 #while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<1e12):
 start_time=time()
-while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1]):
-    #pos,v = update_kinematics(pos,v,np.array(mag_field_function(pos[0],pos[1],pos[2],True)),dt)
-    pos,v = update_kinematics(pos,v,np.array([0,0,1]),dt)
-    #print pos
-    #path_x.append(pos[0])
-    #path_y.append(pos[1])
-    #path_z.append(pos[2])
+while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<dt*1e5):
+    pos,v = update_kinematics(pos,v,dt)
     path.append(pos)
-    #total_time+=dt
+    total_time+=dt
 print total_time
 end_time=time()
-#if not cfg_pickle.recreate:
 print("Elapsed time was %g seconds" % (end_time - start_time))
-
 
 #ax.plot(path_z,path_x,zs=path_y,linewidth=2)
 path = np.asarray(path)
