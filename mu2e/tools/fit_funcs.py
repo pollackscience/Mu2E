@@ -281,70 +281,105 @@ def brzphi_3d_producer_numba(z,r,phi,R,ns,ms):
         return np.concatenate([model_r,model_z,model_phi]).ravel()
     return brzphi_3d_fast
 
-def brzphi_3d_producer_static(R,ns,ms,**AB_params):
-    """Starting with the determined parameters for function expansion,
-    return a function that recieves (Z,R,Phi) values and outputs Bz,Br,BPhi"""
+def brzphi_3d_producer_bessel(z,r,phi,R,ns,ms):
+    b_zeros = []
+    for n in range(ns):
+        b_zeros.append(special.jn_zeros(n,ms))
+    kms = np.asarray([b/R for b in b_zeros])
+    jv = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    jvp = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            jv[n][m] = special.jv(n,kms[n][m]*np.abs(r))
+            jvp[n][m] = special.jvp(n,kms[n][m]*np.abs(r))
 
-    print AB_params
-    R = R
-    ns = ns
-    ms = ms
-    ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-    CDs = sorted({k:v for (k,v) in AB_params.iteritems() if ('C' in k or 'D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
-    pw_CD = pairwise(CDs)
-    pw_ABs = []
 
-    for n,cd in enumerate(pw_CD):
-        pw_ABs.append(pairwise(ABs[n*ms*2:(n+1)*ms*2]))
-        #for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
-
-    for n,cd in enumerate(pw_CD):
-        for ab in enumerate(pw_ABs[n]):
-            print ab,cd
-
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],'(m),(m),(m),(),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
-    def calc_b_fields(z,phi,r,n,A,B,C,D,ivp,iv,kms,model_r,model_z,model_phi):
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
+            '(m),(m),(m),(),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
+    def calc_b_fields(z,phi,r,n,A,B,C,D,jvp,jv,kms,model_r,model_z,model_phi):
         for i in range(z.shape[0]):
-            model_r[i] += (C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*ivp[i]*kms[0]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(-kms[0]*z[i]))
-            model_z[i] += -(C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*iv[i]*kms[0]*(A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(-kms[0]*z[i]))
-            model_phi[i] += n[0]*(-C[0]*np.sin(n[0]*phi[i])+D[0]*np.cos(n[0]*phi[i]))*(1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(-kms[0]*z[i]))
+            model_r[i] += (C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*jvp[i]*kms[0]*(A[0]*np.exp(kms[0]*z[i]) + B[0]*np.exp(-kms[0]*z[i]))
+            model_z[i] += -(C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*jv[i]*kms[0]*(A[0]*np.exp(kms[0]*z[i]) + B[0]*np.exp(-kms[0]*z[i]))
+            model_phi[i] += n[0]*(-C[0]*np.sin(n[0]*phi[i])+D[0]*np.cos(n[0]*phi[i]))*(1/np.abs(r[i]))*jv[i]*(A[0]*np.exp(kms[0]*z[i]) + B[0]*np.exp(-kms[0]*z[i]))
 
 
+    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
 
-#    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
-#        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
-#        b_zeros = []
-#        for n in range(ns):
-#            b_zeros.append(special.jn_zeros(n,ms))
-#        kms = np.asarray([b/R for b in b_zeros])
-#        iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
-#        ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
-#        for n in range(ns):
-#            for m in range(ms):
-#                iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
-#                ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
-#
-#        model_r = np.zeros(z.shape,dtype = np.float64)
-#        model_z = np.zeros(z.shape,dtype = np.float64)
-#        model_phi = np.zeros(z.shape,dtype = np.float64)
-#
-#        for n,cd in enumerate(pairwise(CDs)):
-#            for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
-#
-#                A = np.array([AB_params[ab[0]]],dtype = np.float64)
-#                B = np.array([AB_params[ab[1]]],dtype = np.float64)
-#                C = np.array([AB_params[cd[0]]],dtype = np.float64)
-#                D = np.array([AB_params[cd[1]]], dtype = np.float64)
-#                _ivp = ivp[n][i]
-#                _iv = iv[n][i]
-#                _kms = np.array([kms[n][i]])
-#                _n = np.array([n])
-#                calc_b_fields(z,phi,r,_n,A,B,C,D,_ivp,_iv,_kms,model_r,model_z,model_phi)
-#
-#
-#        model_phi[np.isinf(model_phi)]=0
-#        return np.concatenate([model_r,model_z,model_phi]).ravel()
-#    return brzphi_3d_fast
+        model_r = np.zeros(z.shape,dtype = np.float64)
+        model_z = np.zeros(z.shape,dtype = np.float64)
+        model_phi = np.zeros(z.shape,dtype = np.float64)
+        R = R
+        ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        CDs = sorted({k:v for (k,v) in AB_params.iteritems() if ('C' in k or 'D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+
+        for n,cd in enumerate(pairwise(CDs)):
+            for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]],dtype = np.float64)
+                B = np.array([AB_params[ab[1]]],dtype = np.float64)
+                C = np.array([AB_params[cd[0]]],dtype = np.float64)
+                D = np.array([AB_params[cd[1]]], dtype = np.float64)
+                _jvp = jvp[n][i]
+                _jv = jv[n][i]
+                _kms = np.array([kms[n][i]])
+                _n = np.array([n])
+                calc_b_fields(z,phi,r,_n,A,B,C,D,_jvp,_jv,_kms,model_r,model_z,model_phi)
+
+
+        model_phi[np.isinf(model_phi)]=0
+        return np.concatenate([model_r,model_z,model_phi]).ravel()
+    return brzphi_3d_fast
+
+def brzphi_3d_producer_bessel_hybrid(z,r,phi,R,ns,ms):
+    b_zeros = []
+    for n in range(ns):
+        b_zeros.append(special.jn_zeros(n,ms))
+    kms = np.asarray([b/R for b in b_zeros])
+    jv = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    jvp = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            jv[n][m] = special.jv(n,kms[n][m]*np.abs(r))
+            jvp[n][m] = special.jvp(n,kms[n][m]*np.abs(r))
+
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
+            '(m),(m),(m),(),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
+    def calc_b_fields(z,phi,r,n,A,B,C,D,jvp,jv,kms,model_r,model_z,model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*jvp[i]*kms[0]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(-kms[0]*z[i]))
+            model_z[i] += -(C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))*jv[i]*kms[0]*(A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(-kms[0]*z[i]))
+            model_phi[i] += n[0]*(-C[0]*np.sin(n[0]*phi[i])+D[0]*np.cos(n[0]*phi[i]))*(1/np.abs(r[i]))*jv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(-kms[0]*z[i]))
+
+
+    def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape,dtype = np.float64)
+        model_z = np.zeros(z.shape,dtype = np.float64)
+        model_phi = np.zeros(z.shape,dtype = np.float64)
+        R = R
+        ABs = sorted({k:v for (k,v) in AB_params.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        CDs = sorted({k:v for (k,v) in AB_params.iteritems() if ('C' in k or 'D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+
+        for n,cd in enumerate(pairwise(CDs)):
+            for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]],dtype = np.float64)
+                B = np.array([AB_params[ab[1]]],dtype = np.float64)
+                C = np.array([AB_params[cd[0]]],dtype = np.float64)
+                D = np.array([AB_params[cd[1]]], dtype = np.float64)
+                _jvp = jvp[n][i]
+                _jv = jv[n][i]
+                _kms = np.array([kms[n][i]])
+                _n = np.array([n])
+                calc_b_fields(z,phi,r,_n,A,B,C,D,_jvp,_jv,_kms,model_r,model_z,model_phi)
+
+
+        model_phi[np.isinf(model_phi)]=0
+        return np.concatenate([model_r,model_z,model_phi]).ravel()
+    return brzphi_3d_fast
 
 def brzphi_3d_producer_profile(z,r,phi,R,ns,ms):
     b_zeros = []

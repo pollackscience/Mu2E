@@ -7,12 +7,9 @@ from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['figure.figsize'] = 14, 10
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
-import matplotlib.patches as mpatches
 from fiteval import get_mag_field_function
-from ROOT import TLorentzVector
+from time import time
+from numba import jit
 
 plt.close('all')
 mag_field_function = get_mag_field_function()
@@ -54,46 +51,66 @@ plt.show()
 #natural units conversion:
 # B: 1 MeV^2 = 1.4440271e9 T
 # L: 1/MeV = 1.9732705e-13 m
+# s: 1/MeV = 6.582122e-22 s
 
-def calc_lorentz_accel(v_vec,b_vec):
-    return -1*np.cross(v_vec,b_vec/1.4440271e9)
 def gamma(v):
-    return 1/np.sqrt(1-v**2)
+    return 1/np.sqrt(1-np.dot(v,v))
+def calc_lorentz_accel(v_vec,b_vec):
+    return -1*np.cross(v_vec,b_vec/1.4440271e9)/(gamma(v_vec)*0.511)
+def add_vel(u,v):
+    return 1/(1+np.dot(u,v))*(u+v/gamma(u)+(gamma(u)/(1+gamma(u)))*(np.dot(u,v)*u))
 
 def update_kinematics(p_vec,v_vec,b_vec,dt):
 #not sure how to approach this in incremental steps
     a_vec = calc_lorentz_accel(v_vec,b_vec)
     p_vec_new = p_vec+(v_vec*dt+0.5*a_vec*dt**2)*1.9732705e-10
-    #v_vec_new = v_vec+a_vec*dt
-    v_vec_new = 1/(1+np.dot(v_vec,a_vec*dt))*(v_vec+a_vec*dt/gamma(v_vec)+gamma(v_vec)/(1+gamma(v_vec))*(np.dot(v_vec,a_vec*dt)*v_vec))
+    v_vec_new = add_vel(v_vec,a_vec*dt)
     return (p_vec_new,v_vec_new)
 
 pos = np.array([1,1,8000])
 init_pos = pos
-mom = np.array([1,1,6]) #in MeV
+mom = np.array([10,10,60]) #in MeV
 init_mom = mom
-v = np.sign(mom)*2*mom/np.sqrt(4*mom**2+1)
+v = mom/(0.511*np.sqrt(1+np.dot(mom,mom)/0.511**2))
 init_v = v
 path_x = [pos[0]]
 path_y = [pos[1]]
 path_z = [pos[2]]
-dt = 1e8
+path = [pos]
+dt = 1e9
+total_time = 0
+#while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<1e12):
+start_time=time()
 while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1]):
-    pos,v = update_kinematics(pos,v,np.array(mag_field_function(pos[0],pos[1],pos[2],True)),dt)
-    print pos
-    path_x.append(pos[0])
-    path_y.append(pos[1])
-    path_z.append(pos[2])
+    #pos,v = update_kinematics(pos,v,np.array(mag_field_function(pos[0],pos[1],pos[2],True)),dt)
+    pos,v = update_kinematics(pos,v,np.array([0,0,1]),dt)
+    #print pos
+    #path_x.append(pos[0])
+    #path_y.append(pos[1])
+    #path_z.append(pos[2])
+    path.append(pos)
+    #total_time+=dt
+print total_time
+end_time=time()
+#if not cfg_pickle.recreate:
+print("Elapsed time was %g seconds" % (end_time - start_time))
 
 
+#ax.plot(path_z,path_x,zs=path_y,linewidth=2)
+path = np.asarray(path)
+ax.plot(path[:,2],path[:,0],zs=path[:,1],linewidth=2)
 ax.plot(path_z,path_x,zs=path_y,linewidth=2)
 ax.set_title('Path of electron through magnetic field')
 
 
 # these are matplotlib.patch.Patch properties
-textstr = 'init pos={0}\ninit v={1}\nB={2}'.format([0,0,8000], init_v, 'ideal DS field map')
+textstr = 'init pos={0}\ninit mom={1} (MeV)\nB={2}'.format(init_pos, init_mom, 'ideal DS field map')
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+print 'init_E', gamma(init_v)*0.511, 'MeV'
+print 'final_E', gamma(v)*0.511, 'MeV'
+print 'energy diff', gamma(v)*0.511 - gamma(init_v)*0.511, 'MeV'
 
 # place a text box in upper left in axes coords
 ax.text2D(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,verticalalignment='top', bbox=props)
 plt.show()
+plt.savefig('../plots/anim/electron_path_DS.pdf')

@@ -35,6 +35,7 @@ class FieldFitter:
         Reff = cfg_params.Reff
         ns = cfg_params.ns
         ms = cfg_params.ms
+        func_version = cfg_params.func_version
         Bz = []
         Br =[]
         Bphi = []
@@ -79,6 +80,8 @@ class FieldFitter:
             else:
                 PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
                 PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
+            PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
+            PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
             PP.append(PP_slice)
 
         ZZ = np.concatenate(ZZ)
@@ -94,7 +97,14 @@ class FieldFitter:
             return ZZ,RR,PP,Bz,Br,Bphi
 
         #brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
-        brzphi_3d_fast = brzphi_3d_producer_numba(ZZ,RR,PP,Reff,ns,ms)
+        if func_version==1:
+            brzphi_3d_fast = brzphi_3d_producer_numba(ZZ,RR,PP,Reff,ns,ms)
+        elif func_version==2:
+            brzphi_3d_fast = brzphi_3d_producer_bessel(ZZ,RR,PP,Reff,ns,ms)
+        elif func_version==3:
+            brzphi_3d_fast = brzphi_3d_producer_bessel_hybrid(ZZ,RR,PP,Reff,ns,ms)
+        else: raise KeyError('func version '+func_version+' does not exist')
+
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
@@ -138,7 +148,7 @@ class FieldFitter:
             #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
