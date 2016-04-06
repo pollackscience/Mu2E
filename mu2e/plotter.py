@@ -760,6 +760,7 @@ class Plotter:
         #return fig1, outname
 
     @plot_wrapper
+    p
     def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', phi_steps = (0,), zlims = [-2,2], do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.

@@ -1,14 +1,16 @@
 #! /usr/bin/env python
 
 from __future__ import division
+import os
 import pandas as pd
 import numpy as np
 from tools.fit_funcs import *
-from lmfit import    Model
-from lmfit.model import  ModelResult
+from lmfit import Model
+from lmfit.model import ModelResult
 import cPickle as pkl
 from time import time
 import collections
+import mu2e
 
 class FieldFitter:
     """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
@@ -20,6 +22,7 @@ class FieldFitter:
             self.r_steps= cfg_geom.r_steps
         elif cfg_geom.geom == 'cart':
             self.xy_steps = cfg_geom.xy_steps
+        self.pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
 
 
     def fit(self, geom, cfg_params, cfg_pickle, profile=False):
@@ -80,8 +83,8 @@ class FieldFitter:
             else:
                 PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
                 PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
-            PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
-            PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
+            #PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
+            #PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
             PP.append(PP_slice)
 
         ZZ = np.concatenate(ZZ)
@@ -108,7 +111,7 @@ class FieldFitter:
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
 
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
-            self.params = pkl.load(open(cfg_pickle.load_name+'_results.p',"rb"))
+            self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',"rb"))
         else:
             self.params = Parameters()
         #delta_seeds = [0, 0.00059746, 0.00452236, 1.82217664, 1.54383364, 0.92910890, 2.3320e-6, 1.57188824, 3.02599942, 3.04222595]
@@ -162,7 +165,7 @@ class FieldFitter:
         #if not cfg_pickle.recreate:
         print("Elapsed time was %g seconds" % (end_time - start_time))
         report_fit(self.result, show_correl=False)
-        if cfg_pickle.save_pickle and not cfg_pickle.recreate: self.pickle_results(cfg_pickle.save_name)
+        if cfg_pickle.save_pickle and not cfg_pickle.recreate: self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 
     def fit_external(self,cns=1,cms=1, use_pickle = False, pickle_name = 'default', line_profile=False, recreate=False):
         a = 3e4

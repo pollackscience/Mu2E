@@ -20,8 +20,8 @@ mag_field_function = get_mag_field_function()
 ######################################
 
 #generate a regular grid for plotting the mag field of the DS in quiver form
-x = y = np.linspace(-700,700,9)
-z = np.linspace(5500,12000,9)
+x = y = np.linspace(-700,700,6)
+z = np.linspace(5500,12000,6)
 xx,yy,zz = np.meshgrid(x,y,z)
 
 df = pd.DataFrame(np.array([xx,yy,zz]).reshape(3,-1).T,columns=['X','Y','Z'])
@@ -39,7 +39,7 @@ ax = fig.gca(projection='3d')
 ax.set_xlabel('Z (mm)')
 ax.set_ylabel('X (mm)')
 ax.set_zlabel('Y (mm)')
-ax.quiver(qzz,qxx,qyy, qbzz,qbxx,qbyy, length=400,linewidths=(2,),arrow_length_ratio=0.2,alpha=0.6,colors='r')
+ax.quiver(qzz,qxx,qyy, qbzz,qbxx,qbyy, length=600,linewidths=(2,),arrow_length_ratio=0.2, pivot='middle',alpha=0.6,colors='r')
 plt.show()
 
 #############################
