@@ -236,6 +236,7 @@ def brzphi_3d_producer_numba(z,r,phi,R,ns,ms):
     for n in range(ns):
         b_zeros.append(special.jn_zeros(n,ms))
     kms = np.asarray([b/R for b in b_zeros])
+    #kms = np.asarray([n*np.pi/9000.0 for n in range(ns)])
     iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
     ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
     for n in range(ns):

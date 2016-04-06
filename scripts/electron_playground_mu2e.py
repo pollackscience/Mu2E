@@ -10,6 +10,8 @@ mpl.rcParams['figure.figsize'] = 14, 10
 from fiteval import get_mag_field_function
 from time import time
 from numba import jit
+from scipy.integrate import odeint, ode
+import odespy
 
 plt.close('all')
 mag_field_function = get_mag_field_function()
@@ -49,15 +51,17 @@ plt.show()
 #vf = vi+at
 
 #units conversion:
-q = 1.60217662e-19 #kg
-me = 9.10938356e-31 #C
-c = 299792458 #m/s
+q = 1.60217662e-19 #C
+me = 9.10938356e-31 #kg
+q_o_me = 175882002272 #C/kg
+c = 299792458000 #mm/s
+
 
 def gamma(v):
     beta = v/c
     return 1/np.sqrt(1-np.dot(beta,beta))
 def calc_lorentz_accel(v_vec,b_vec):
-    a = -1*q*np.cross(v_vec,b_vec)/(gamma(v_vec)*me)
+    a = -1*q_o_me*np.cross(v_vec,b_vec)/(gamma(v_vec))
     return a
 def add_vel(u,v):
     return 1/(1+np.dot(u,v))*(u+v/gamma(u)+(gamma(u)/(1+gamma(u)))*(np.dot(u,v)*u))
@@ -82,6 +86,20 @@ def update_kinematics(p_vec_0,v_vec_0,dt):
     p_vec_1 = p_vec_0+(1/6.0)*(l1+2*l2+2*l3+l4)*1e3
     return (p_vec_1,v_vec_1)
 
+def lorentz_force(state,time):
+    '''
+    Calculate the velocity and acceleration on a particle due to
+    lorentz force for a magnetic field as a function of time.
+
+    state = [x,y,z,vx,vy,vz]
+    time = array of time values
+    '''
+    f = np.empty(6)
+    f[:3] = state[3:]
+    f[3:] = calc_lorentz_accel(np.asarray(state[3:]),mag_field_function(state[0],state[1],state[2],True))
+    return f
+
+
 pos = np.array([0,0,6000])
 init_pos = pos
 mom = np.array([10,60,10]) #in MeV
@@ -92,22 +110,29 @@ path_x = [pos[0]]
 path_y = [pos[1]]
 path_z = [pos[2]]
 path = [pos]
-dt = 1e-12
+dt = 5e-13
 total_time = 0
 #while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<1e12):
 start_time=time()
-while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<dt*1e5):
-    pos,v = update_kinematics(pos,v,dt)
-    path.append(pos)
-    total_time+=dt
-print total_time
+#while (x[0]<=pos[0]<=x[-1] and y[0]<=pos[1]<=y[-1] and z[0]<=pos[2]<=z[-1] and total_time<dt*1e5):
+#    pos,v = update_kinematics(pos,v,dt)
+#    path.append(pos)
+#    total_time+=dt
+#print total_time
+t_steps = np.linspace(0,4e-8,1e5)
+init_state = [init_pos[0],init_pos[1],init_pos[2],init_v[0],init_v[1],init_v[2]]
+#X = odeint(lorentz_force,init_state,t)
+solver = odespy.Dop853(lorentz_force)
+solver.set_initial_condition(init_state)
+X,t = solver.solve(t_steps)
 end_time=time()
+v_final = np.asarray([X[-1,3],X[-1,4],X[-1,5]])
 print("Elapsed time was %g seconds" % (end_time - start_time))
 
 #ax.plot(path_z,path_x,zs=path_y,linewidth=2)
-path = np.asarray(path)
-ax.plot(path[:,2],path[:,0],zs=path[:,1],linewidth=2)
-ax.plot(path_z,path_x,zs=path_y,linewidth=2)
+#path = np.asarray(path)
+#ax.plot(path[:,2],path[:,0],zs=path[:,1],linewidth=2)
+ax.plot(X[:,2],X[:,0],zs=X[:,1],linewidth=2)
 ax.set_title('Path of electron through magnetic field')
 
 
@@ -115,8 +140,10 @@ ax.set_title('Path of electron through magnetic field')
 textstr = 'init pos={0}\ninit mom={1} (MeV)\nB={2}'.format(init_pos, init_mom, 'ideal DS field map')
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 print 'init_E', gamma(init_v)*0.511, 'MeV'
-print 'final_E', gamma(v)*0.511, 'MeV'
-print 'energy diff', gamma(v)*0.511 - gamma(init_v)*0.511, 'MeV'
+#print 'final_E', gamma(v)*0.511, 'MeV'
+print 'final_E', gamma(v_final)*0.511, 'MeV'
+#print 'energy diff', gamma(v)*0.511 - gamma(init_v)*0.511, 'MeV'
+print 'energy diff', gamma(v_final)*0.511 - gamma(init_v)*0.511, 'MeV'
 
 # place a text box in upper left in axes coords
 ax.text2D(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,verticalalignment='top', bbox=props)

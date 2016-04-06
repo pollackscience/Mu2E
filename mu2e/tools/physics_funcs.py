@@ -9,9 +9,9 @@ import mu2e.src.RowTransformations as rt
 import re
 
 """
-This module is for calculating physics-related features based on an input magnetic field
+This module is for calculating physics-related features. Some are based on an input magnetic field
 dataframe.  This will either append a new column to the given dataframe, or return a
-standalone object.
+standalone object. Others will return standalone objects.
 """
 
 def calc_scalar_field(df,z_low_cond,z_high_cond,*other_conds):

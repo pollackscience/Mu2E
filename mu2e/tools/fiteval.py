@@ -5,17 +5,11 @@ import os
 import mu2e
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import cPickle as pkl
-from hallprobesim import *
 from mu2e.tools.fit_funcs import *
-from mpl_toolkits.mplot3d import Axes3D
-import lmfit as lm
-from lmfit import Parameters
 from scipy import special
 from mu2e.datafileprod import DataFileMaker
 from numba import double, int32, jit, vectorize, float64, guvectorize
-from numba.pycc import CC
 from itertools import izip
 
 
