@@ -2,6 +2,7 @@
 #define FITEVAL_C_H
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include "csv.h"
@@ -21,6 +22,9 @@ class FitFunctionMaker
         vector<double> Cs;
         vector<double> Ds;
 };
+
+vector<string> &split(const string &s, char delim, vector<string> &elems);
+vector<string> split(const string &s, char delim);
 
 
 #endif
