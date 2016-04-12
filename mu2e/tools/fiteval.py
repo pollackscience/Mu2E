@@ -27,9 +27,10 @@ def pairwise(iterable):
 point = (50,0,8000)
 
 
-def get_mag_field_function():
+def get_mag_field_function(param_name):
     '''pre-calculate what can be done, cache, return function to calc mag field'''
-    params = pkl.load(open('Mau10_825mm_v1_results.p',"rb"))
+    pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
+    params = pkl.load(open(pickle_path+param_name+'_results.p',"rb"))
 #params.pretty_print()
     param_dict = params.valuesdict()
     Reff = param_dict['R']

@@ -43,6 +43,13 @@ def lorentz_force(state,time,mag_field):
     f[3:] = calc_lorentz_accel(np.asarray(state[3:]),mag_field(state[0],state[1],state[2],True))
     return f
 
+def terminate(state,time,step_no):
+    '''terminate clause to end ode solver once the electron reaches detector material'''
+    radius = 700
+    return ((np.sqrt(state[step_no][0]**2+state[step_no][1]**2)>radius)
+            or (state[step_no][2]>12000)
+            or (state[step_no][2]<5000))
+
 class ElectronSwimmer:
     '''Wrapper class for odespy ode solver, specifically for simulating
     the path of an electron moving through the DS magnetic field.'''
@@ -64,7 +71,7 @@ class ElectronSwimmer:
         '''Run the ode solver and output the (state,time) tuple'''
         if verbose:
             print 'swimming electron with {0} MeV, starting at {1} mm, for {2} s'.format(self.init_mom, self.init_pos, self.time_steps[-1])
-        X,t = self.solver.solve(self.time_steps)
+        X,t = self.solver.solve(self.time_steps,terminate)
         self.final_v =  np.asarray([X[-1,3],X[-1,4],X[-1,5]])
         self.final_E = gamma(self.final_v)*0.511
         if verbose:
@@ -75,13 +82,13 @@ class ElectronSwimmer:
 
         return X,t
 
-    def get_init_v():
+    def get_init_v(self):
         return self.init_v
-    def get_final_v():
+    def get_final_v(self):
         return self.final_v
-    def get_init_E():
+    def get_init_E(self):
         return self.init_E
-    def get_final_E():
+    def get_final_E(self):
         return self.final_E
 
 
