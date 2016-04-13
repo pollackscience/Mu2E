@@ -1,0 +1,23 @@
+# the compiler: gcc for C program, define as g++ for C++
+CC = clang++
+PYTHON_VERSION = 2.7
+PYTHON_INCLUDE = /usr/local/Cellar/python/2.7.11/Frameworks/Python.framework/Versions/2.7/include/python$(PYTHON_VERSION)
+PYTHON_CONFIG = /usr/local//Cellar/python/2.7.11/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config
+BOOST_INC = /usr/local/Cellar/boost/1.60.0_1/include
+BOOST_LIB = /usr/local/Cellar/boost-python/1.60.0/lib
+
+# compiler flags:
+#  -g    adds debugging information to the executable file
+#  -Wall turns on most, but not all, compiler warnings
+CFLAGS  = -Wall -std=c++11 -lpthread 
+
+# the build target executable:
+TARGET = fiteval_c
+
+$(TARGET).so: $(TARGET).o
+	$(CC) $(CFLAGS) -shared -rdynamic $(TARGET).o -L$(BOOST_LIB) -lboost_python -L$(PYTHON_CONFIG) -lpython$(PYTHON_VERSION) -o $(TARGET).so
+
+$(TARGET).o: $(TARGET).cc
+	$(CC) $(CFLAGS) -I$(PYTHON_INCLUDE) -I$(BOOST_INC) -fPIC -c $(TARGET).cc
+clean:
+	$(RM) $(TARGET).o $(TARGET).so

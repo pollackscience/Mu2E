@@ -1,5 +1,4 @@
 #include "fiteval_c.h"
-
 vector<string> &split(const string &s, char delim, vector<string> &elems) {
     stringstream ss(s);
     string item;
@@ -59,11 +58,18 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
     }
 
 
-   // cout<<endl;
-   cout<<Reff<<ns<<ms<<endl;
    cout<<Bs[0][0]<<endl;
    cout<<Cs[0]<<endl;
+   cout<<Reff<<ns<<ms<<endl;
 }
+
+#include <boost/python.hpp>
+using namespace boost::python;
+BOOST_PYTHON_MODULE(fiteval_c)
+{
+
+    class_<FitFunctionMaker>("FitFunctionMaker",init<string>());
+};
 
 int main(){
     FitFunctionMaker* myfitfunc = new FitFunctionMaker("param_825.csv");
