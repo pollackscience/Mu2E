@@ -56,6 +56,19 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
             Ds.push_back(val);
         }
     }
+    // Calculate the zeros of the bessel functions
+    for(int n=0; n<ns; ++n){
+        kms.push_back(vector<double>());
+        for(int m=1; m<=ms; ++m){
+            kms[n].push_back(gsl_sf_bessel_zero_Jnu(n,m)/Reff);
+        }
+    }
+    for (int n=0; n<ns; ++n){
+        vector<double> tmp_v;
+        tmp_v.reserve(ms);
+        iv.push_back(tmp_v);
+        ivp.push_back(tmp_v);
+    }
 
 
    cout<<Bs[0][0]<<endl;
@@ -63,15 +76,79 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
    cout<<Reff<<ns<<ms<<endl;
 }
 
+vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z, bool cart=true){
+    double r,phi;
+    vector<double> out(3,0);
+    if (cart){
+        if (a==0) a+=1e-8;
+        if (b==0) b+=1e-8;
+        r = sqrt(pow(a,2)+pow(b,2));
+        phi = atan2(b,a);
+    }else{
+        r = a;
+        phi = b;
+    }
+    double abs_r = abs(r);
+
+    for (int n=0;n<ns;++n){
+        for (int m=1; m<=ms; ++m){
+            double tmp_rho = kms[n][m-1]*abs_r;
+            iv[n].push_back(gsl_sf_bessel_In(n,tmp_rho));
+            ivp[n].push_back((n/tmp_rho)*iv[n][m-1]+gsl_sf_bessel_In(n+1,tmp_rho));
+        }
+    }
+
+    double br(0.0);
+    double bphi(0.0);
+    double bz(0.0);
+    for (int n =0; n<ns; ++n){
+        for (int m =0; m<ms; ++m){
+            br += (Cs[n]*cos(n*phi)+Ds[n]*sin(n*phi))*ivp[n][m]*kms[n][m]*(As[n][m]*cos(kms[n][m]*z) + Bs[n][m]*sin(-kms[n][m]*z));
+            bphi += n*(-Cs[n]*sin(n*phi)+Ds[n]*cos(n*phi))*(1/abs_r)*iv[n][m]*(As[n][m]*cos(kms[n][m]*z) + Bs[n][m]*sin(-kms[n][m]*z));
+            bz += -(Cs[n]*cos(n*phi)+Ds[n]*sin(n*phi))*iv[n][m]*kms[n][m]*(As[n][m]*sin(kms[n][m]*z) + Bs[n][m]*cos(-kms[n][m]*z));
+        }
+    }
+
+    if (cart){
+        out[0] = br*cos(phi)-bphi*sin(phi);
+        out[1] = br*sin(phi)+bphi*cos(phi);
+        out[2] = bz;
+    }else{
+        out[0] = br;
+        out[1] = bphi;
+        out[2] = bz;
+    }
+    return out;
+}
+
+//////////////////////////////////////
+// For producing python .so wrapper //
+// Use -DBPYTHON compile argument   //
+// Requires linking to boost python //
+//////////////////////////////////////
+#ifdef BPYTHON
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 using namespace boost::python;
+typedef vector<double> vec_d;
 BOOST_PYTHON_MODULE(fiteval_c)
 {
 
-    class_<FitFunctionMaker>("FitFunctionMaker",init<string>());
+    class_<vec_d>("vec_d")
+        .def(vector_indexing_suite<vec_d>());
+
+    class_<FitFunctionMaker>("FitFunctionMaker",init<string>())
+        .def("mag_field_function",&FitFunctionMaker::mag_field_function);
+
 };
+#endif
 
 int main(){
     FitFunctionMaker* myfitfunc = new FitFunctionMaker("param_825.csv");
+    vector<double> my_vec = myfitfunc->mag_field_function(1,1,1);
+    for(const auto& i: my_vec){
+        cout<<i<<' ';
+    }
+    cout<<endl;
     delete myfitfunc;
 }

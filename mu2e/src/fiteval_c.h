@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <gsl/gsl_sf_bessel.h>
 #include "csv.h"
 
 using namespace std;
@@ -13,6 +15,8 @@ class FitFunctionMaker
 {
     public: 
         FitFunctionMaker(string fit_csv);
+        vector<double> mag_field_function(double a, double b, double z, bool cart);
+
     private:
         int ns;
         int ms;
@@ -21,6 +25,9 @@ class FitFunctionMaker
         vector<vector<double> > Bs;
         vector<double> Cs;
         vector<double> Ds;
+        vector<vector<double> > kms;
+        vector<vector<double> > iv;
+        vector<vector<double> > ivp;
 };
 
 vector<string> &split(const string &s, char delim, vector<string> &elems);

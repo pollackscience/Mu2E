@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['figure.figsize'] = 14, 10
 from mu2e.tools.fiteval import get_mag_field_function
+from mu2e.src.fiteval_c import FitFunctionMaker
 import mu2e.tools.particletransport as patr
 from numba import jit
 from time import time

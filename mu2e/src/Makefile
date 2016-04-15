@@ -4,7 +4,7 @@ CC = clang++
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
-CFLAGS  = -Wall -std=c++11 -lpthread
+CFLAGS  = -Wall -std=c++11 -lpthread -lgsl
 
 # the build target executable:
 TARGET = fiteval_c
