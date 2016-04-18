@@ -78,6 +78,13 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
 
 vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z, bool cart=true){
     double r,phi;
+    // The declarations below are to reduce computation time
+    double bessels[2];
+    double tmp_rho;
+    double cos_nphi, cos_kmsz; 
+    double sin_nphi, sin_kmsz;
+    double abp, abm;
+    double cdp, cdm;
     vector<double> out(3,0);
     if (cart){
         if (a==0) a+=1e-8;
@@ -92,26 +99,39 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
 
     for (int n=0;n<ns;++n){
         for (int m=1; m<=ms; ++m){
-            double tmp_rho = kms[n][m-1]*abs_r;
-            iv[n].push_back(gsl_sf_bessel_In(n,tmp_rho));
-            ivp[n].push_back((n/tmp_rho)*iv[n][m-1]+gsl_sf_bessel_In(n+1,tmp_rho));
+            tmp_rho = kms[n][m-1]*abs_r;
+            bessels[0] = gsl_sf_bessel_In(n,tmp_rho);
+            bessels[1] = gsl_sf_bessel_In(n+1,tmp_rho);
+            iv[n].push_back(bessels[0]);
+            ivp[n].push_back((n/tmp_rho)*bessels[0]+bessels[1]);
         }
     }
 
     double br(0.0);
     double bphi(0.0);
     double bz(0.0);
+    // Here is the meat of the calculation:
     for (int n =0; n<ns; ++n){
+        cos_nphi = cos(n*phi);
+        sin_nphi = sin(n*phi);
+        cdp = Cs[n]*cos_nphi+Ds[n]*sin_nphi;
+        cdm = -Cs[n]*sin_nphi+Ds[n]*cos_nphi;
         for (int m =0; m<ms; ++m){
-            br += (Cs[n]*cos(n*phi)+Ds[n]*sin(n*phi))*ivp[n][m]*kms[n][m]*(As[n][m]*cos(kms[n][m]*z) + Bs[n][m]*sin(-kms[n][m]*z));
-            bphi += n*(-Cs[n]*sin(n*phi)+Ds[n]*cos(n*phi))*(1/abs_r)*iv[n][m]*(As[n][m]*cos(kms[n][m]*z) + Bs[n][m]*sin(-kms[n][m]*z));
-            bz += -(Cs[n]*cos(n*phi)+Ds[n]*sin(n*phi))*iv[n][m]*kms[n][m]*(As[n][m]*sin(kms[n][m]*z) + Bs[n][m]*cos(-kms[n][m]*z));
+            cos_kmsz = cos(kms[n][m]*z);
+            sin_kmsz = sin(kms[n][m]*z);
+            abp = As[n][m]*sin_kmsz + Bs[n][m]*cos_kmsz;
+            abm = As[n][m]*cos_kmsz - Bs[n][m]*sin_kmsz;
+            br += cdp*ivp[n][m]*kms[n][m]*abm;
+            bphi += n*cdm*(1/abs_r)*iv[n][m]*abm;
+            bz += -cdp*iv[n][m]*kms[n][m]*abp;
         }
     }
 
     if (cart){
-        out[0] = br*cos(phi)-bphi*sin(phi);
-        out[1] = br*sin(phi)+bphi*cos(phi);
+        double cp = cos(phi);
+        double sp = sin(phi);
+        out[0] = br*cp-bphi*sp;
+        out[1] = br*sp+bphi*cp;
         out[2] = bz;
     }else{
         out[0] = br;
