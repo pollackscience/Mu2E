@@ -79,10 +79,10 @@ class FieldFitter:
             ZZ.append(ZZ_slice)
             if phi>np.pi/2:
                 PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[1])
-                PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[0]
+                PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[0]
             else:
                 PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
-                PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
+                PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[1]
             #PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
             #PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
             PP.append(PP_slice)
@@ -106,6 +106,8 @@ class FieldFitter:
             brzphi_3d_fast = brzphi_3d_producer_bessel(ZZ,RR,PP,Reff,ns,ms)
         elif func_version==3:
             brzphi_3d_fast = brzphi_3d_producer_bessel_hybrid(ZZ,RR,PP,Reff,ns,ms)
+        elif func_version==4:
+            brzphi_3d_fast = brzphi_3d_producer_numba_v2(ZZ,RR,PP,Reff,ns,ms)
         else: raise KeyError('func version '+func_version+' does not exist')
 
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
@@ -131,9 +133,9 @@ class FieldFitter:
             if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001)
             else: self.params['D_{0}'.format(n)].vary=True
             for m in range(ms):
-                if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0)
+                if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
-                if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0)
+                if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
 
 
@@ -157,6 +159,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
+                #r=RR, z=ZZ, phi=PP, params = self.params, method='lbfgsb',fit_kws={'options':{'maxiter':1000}})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
 
@@ -402,4 +405,3 @@ class FieldFitter:
 
     def pickle_results(self,pickle_name='default'):
         pkl.dump( self.result.params, open( pickle_name+'_results.p', "wb" ),pkl.HIGHEST_PROTOCOL )
-

@@ -34,6 +34,8 @@ import plotly.graph_objs as go
 from tools.new_iplot import new_iplot, get_plotlyjs
 import plotly.plotly as py
 from time import sleep
+from mpldatacursor import datacursor
+
 
 
 class Plotter:
@@ -760,7 +762,6 @@ class Plotter:
         #return fig1, outname
 
     @plot_wrapper
-    p
     def plot_A_v_B_and_C_fit_cyl(self,A='Bz',B='R',C='Z', phi_steps = (0,), zlims = [-2,2], do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
         B and C are the independent, A is the dependent.
@@ -805,13 +806,14 @@ class Plotter:
             else:
                 best_fit = self.fit_result.best_fit
 
-            l = len(best_fit)/3
+            l = int(len(best_fit)/3)
+            print l
             if A=='Br':
                 bf = best_fit[:l]
             elif A=='Bz':
-                bf = best_fit[l:2*l]
+                bf = best_fit[l:int(2*l)]
             elif A=='Bphi':
-                bf = best_fit[2*l:]
+                bf = best_fit[int(2*l):]
             p = len(bf)
             bf = bf[(i/len(phi_steps))*p:((i+1)/len(phi_steps))*p]
             surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
@@ -844,6 +846,7 @@ class Plotter:
             cb.set_label('Data-Fit (G)')
             ax3.set_xlabel(B)
             ax3.set_ylabel(C)
+            datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
             #plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             if self.use_html_dir:
