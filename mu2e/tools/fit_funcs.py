@@ -2,10 +2,9 @@
 
 from __future__ import division
 from scipy import special
-from lmfit import minimize, Parameters, Parameter, report_fit, Model
 import numpy as np
 import numexpr as ne
-from numba import double, int32, jit, vectorize, float64, guvectorize
+from numba import guvectorize
 from math import cos,sin
 
 from itertools import izip
@@ -234,15 +233,8 @@ def brzphi_3d_producer_v2(z,r,phi,R,ns,ms):
 def brzphi_3d_producer_numba(z,r,phi,R,ns,ms):
     b_zeros = []
     for n in range(ns):
-        #b_zeros.append(special.jn_zeros(n,ms))
-        b_zeros.append(np.ones(ms))
-    #kms = np.asarray([b/R for b in b_zeros])
-    kms=[]
-    for n in range(ns):
-        kms.append([])
-        for m in range(ms):
-            kms[-1].append((m)*np.pi/R)
-    kms=np.asarray(kms)
+        b_zeros.append(special.jn_zeros(n,ms))
+    kms = np.asarray([b/R for b in b_zeros])
     iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
     ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
     for n in range(ns):
@@ -289,11 +281,11 @@ def brzphi_3d_producer_numba(z,r,phi,R,ns,ms):
     return brzphi_3d_fast
 
 def brzphi_3d_producer_numba_v2(z,r,phi,R,ns,ms):
-    b_zeros = []
-    for n in range(ns):
-        #b_zeros.append(special.jn_zeros(n,ms))
-        b_zeros.append(np.ones(ms))
-    #kms = np.asarray([b/R for b in b_zeros])
+    #b_zeros = []
+    #for n in range(ns):
+    #    b_zeros.append(special.jn_zeros(n,ms))
+    #kmsA = np.asarray([b/7000.0 for b in b_zeros])
+    #kmsB = np.asarray([b/7000.0 for b in b_zeros])
     kmsA=[]
     kmsB=[]
     for n in range(ns):
@@ -301,7 +293,7 @@ def brzphi_3d_producer_numba_v2(z,r,phi,R,ns,ms):
         kmsB.append([])
         for m in range(ms):
             kmsA[-1].append((m+1)*np.pi/7000.)
-            kmsB[-1].append((m+1)*np.pi/6000.)
+            kmsB[-1].append((m+1)*np.pi/7000.)
     kmsA=np.asarray(kmsA)
     kmsB=np.asarray(kmsB)
     ivA = np.empty((ns,ms,r.shape[0],r.shape[1]))
@@ -321,11 +313,11 @@ def brzphi_3d_producer_numba_v2(z,r,phi,R,ns,ms):
     def calc_b_fields(z,phi,r,n,A,B,C,D,ivpA,ivA,ivpB,ivB,kmsA,kmsB,model_r,model_z,model_phi):
         for i in range(z.shape[0]):
             model_r[i] += (C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))* \
-                (ivpA[i]*kmsA[0]*A[0]*np.sin(kmsA[0]*z[i]) + ivpB[i]*kmsB[0]*B[0]*np.sin(kmsB[0]*z[i]))
-            model_z[i] += -(C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))* \
-                (ivA[i]*kmsA[0]*A[0]*np.cos(kmsA[0]*z[i]) + ivB[i]*kmsB[0]*B[0]*np.cos(kmsB[0]*z[i]))
+                (ivpA[i]*kmsA[0]*A[0]*np.sin(kmsA[0]*(z[i])) + ivpB[i]*kmsB[0]*B[0]*np.cos(kmsB[0]*(z[i])))
+            model_z[i] += (C[0]*np.cos(n[0]*phi[i])+D[0]*np.sin(n[0]*phi[i]))* \
+                (ivA[i]*kmsA[0]*A[0]*np.cos(kmsA[0]*(z[i])) - ivB[i]*kmsB[0]*B[0]*np.sin(kmsB[0]*(z[i])))
             model_phi[i] += n[0]*(-C[0]*np.sin(n[0]*phi[i])+D[0]*np.cos(n[0]*phi[i]))*(1/np.abs(r[i]))* \
-                (ivA[i]*kmsA[0]*A[0]*np.sin(kmsA[0]*z[i]) + ivB[i]*kmsB[0]*B[0]*np.sin(kmsB[0]*z[i]))
+                (ivA[i]*A[0]*np.sin(kmsA[0]*(z[i])) + ivB[i]*B[0]*np.cos(kmsB[0]*(z[i])))
 
 
     def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
