@@ -47,7 +47,7 @@ class DataFileMaker:
     GA field maps are converted from meters to millimeters'''
 
     print 'num of columns start', len(self.data_frame.index)
-    if 'GA' in self.field_map_version and '5' not in self.field_map_version:
+    if ('GA' in self.field_map_version and '5' not in self.field_map_version) or ('rand' in self.file_name):
       self.data_frame.eval('X = X*1000')
       self.data_frame.eval('Y = Y*1000')
       self.data_frame.eval('Z = Z*1000')
@@ -101,6 +101,7 @@ if __name__ == "__main__":
   #data_maker = DataFileMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
   #data_maker = DataFileMaker('../datafiles/FieldMapsGA05/DSMap',use_pickle = False,field_map_version='GA05')
   data_maker.do_basic_modifications(-3896)
+  #data_maker.do_basic_modifications()
   data_maker.make_dump()
   print data_maker.data_frame.head()
   print data_maker.data_frame.tail()

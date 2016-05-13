@@ -2,19 +2,18 @@
 
 from __future__ import division
 import os
-import pandas as pd
-import numpy as np
-from tools.fit_funcs import *
-from lmfit import Model
-from lmfit.model import ModelResult
-import cPickle as pkl
 from time import time
 import collections
+import numpy as np
+import cPickle as pkl
+from lmfit import Model, Parameters, report_fit
 import mu2e
+import tools.fit_funcs as ff
+
 
 class FieldFitter:
     """Input hall probe measurements, perform semi-analytical fit, return fit function and other stuff."""
-    #def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
+    # def __init__(self, input_data, phi_steps = None, r_steps = None, xy_steps = None, no_save = False):
     def __init__(self, input_data, cfg_geom):
         self.input_data = input_data
         if cfg_geom.geom == 'cyl':
@@ -101,13 +100,13 @@ class FieldFitter:
 
         #brzphi_3d_fast = brzphi_3d_producer_v2(ZZ,RR,PP,Reff,ns,ms)
         if func_version==1:
-            brzphi_3d_fast = brzphi_3d_producer_numba(ZZ,RR,PP,Reff,ns,ms)
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel(ZZ,RR,PP,Reff,ns,ms)
         elif func_version==2:
-            brzphi_3d_fast = brzphi_3d_producer_bessel(ZZ,RR,PP,Reff,ns,ms)
+            brzphi_3d_fast = ff.brzphi_3d_producer_bessel(ZZ,RR,PP,Reff,ns,ms)
         elif func_version==3:
-            brzphi_3d_fast = brzphi_3d_producer_bessel_hybrid(ZZ,RR,PP,Reff,ns,ms)
+            brzphi_3d_fast = ff.brzphi_3d_producer_bessel_hybrid(ZZ,RR,PP,Reff,ns,ms)
         elif func_version==4:
-            brzphi_3d_fast = brzphi_3d_producer_numba_v2(ZZ,RR,PP,Reff,ns,ms)
+            brzphi_3d_fast = ff.brzphi_3d_producer_numba_v2(ZZ,RR,PP,Reff,ns,ms)
         else: raise KeyError('func version '+func_version+' does not exist')
 
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
@@ -137,6 +136,13 @@ class FieldFitter:
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
+                if 'E_{0}_{1}'.format(n,m) not in self.params: self.params.add('E_{0}_{1}'.format(n,m),value=0,vary=True)
+                else: self.params['E_{0}_{1}'.format(n,m)].vary=True
+                if 'F_{0}_{1}'.format(n,m) not in self.params: self.params.add('F_{0}_{1}'.format(n,m),value=0,vary=True)
+                else: self.params['F_{0}_{1}'.format(n,m)].vary=True
+                if m>3:
+                    self.params['E_{0}_{1}'.format(n,m)].vary=False
+                    self.params['F_{0}_{1}'.format(n,m)].vary=False
 
 
         if not cfg_pickle.recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
@@ -158,7 +164,7 @@ class FieldFitter:
         else:
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
                 #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='lbfgsb',fit_kws={'options':{'maxiter':1000}})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
@@ -222,7 +228,7 @@ class FieldFitter:
         if line_profile:
             return ZZ,XX,YY,Bz,Bx,By
 
-        b_external_3d_fast = b_external_3d_producer(a,b,c,ZZ,XX,YY,cns,cms)
+        b_external_3d_fast = ff.b_external_3d_producer(a,b,c,ZZ,XX,YY,cns,cms)
         self.mod = Model(b_external_3d_fast, independent_vars=['x','y','z'])
 
         if use_pickle or recreate:
@@ -342,10 +348,10 @@ class FieldFitter:
         Brerr = np.concatenate(Brerr)
         Bphierr = np.concatenate(Bphierr)
         if line_profile:
-            return ZZ,RR,PP,Bz,Br,Bphi
+            return ZZ,RR,PPe,Bz,Br,Bphi
 
         print
-        b_full_3d_fast = b_full_3d_producer(a,b,c,Reff,ZZ,RR,PPs,ns,ms,cns,cms)
+        b_full_3d_fast = ff.b_full_3d_producer(a,b,c,Reff,ZZ,RR,PPs,ns,ms,cns,cms)
         self.mod = Model(b_full_3d_fast, independent_vars=['r','z','phi'])
 
         if use_pickle or recreate:

@@ -109,7 +109,7 @@ cfg_geom_cyl_700mm = cfg_geom('cyl',z_steps_DS, r_steps_700mm, phi_steps_8, xy_s
 cfg_geom_cyl_825mm_v1 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v1, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_825mm_v2 = cfg_geom('cyl',z_steps_DS, r_steps_825mm_v2, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_800mm = cfg_geom('cyl',z_steps_DS, r_steps_800mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
-cfg_geom_cyl_800mm_slice = cfg_geom('cyl',z_steps_DS, r_steps_800mm[1:2], phi_steps_8[1:2], xy_steps = None, bad_calibration = [False, False, False])
+cfg_geom_cyl_800mm_slice = cfg_geom('cyl',z_steps_DS, r_steps_800mm[4:5], phi_steps_8[4:5], xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_800mm_20cm = cfg_geom('cyl',z_steps_DS_20cm, r_steps_800mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_800mm_30cm = cfg_geom('cyl',z_steps_DS_30cm, r_steps_800mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
 cfg_geom_cyl_800mm_40cm = cfg_geom('cyl',z_steps_DS_40cm, r_steps_800mm, phi_steps_8, xy_steps = None, bad_calibration = [False, False, False])
@@ -135,13 +135,13 @@ cfg_geom_cyl_150mm = cfg_geom('cyl',z_steps_PS, r_steps_150mm, phi_steps_8, xy_s
 cfg_params_Mau_DS_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 7000, func_version=1)
 cfg_params_Mau_DS_825mm_v1 = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, func_version=1)
 cfg_params_Mau_DS_825mm_v2 = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, func_version=1)
-cfg_params_Mau_DS_800mm = cfg_params(ns = 3, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=4)
+cfg_params_Mau_DS_800mm = cfg_params(ns = 3, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=3)
 cfg_params_Mau_DS_800mm_bessel = cfg_params(ns = 4, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=2)
 cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns = 4, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=3)
 cfg_params_Mau_DS_700 = cfg_params(ns = 3, ms = 70, cns = 0, cms=0, Reff = 7000, func_version=1)
 cfg_params_Mau_DS_bad = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, func_version=1)
 
-cfg_params_GA05_DS_800mm = cfg_params(ns = 3, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=4)
+cfg_params_GA05_DS_800mm = cfg_params(ns = 10, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=3)
 
 cfg_params_Mau_PS_opt = cfg_params(ns = 3, ms = 40, cns = 0, cms=0, Reff = 9000, func_version=1)
 
@@ -256,8 +256,8 @@ if __name__ == "__main__":
 
     #field_map_analysis('halltoy_GA05_no_ext', cfg_data_DS_GA05_no_ext, cfg_geom_cyl_700mm, cfg_params_GA05_DS_opt, cfg_pickle_GA05_no_ext, cfg_plot_mpl)
     #field_map_analysis('halltoy_GA05_no_DS', cfg_data_DS_GA05_no_DS, cfg_geom_cyl_700mm, cfg_params_GA05_DS_opt, cfg_pickle_GA05_no_DS, cfg_plot_mpl)
-    #field_map_analysis('halltoy_GA05', cfg_data_DS_GA05, cfg_geom_cyl_800mm_slice, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm, cfg_plot_mpl)
-    field_map_analysis('halltoy_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
+    field_map_analysis('halltoy_GA05', cfg_data_DS_GA05, cfg_geom_cyl_800mm_slice, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm, cfg_plot_mpl)
+    #field_map_analysis('halltoy_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm_slice, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
 
     #field_map_analysis('halltoy_800mm_bessel', cfg_data_DS_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm_bessel, cfg_pickle_Mau_800mm_bessel, cfg_plot_mpl)
     #field_map_analysis('halltoy_800mm_bessel_hybrid', cfg_data_DS_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm_bessel_hybrid, cfg_pickle_Mau_800mm_bessel_hybrid, cfg_plot_mpl)

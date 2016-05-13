@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import os
 import math
 import mu2e
 import numpy as np
@@ -15,34 +14,42 @@ from matplotlib import gridspec
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy import interpolate
 from scipy.optimize import curve_fit
-import statsmodels.api as sm
-from statsmodels.formula.api import wls
-from statsmodels.graphics.regressionplots import abline_plot
 import matplotlib.ticker as mtick
 from mu2e.fieldfitter import FieldFitter
 from mu2e.plotter import Plotter
-import re
+from scipy.interpolate import Rbf
 
 
 class HallProbeGenerator:
     """Class for generating toy outputs for mimicing the Argonne hall probe measurements.
     The input should be a dataframe made from the magnetic field simulations."""
 
+    @staticmethod
+    def cylindrical_norm(x1,x2):
+        return np.sqrt(
+            (x1[0,:]*np.cos(x1[1,:])-x2[0,:]*np.cos(x2[1,:]))**2 +
+            (x1[0,:]*np.sin(x1[1,:])-x2[0,:]*np.sin(x2[1,:]))**2 +
+            (x1[2,:]-x2[2,:])**2)
+
     def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10,r_steps=None,phi_steps=(np.pi/2,)):
         self.full_field = input_data
         self.sparse_field = self.full_field
+        self.r_steps = r_steps
+        self.phi_steps = phi_steps
+        self.z_steps = z_steps
 
-        self.apply_selection('Z',z_steps)
-        if r_steps:
-            self.apply_selection('R',r_steps)
-            self.apply_selection('Phi',phi_steps)
-            self.phi_steps = phi_steps
-        else:
-            self.apply_selection('X',x_steps)
-            self.apply_selection('Y',y_steps)
+        #self.apply_selection('Z',z_steps)
+        #if r_steps:
+        #    self.apply_selection('R',r_steps)
+        #    self.apply_selection('Phi',phi_steps)
+        #    self.phi_steps = phi_steps
+        #else:
+        #    self.apply_selection('X',x_steps)
+        #    self.apply_selection('Y',y_steps)
 
-        for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
-            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag))
+        #for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
+        #    self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag))
+        self.interpolate_points()
 
     def takespread(self, sequence, num):
         length = float(len(sequence))
@@ -50,7 +57,6 @@ class HallProbeGenerator:
         for i in range(num):
             spread.append(sequence[int(math.ceil(i * length / num))])
         return spread
-
 
     def apply_selection(self, coord, steps):
 
@@ -128,6 +134,32 @@ class HallProbeGenerator:
                     self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bz'] = tmp_Br*np.sin(rotation_angle[i])+tmp_Bz*np.cos(rotation_angle[i])
                     self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Br'] = tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i])
 
+    def interpolate_points(self):
+        field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
+            self.r_steps[-1]+50, self.z_steps[0]-50, self.z_steps[-1]+50))
+
+        print 'interpolating bz'
+        rr, pp, zz = np.meshgrid(self.r_steps, self.phi_steps, self.z_steps)
+        rr = rr.flatten()
+        pp = pp.flatten()
+        zz = zz.flatten()
+        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,function='quintic', norm=self.cylindrical_norm)
+        bz = rbf(rr, pp, zz)
+        print 'interpolating br'
+        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,function='quintic', norm=self.cylindrical_norm)
+        br = rbf(rr, pp, zz)
+        print 'interpolating bphi'
+        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,function='quintic', norm=self.cylindrical_norm)
+        bphi = rbf(rr, pp, zz)
+
+        del rbf
+        self.sparse_field = pd.DataFrame({'R':rr.flatten(),'Phi':pp,'Z':zz,'Br':br,'Bphi':bphi,'Bz':bz})
+        self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
+
+
+
+
+
 
 def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
     '''make a series of fit plots, given a plotter class and some information
@@ -196,6 +228,12 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
 
 
 if __name__=="__main__":
+    pi = np.pi
     data_maker1=DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
-    hpg = HallProbeGenerator(data_maker1.data_frame)
+    r_steps = [25,225,425,625,800]
+    #r_steps = [25,225]
+    phi_steps = np.linspace(-pi,pi,8)
+    z_steps = [8000,8050]
+    hpg = HallProbeGenerator(data_maker1.data_frame,
+            z_steps = z_steps, r_steps = r_steps, phi_steps = phi_steps)
     hall_toy = hpg.get_toy()
