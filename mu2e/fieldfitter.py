@@ -53,26 +53,22 @@ class FieldFitter:
 
             input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
             input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
-            #if phi>np.pi/2:
-            #    input_data_phi.Phi=input_data_phi.Phi+np.pi
-            #    input_data_phi.ix[input_data_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
-            #print input_data_phi.Phi.unique()
 
             piv_bz = input_data_phi.pivot('Z','R','Bz')
             piv_br = input_data_phi.pivot('Z','R','Br')
             piv_bphi = input_data_phi.pivot('Z','R','Bphi')
-            piv_bz_err = input_data_phi.pivot('Z','R','Bzerr')
-            piv_br_err = input_data_phi.pivot('Z','R','Brerr')
-            piv_bphi_err = input_data_phi.pivot('Z','R','Bphierr')
+            #piv_bz_err = input_data_phi.pivot('Z','R','Bzerr')
+            #piv_br_err = input_data_phi.pivot('Z','R','Brerr')
+            #piv_bphi_err = input_data_phi.pivot('Z','R','Bphierr')
 
             R = piv_br.columns.values
             Z = piv_br.index.values
             Bz.append(piv_bz.values)
             Br.append(piv_br.values)
             Bphi.append(piv_bphi.values)
-            Bzerr.append(piv_bz_err.values)
-            Brerr.append(piv_br_err.values)
-            Bphierr.append(piv_bphi_err.values)
+            #Bzerr.append(piv_bz_err.values)
+            #Brerr.append(piv_br_err.values)
+            #Bphierr.append(piv_bphi_err.values)
             RR_slice,ZZ_slice = np.meshgrid(R, Z)
             RR.append(RR_slice)
             ZZ.append(ZZ_slice)
@@ -92,9 +88,9 @@ class FieldFitter:
         Bz = np.concatenate(Bz)
         Br = np.concatenate(Br)
         Bphi = np.concatenate(Bphi)
-        Bzerr = np.concatenate(Bzerr)
-        Brerr = np.concatenate(Brerr)
-        Bphierr = np.concatenate(Bphierr)
+        #Bzerr = np.concatenate(Bzerr)
+        #Brerr = np.concatenate(Brerr)
+        #Bphierr = np.concatenate(Bphierr)
         if profile:
             return ZZ,RR,PP,Bz,Br,Bphi
 
@@ -107,6 +103,8 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_bessel_hybrid(ZZ,RR,PP,Reff,ns,ms)
         elif func_version==4:
             brzphi_3d_fast = ff.brzphi_3d_producer_numba_v2(ZZ,RR,PP,Reff,ns,ms)
+        elif func_version==5:
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase(ZZ,RR,PP,Reff,ns,ms)
         else: raise KeyError('func version '+func_version+' does not exist')
 
         self.mod = Model(brzphi_3d_fast, independent_vars=['r','z','phi'])
@@ -127,22 +125,28 @@ class FieldFitter:
         #else: self.params['delta1'].vary=False
 
         for n in range(ns):
-            if 'C_{0}'.format(n) not in self.params: self.params.add('C_{0}'.format(n),value=1)
-            else: self.params['C_{0}'.format(n)].vary=True
-            if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001)
-            else: self.params['D_{0}'.format(n)].vary=True
-            for m in range(ms):
+            if func_version==5:
+                if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0,min=-np.pi*0.5,max=np.pi*0.5)
+                else: self.params['D_{0}'.format(n)].vary=True
+            else:
+                if 'C_{0}'.format(n) not in self.params: self.params.add('C_{0}'.format(n),value=1)
+                else: self.params['C_{0}'.format(n)].vary=True
+                if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001)
+                else: self.params['D_{0}'.format(n)].vary=True
+            for m in range(max(5,ms-n*10)):
+            #for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['B_{0}_{1}'.format(n,m)].vary=True
-                if 'E_{0}_{1}'.format(n,m) not in self.params: self.params.add('E_{0}_{1}'.format(n,m),value=0,vary=True)
-                else: self.params['E_{0}_{1}'.format(n,m)].vary=True
-                if 'F_{0}_{1}'.format(n,m) not in self.params: self.params.add('F_{0}_{1}'.format(n,m),value=0,vary=True)
-                else: self.params['F_{0}_{1}'.format(n,m)].vary=True
-                if m>3:
-                    self.params['E_{0}_{1}'.format(n,m)].vary=False
-                    self.params['F_{0}_{1}'.format(n,m)].vary=False
+                if func_version==3:
+                    if 'E_{0}_{1}'.format(n,m) not in self.params: self.params.add('E_{0}_{1}'.format(n,m),value=0,vary=True)
+                    else: self.params['E_{0}_{1}'.format(n,m)].vary=True
+                    if 'F_{0}_{1}'.format(n,m) not in self.params: self.params.add('F_{0}_{1}'.format(n,m),value=0,vary=True)
+                    else: self.params['F_{0}_{1}'.format(n,m)].vary=True
+                    if m>3:
+                        self.params['E_{0}_{1}'.format(n,m)].vary=False
+                        self.params['F_{0}_{1}'.format(n,m)].vary=False
 
 
         if not cfg_pickle.recreate: print 'fitting with n={0}, m={1}'.format(ns,ms)
@@ -155,16 +159,24 @@ class FieldFitter:
                 #weights = np.concatenate([Brerr,Bzerr,Bphierr]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':1})
         elif cfg_pickle.use_pickle:
+            mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             #for param in self.params:
             #    self.params[param].vary=False
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-                #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
+                #weights = np.concatenate([np.ones(Br.shape,dtype=float)*1e-1,
+                #    np.ones(Bz.shape,dtype=float),
+                #    np.ones(Bphi.shape,dtype=float)*0.05]).ravel(),
+                weights = np.concatenate([mag,mag,mag]).ravel(),
                 r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
+            mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br,Bz,Bphi]).ravel(),
-                #weights = np.concatenate([1.0e-13/Brerr,1.0e-13/Bzerr,1.0e-13/Bphierr]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
+                #weights = np.concatenate([np.ones(Br.shape,dtype=float)*1e-1,
+                #    np.ones(Bz.shape,dtype=float),
+                #    np.ones(Bphi.shape,dtype=float)*0.05]).ravel(),
+                weights = np.concatenate([mag,mag,mag]).ravel(),
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='lbfgsb',fit_kws={'options':{'maxiter':1000}})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
