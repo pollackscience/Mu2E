@@ -87,8 +87,8 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
     double cdp, cdm;
     vector<double> out(3,0);
     if (cart){
-        if (a==0) a+=1e-8;
-        if (b==0) b+=1e-8;
+        //if (a==0) a+=1e-8;
+        //if (b==0) b+=1e-8;
         r = sqrt(pow(a,2)+pow(b,2));
         phi = atan2(b,a);
     }else{
