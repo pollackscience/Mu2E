@@ -26,7 +26,7 @@ cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../datafiles/Mau10/Standard_Maps/Mu
 cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
 cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
 
-cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>7000','Z<11000','R!=0'))
+cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>9000','Z<11000','R!=0'))
 cfg_data_DS_GA05_offset = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap_offset8mm', ('Z>5000','Z<13000','R!=0'))
 #################
 # the geom cfgs #
@@ -100,7 +100,7 @@ r_steps_fullsim_trunc = (pi2r_fullsim[:-2], pi8r_fullsim[:-2], pi4r_fullsim[:-2]
 phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444,  3*np.pi/4, 2.677945)
 
 z_steps_DS = range(5021,13021,50)
-z_steps_DS_less = range(7021,11021,50)
+z_steps_DS_less = range(9021,11021,50)
 z_steps_DS_20cm = range(5021,13021,200)
 z_steps_DS_30cm = range(5021,13021,300)
 z_steps_DS_40cm = range(5021,13021,400)
@@ -160,7 +160,7 @@ cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns = 4, ms = 50, cns = 0, cms
 cfg_params_Mau_DS_700 = cfg_params(ns = 3, ms = 70, cns = 0, cms=0, Reff = 7000, func_version=1)
 cfg_params_Mau_DS_bad = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, func_version=1)
 
-cfg_params_GA05_DS_800mm = cfg_params(ns = 4, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=5)
+cfg_params_GA05_DS_800mm = cfg_params(ns = 10, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=5)
 cfg_params_GA05_DS_offset = cfg_params(ns = 4, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=5)
 cfg_params_Mau10_DS_offset = cfg_params(ns = 3, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=1)
 
@@ -175,7 +175,7 @@ cfg_pickle_Mau_700 = cfg_pickle(use_pickle = True, save_pickle = False, load_nam
 cfg_pickle_Mau_825mm_v1 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v1_tmp', save_name = 'Mau10_825mm_v1_tmp', recreate = False)
 cfg_pickle_Mau_825mm_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v2', save_name = 'Mau10_825mm_v2', recreate = True)
 
-cfg_pickle_GA05_800mm = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'GA05_800mm', save_name = 'GA05_800mm', recreate = False)
+cfg_pickle_GA05_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_800mm', save_name = 'GA05_800mm', recreate = False)
 cfg_pickle_GA05_offset = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_offset', save_name = 'GA05_offset', recreate = False)
 
 cfg_pickle_Mau_800mm = cfg_pickle(use_pickle = False, save_pickle = False, load_name = 'Mau10_800mm', save_name = 'Mau10_800mm', recreate = False)

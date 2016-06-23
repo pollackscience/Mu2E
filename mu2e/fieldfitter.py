@@ -133,8 +133,8 @@ class FieldFitter:
                 else: self.params['C_{0}'.format(n)].vary=True
                 if 'D_{0}'.format(n) not in self.params: self.params.add('D_{0}'.format(n),value=0.001)
                 else: self.params['D_{0}'.format(n)].vary=True
-            for m in range(max(5,ms-n*10)):
-            #for m in range(ms):
+            #for m in range(max(5,ms-n*5)):
+            for m in range(ms):
                 if 'A_{0}_{1}'.format(n,m) not in self.params: self.params.add('A_{0}_{1}'.format(n,m),value=0,vary=True)
                 else: self.params['A_{0}_{1}'.format(n,m)].vary=True
                 if 'B_{0}_{1}'.format(n,m) not in self.params: self.params.add('B_{0}_{1}'.format(n,m),value=0,vary=True)
