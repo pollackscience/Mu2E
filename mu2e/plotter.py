@@ -35,6 +35,7 @@ from tools.new_iplot import new_iplot, get_plotlyjs
 import plotly.plotly as py
 from time import sleep
 from mpldatacursor import datacursor
+import warnings
 
 
 
@@ -44,6 +45,8 @@ class Plotter:
     def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None, no_show=False, use_html_dir = False):
         """Default constructor, takes a dict of pandas DataFrame.
         (optional suffix and save dir)"""
+        warnings.warn("The `Plotter` class is deprecated, please switch to plotting functions via mu2eplots.py.\
+                API will be severely broken.", DeprecationWarning)
         if clear: plt.close('all')
 
         self.markers = ['o','v','^','s']
