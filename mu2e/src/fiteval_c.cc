@@ -64,14 +64,14 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
         }
     }
     for (int n=0; n<ns; ++n){
-        vector<double> tmp_v;
-        tmp_v.reserve(ms);
-        iv.push_back(tmp_v);
-        ivp.push_back(tmp_v);
+        vector<double> tmp_v1(ms,0.0);
+        vector<double> tmp_v2(ms,0.0);
+        iv.push_back(tmp_v1);
+        ivp.push_back(tmp_v2);
     }
 
 
-   cout<<Bs[0][0]<<endl;
+   cout<<Bs[2][75]<<endl;
    cout<<Cs[0]<<endl;
    cout<<Reff<<ns<<ms<<endl;
 }
@@ -100,10 +100,10 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
     for (int n=0;n<ns;++n){
         for (int m=1; m<=ms; ++m){
             tmp_rho = kms[n][m-1]*abs_r;
-            bessels[0] = gsl_sf_bessel_In(n,tmp_rho);
-            bessels[1] = gsl_sf_bessel_In(n+1,tmp_rho);
-            iv[n].push_back(bessels[0]);
-            ivp[n].push_back((n/tmp_rho)*bessels[0]+bessels[1]);
+            bessels[0]  = gsl_sf_bessel_In(n,tmp_rho);
+            bessels[1]  = gsl_sf_bessel_In(n+1,tmp_rho);
+            iv[n][m-1]  = bessels[0];
+            ivp[n][m-1] = (n/tmp_rho)*bessels[0]+bessels[1];
         }
     }
 
@@ -122,8 +122,10 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
             abp = As[n][m]*sin_kmsz + Bs[n][m]*cos_kmsz;
             abm = As[n][m]*cos_kmsz - Bs[n][m]*sin_kmsz;
             br += cdp*ivp[n][m]*kms[n][m]*abm;
-            bphi += n*cdm*(1/abs_r)*iv[n][m]*abm;
             bz += -cdp*iv[n][m]*kms[n][m]*abp;
+            if (abs_r>1e-10){
+                bphi += n*cdm*(1/abs_r)*iv[n][m]*abm;
+            }
         }
     }
 

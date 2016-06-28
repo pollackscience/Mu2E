@@ -65,8 +65,8 @@ def get_mag_field_function(param_name):
     def mag_field_function(a,b,z,cart=False):
         '''give r,phi,z, (or x,y,z) and return br,bphi,bz (or bx,by,bz)'''
         if cart:
-            if a==0: a+=1e-8
-            if b==0: b+=1e-8
+            #if a==0: a+=1e-8
+            #if b==0: b+=1e-8
             r = np.sqrt(a**2+b**2)
             phi = np.arctan2(b,a)
         else:
@@ -85,7 +85,8 @@ def get_mag_field_function(param_name):
         for n in range(ns):
             for m in range(ms):
                 br += (Cs[n]*np.cos(n*phi)+Ds[n]*np.sin(n*phi))*ivp[n][m]*kms[n][m]*(As[n][m]*np.cos(kms[n][m]*z) + Bs[n][m]*np.sin(-kms[n][m]*z))
-                bphi += n*(-Cs[n]*np.sin(n*phi)+Ds[n]*np.cos(n*phi))*(1/abs(r))*iv[n][m]*(As[n][m]*np.cos(kms[n][m]*z) + Bs[n][m]*np.sin(-kms[n][m]*z))
+                if abs(r)>1e-10:
+                    bphi += n*(-Cs[n]*np.sin(n*phi)+Ds[n]*np.cos(n*phi))*(1/abs(r))*iv[n][m]*(As[n][m]*np.cos(kms[n][m]*z) + Bs[n][m]*np.sin(-kms[n][m]*z))
                 bz += -(Cs[n]*np.cos(n*phi)+Ds[n]*np.sin(n*phi))*iv[n][m]*kms[n][m]*(As[n][m]*np.sin(kms[n][m]*z) + Bs[n][m]*np.cos(-kms[n][m]*z))
 
         if cart:
