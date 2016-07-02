@@ -1,24 +1,14 @@
 #! /usr/bin/env python
 
 import math
-import mu2e
+import collections
 import numpy as np
 import pandas as pd
-import collections
-from datafileprod import DataFileMaker
-import src.RowTransformations as rt
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib import gridspec
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from scipy import interpolate
-from scipy.optimize import curve_fit
-import matplotlib.ticker as mtick
+from scipy.interpolate import Rbf
+from mu2e.datafileprod import DataFileMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.plotter import Plotter
-from scipy.interpolate import Rbf
-import cPickle as pkl
 
 
 class HallProbeGenerator(object):
@@ -257,7 +247,9 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
     plot_maker.extra_suffix=suffix
 
-    make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)
+    #make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)
+    ff.merge_data_fit_res()
+
     return hall_measure_data, ff, plot_maker
 
 

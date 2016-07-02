@@ -6,6 +6,7 @@ from time import time
 import collections
 import numpy as np
 import cPickle as pkl
+import pandas as pd
 from lmfit import Model, Parameters, report_fit
 import mu2e
 import tools.fit_funcs as ff
@@ -51,8 +52,8 @@ class FieldFitter:
             if phi==0: nphi = np.pi
             else: nphi=phi-np.pi
 
-            input_data_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
-            input_data_phi.ix[np.abs(input_data_phi.Phi-nphi)<1e-6, 'R']*=-1
+            input_data_phi = self.input_data[(np.isclose(self.input_data.Phi,phi))|(np.isclose(self.input_data.Phi,nphi))]
+            input_data_phi.ix[np.isclose(input_data_phi.Phi,nphi), 'R']*=-1
 
             piv_bz = input_data_phi.pivot('Z','R','Bz')
             piv_br = input_data_phi.pivot('Z','R','Br')
@@ -72,14 +73,16 @@ class FieldFitter:
             RR_slice,ZZ_slice = np.meshgrid(R, Z)
             RR.append(RR_slice)
             ZZ.append(ZZ_slice)
-            if phi>np.pi/2:
-                PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[1])
-                PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[0]
-            else:
-                PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
-                PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[1]
-            #PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
-            #PP_slice[:,PP_slice.shape[1]/2:]=input_data_phi.Phi.unique()[1]
+            #if phi>np.pi/2:
+            #    PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[1])
+            #    PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[0]
+            #else:
+            #    PP_slice = np.full_like(RR_slice,input_data_phi.Phi.unique()[0])
+            #    PP_slice[:,int(PP_slice.shape[1]/2):]=input_data_phi.Phi.unique()[1]
+            use_phis = np.sort(input_data_phi.Phi.unique())
+            if phi==0: use_phis = use_phis[::-1]
+            PP_slice = np.full_like(RR_slice,use_phis[0])
+            PP_slice[:,PP_slice.shape[1]/2:]=use_phis[1]
             PP.append(PP_slice)
 
         ZZ = np.concatenate(ZZ)
@@ -167,7 +170,7 @@ class FieldFitter:
                 #    np.ones(Bz.shape,dtype=float),
                 #    np.ones(Bphi.shape,dtype=float)*0.05]).ravel(),
                 weights = np.concatenate([mag,mag,mag]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
@@ -176,7 +179,7 @@ class FieldFitter:
                 #    np.ones(Bz.shape,dtype=float),
                 #    np.ones(Bphi.shape,dtype=float)*0.05]).ravel(),
                 weights = np.concatenate([mag,mag,mag]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':5000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='lbfgsb',fit_kws={'options':{'maxiter':1000}})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='differential_evolution',fit_kws={'maxfun':1})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='nelder')
@@ -423,3 +426,49 @@ class FieldFitter:
 
     def pickle_results(self,pickle_name='default'):
         pkl.dump( self.result.params, open( pickle_name+'_results.p', "wb" ),pkl.HIGHEST_PROTOCOL )
+
+    def merge_data_fit_res(self):
+        '''Combine the fit results and the input data into one dataframe for easier
+        comparison of results.
+        Adds three columns to input_data:
+            Br_fit, Bphi_fit, Bz_fit
+        '''
+        best_fit = self.result.best_fit
+
+        df_fit = pd.DataFrame()
+        for i,phi in enumerate(self.phi_steps):
+            if phi==0: nphi = np.pi
+            else: nphi=phi-np.pi
+            data_frame_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
+            #data_frame_phi.ix[np.abs(data_frame_phi.Phi-nphi)<1e-6, 'R']*=-1
+            #if phi>np.pi/2:
+            #    data_frame_phi.Phi=data_frame_phi.Phi+np.pi
+            #    data_frame_phi.ix[data_frame_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
+            df_fit_tmp = data_frame_phi[['Z','R','Phi']].copy()
+            #df_fit_tmp.sort_values(['R','Z','Phi'], inplace=True)
+
+            l = int(len(best_fit)/3)
+            br = best_fit[:l]
+            bz = best_fit[l:int(2*l)]
+            bphi = best_fit[int(2*l):]
+            p = len(br)
+            br = br[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
+            bz = bz[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
+            bphi = bphi[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
+
+            z_size = len(df_fit_tmp.Z.unique())
+            r_size = 2*len(df_fit_tmp.R.unique())
+            df_fit_tmp['Br_fit'] = np.transpose(br.reshape((z_size, r_size))).flatten()
+            df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, r_size))).flatten()
+            df_fit_tmp['Bphi_fit'] = np.transpose(bphi.reshape((z_size, r_size))).flatten()
+            #print df_fit_tmp
+            #raw_input()
+
+            df_fit = df_fit.append(df_fit_tmp)
+
+
+        self.input_data = pd.merge(self.input_data, df_fit, on=['Z','R','Phi'])
+
+
+
+

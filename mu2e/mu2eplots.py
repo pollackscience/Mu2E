@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -46,14 +47,40 @@ def mu2e_plot(df, x, y, conditions = None, mode = 'mpl', info = None, savename =
     if savename:
         plt.savefig(savename)
 
-def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, savename = None):
+def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, savename = None, df_fit = None):
+    from mpl_toolkits.mplot3d import Axes3D
+    del Axes3D
     '''Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).
     For now, the mpl and plotly generation are seperate (may converge in future if necessary).'''
 
     _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
 
     if conditions:
-        df = df.query(conditions)
+
+        # Special treatment to detect cylindrical coordinates:
+        # Some regex matching to find any 'Phi' condition and treat it as (Phi & Phi-Pi).
+        # This is done because when specifying R-Z coordinates, we almost always want the
+        # 2-D plane that corresponds to that (Phi & Phi-Pi) pair.  In order to plot this,
+        # we assign a value of -R to all R points that correspond to the 'Phi-Pi' half-plane
+
+        p = re.compile(r'(?:and)*\s*Phi\s*==\s*([-+]?(?:[0-9]*\.[0-9]+|[0-9]+))')
+        phi_str = p.search(conditions)
+        conditions_nophi = p.sub('', conditions)
+        conditions_nophi = re.sub(r'^\s*and\s*','',conditions_nophi)
+        try:
+            phi = float(phi_str.group(1))
+        except:
+            phi = None
+
+        df = df.query(conditions_nophi)
+        if phi != None:
+            isc = np.isclose
+            if isc(phi,0):
+                nphi = np.pi
+            else:
+                nphi = phi-np.pi
+            df = df[(isc(phi,df.Phi)) | (isc(nphi,df.Phi))]
+            df.ix[isc(nphi,df.Phi), 'R']*=-1
 
     if mode not in _modes:
         raise ValueError(mode+' not in '+_modes)
@@ -63,11 +90,18 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
     Y=piv.columns.values
     Z=np.transpose(piv.values)
     Xi,Yi = np.meshgrid(X, Y)
+    if df_fit:
+        piv_fit = df.pivot(x, y, z+'_fit')
+        Z_fit=np.transpose(piv_fit.values)
 
     if mode == 'mpl':
         fig = plt.figure().gca(projection='3d')
 
-        fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'), linewidth=0, antialiased=False)
+        if df_fit:
+            fig.plot(Xi.ravel(), Yi.ravel(), Z.ravel(), 'ko',markersize=2 )
+            fig.plot_wireframe(Xi, Yi, Z_fit,color='green')
+        else:
+            fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'), linewidth=0, antialiased=False)
         fig.zaxis.set_major_locator(LinearLocator(10))
         fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 

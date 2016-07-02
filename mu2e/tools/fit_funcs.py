@@ -236,16 +236,6 @@ def brzphi_3d_producer_modbessel(z,r,phi,L,ns,ms):
     This function creates a modified bessel function expression/
     '''
 
-    #b_zeros = []
-    #for n in range(ns):
-    #    b_zeros.append(special.jn_zeros(n,ms))
-    #kms = np.asarray([b/R for b in b_zeros])
-    #iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
-    #ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
-    #for n in range(ns):
-    #    for m in range(ms):
-    #        iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
-    #        ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
     kms=[]
     for n in range(ns):
@@ -259,7 +249,6 @@ def brzphi_3d_producer_modbessel(z,r,phi,L,ns,ms):
         for m in range(ms):
             iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
-
 
     @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
             '(m),(m),(m),(),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')

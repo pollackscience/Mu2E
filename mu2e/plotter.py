@@ -16,7 +16,6 @@ from matplotlib import gridspec
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy import interpolate
 from scipy.optimize import curve_fit
-import statsmodels.api as sm
 from statsmodels.formula.api import wls
 from statsmodels.graphics.regressionplots import abline_plot
 from collections import OrderedDict
@@ -29,13 +28,14 @@ from images2gif import writeGif
 from sys import platform
 if platform == 'darwin':
     import AppKit
-from plotly.offline import download_plotlyjs, init_notebook_mode, iplot, plot
+from plotly.offline import init_notebook_mode, iplot, plot
 import plotly.graph_objs as go
-from tools.new_iplot import new_iplot, get_plotlyjs
+from tools.new_iplot import new_iplot
 import plotly.plotly as py
-from time import sleep
 from mpldatacursor import datacursor
 import warnings
+warnings.simplefilter('always', DeprecationWarning)
+del Axes3D
 
 
 
@@ -45,8 +45,8 @@ class Plotter:
     def __init__(self, data_frame_dict,main_suffix=None,alt_save_dir=None,extra_suffix = None, clear=True, fit_result=None, no_show=False, use_html_dir = False):
         """Default constructor, takes a dict of pandas DataFrame.
         (optional suffix and save dir)"""
-        warnings.warn("The `Plotter` class is deprecated, please switch to plotting functions via mu2eplots.py.\
-                API will be severely broken.", DeprecationWarning)
+        warnings.warn(("The `Plotter` class is deprecated, please switch to "
+                "plotting functions via mu2eplots.py. API will be severely broken."), DeprecationWarning)
         if clear: plt.close('all')
 
         self.markers = ['o','v','^','s']
@@ -327,7 +327,7 @@ class Plotter:
         if self.no_show:
             return fig,data_frame
         else:
-            surf = fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
+            fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
                                     linewidth=0, antialiased=False)
             fig.zaxis.set_major_locator(LinearLocator(10))
             fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
@@ -705,7 +705,6 @@ class Plotter:
         Y = None
         Xi = None
         Yi = None
-        surf = None
         for i,key in enumerate(self.data_frame_dict):
             data_frame_dict[key] = self.data_frame_dict[key].query(' and '.join(conditions))
             data_frame_dict[key] = data_frame_dict[key].reindex(columns=[A,B,C])
@@ -755,7 +754,7 @@ class Plotter:
         Z=piv.values
 
         ax1 = fig1.add_subplot(111,projection='3d')
-        scat = ax1.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
+        ax1.scatter(X.ravel(), Y.ravel(), Z.ravel(), color='black')
 
         ax1.set_xlabel(B)
         ax1.set_ylabel(C)
@@ -769,18 +768,18 @@ class Plotter:
         if do_3d:
             l = len(best_fit)/3
             if A=='Br':
-                surf = ax1.plot_wireframe(X, Y, best_fit[:l].reshape(Z.shape),color='green')
+                ax1.plot_wireframe(X, Y, best_fit[:l].reshape(Z.shape),color='green')
             elif A=='Bz':
-                surf = ax1.plot_wireframe(X, Y, best_fit[l:2*l].reshape(Z.shape),color='green')
+                ax1.plot_wireframe(X, Y, best_fit[l:2*l].reshape(Z.shape),color='green')
             elif A=='Bphi':
-                surf = ax1.plot_wireframe(X, Y, best_fit[2*l:].reshape(Z.shape),color='green')
+                ax1.plot_wireframe(X, Y, best_fit[2*l:].reshape(Z.shape),color='green')
 
         elif sim and A=='Bz':
-            surf = ax1.plot_wireframe(X, Y, best_fit[len(best_fit)/2:].reshape(Z.shape),color='green')
+            ax1.plot_wireframe(X, Y, best_fit[len(best_fit)/2:].reshape(Z.shape),color='green')
         elif sim and (A=='Br' or A=='By' or A == 'Bx'):
-            surf = ax1.plot_wireframe(X, Y, best_fit[0:len(best_fit)/2].reshape(Z.shape),color='green')
+            ax1.plot_wireframe(X, Y, best_fit[0:len(best_fit)/2].reshape(Z.shape),color='green')
         else:
-            surf = ax1.plot_wireframe(X, Y, best_fit.reshape(Z.shape),color='green')
+            ax1.plot_wireframe(X, Y, best_fit.reshape(Z.shape),color='green')
         if A=='Bz':
             ax1.view_init(elev=20., azim=59)
         else:
@@ -821,7 +820,7 @@ class Plotter:
         if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
         savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
         plt.savefig(savename,transparent = True)
-        outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+        #outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
         #return fig1, outname
 
     @plot_wrapper
@@ -858,7 +857,7 @@ class Plotter:
             Z=piv.values
 
             ax1 = fig1.add_subplot(111,projection='3d')
-            scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
+            ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
 
             ax1.set_xlabel(B)
             ax1.set_ylabel(C)
@@ -879,7 +878,7 @@ class Plotter:
                 bf = best_fit[int(2*l):]
             p = len(bf)
             bf = bf[(i/len(phi_steps))*p:((i+1)/len(phi_steps))*p]
-            surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
+            ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
             plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(A,B,C,phi))
 
             if A=='Bz':
@@ -918,7 +917,7 @@ class Plotter:
                 savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
 
             plt.savefig(savename,transparent = True)
-            outname = '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+            #outname = '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
     @plot_wrapper
     def plot_A_v_B_and_C_fit_ext(self,A='Bz',B='X',C='Z', xy_steps = (0,), do_eval = False, *conditions):
@@ -947,7 +946,7 @@ class Plotter:
             Z=piv.values
 
             ax1 = fig1.add_subplot(111,projection='3d')
-            scat = ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
+            ax1.plot(X.ravel(), Y.ravel(), Z.ravel(), 'ko',markersize=2 )
 
             ax1.set_xlabel(B)
             ax1.set_ylabel(C)
@@ -967,7 +966,7 @@ class Plotter:
                 bf = best_fit[2*l:]
             p = len(bf)
             bf = bf[(i/len(xy_steps))*p:((i+1)/len(xy_steps))*p]
-            surf = ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
+            ax1.plot_wireframe(X, Y, bf.reshape(Z.shape),color='green')
             plt.title('{0}_v_{1}_and_{2}_y={3}'.format(A,B,C,y))
 
             if A=='Bz':
@@ -998,7 +997,7 @@ class Plotter:
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_residual.pdf'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
             plt.savefig(savename,transparent = True)
-            outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
+            #outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
     def plot_A_v_B_and_C_fit_cyl_plotly(self,A='Bz',B='R',C='Z', phi_steps = (0,), zlims = [-2,2], do_eval = False, *conditions):
         """Plot A vs B and C given some set of comma seperated boolean conditions.
@@ -1286,7 +1285,6 @@ class Plotter:
 
     @plot_wrapper
     def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear',do_fit = True):
-        from scipy import interpolate
         """Plot A vs Theta for a given Z and R. The values are interpolated """
 
         print self.data_frame_dict[self.suffix].head()
