@@ -8,6 +8,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from plotly.offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
 import plotly.graph_objs as go
+from mpldatacursor import datacursor
 
 
 # Definitions of mu2e-specific plotting functions.
@@ -93,6 +94,9 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
     if df_fit:
         piv_fit = df.pivot(x, y, z+'_fit')
         Z_fit=np.transpose(piv_fit.values)
+        data_fit_diff = (Z - Z_fit)*10000
+        Xa = np.concatenate(([X[0]],0.5*(X[1:]+X[:-1]),[X[-1]]))
+        Ya = np.concatenate(([Y[0]],0.5*(Y[1:]+Y[:-1]),[Y[-1]]))
 
     if mode == 'mpl':
         fig = plt.figure().gca(projection='3d')
@@ -102,6 +106,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
             fig.plot_wireframe(Xi, Yi, Z_fit,color='green')
         else:
             fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'), linewidth=0, antialiased=False)
+
         fig.zaxis.set_major_locator(LinearLocator(10))
         fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
@@ -112,14 +117,25 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
         fig.zaxis.labelpad=20
         fig.zaxis.set_tick_params(direction='out',pad=10)
         plt.title(' '.join(filter(lambda x:x, [info, x, y, 'v', z, conditions])))
-        plt.title('{0} vs {1} and {2}, {3}'.format(z,x,y,conditions[0]))
         fig.view_init(elev=35., azim=30)
+
+        if df_fit:
+            fig2 = plt.figure()
+            ax2 = fig2.add_subplot(111)
+            heat = ax2.pcolormesh(Xa,Ya,data_fit_diff,vmin=-2,vmax=2,cmap=plt.get_cmap('viridis'))
+            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(x,y,z,phi))
+            cb = plt.colorbar(heat, aspect=7)
+            cb.set_label('Data-Fit (G)')
+            ax2.set_xlabel(x)
+            ax2.set_ylabel(y)
+            datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
+
 
     elif 'plotly' in mode:
         layout = go.Layout(
-                        title='Plot of {0} vs {1} and {2} for DS, {3}'.format(z,x,y,conditions),
+                        title='Plot of {0} vs {1} and {2} for DS<br>{3}'.format(z,x,y,conditions),
                         autosize=False,
-                        width=675,
+                        width=800,
                         height=650,
                         scene=dict(
                                 xaxis=dict(
@@ -143,13 +159,60 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
                                         showbackground=True,
                                         backgroundcolor='rgb(230, 230,230)'
                                         ),
-                                cameraposition=[[-0.1, 0.5, -0.7, -0.2], [0.0, 0, 0.0], 2.8]
                                 ),
                         showlegend=True,
+                        legend=dict(x=0.8,y=1),
                         )
-        surface = go.Surface(x=Xi, y=Yi, z=Z, colorbar = go.ColorBar(title='Tesla',titleside='right'), colorscale = 'Viridis')
-        data = [surface]
-        fig = go.Figure(data=data, layout=layout)
+        if df_fit:
+            scat = go.Scatter3d(x=Xi.ravel(), y=Yi.ravel(), z=Z.ravel(),
+                mode='markers',
+                marker=dict(size=3, color='rgb(0, 0, 0)',
+                            line=dict(color='rgb(0, 0, 0)'), opacity=1),
+                name = 'data')
+            lines = [scat]
+            line_marker = dict(color='green', width=2)
+            do_leg = True
+            for i, j, k in zip(Xi, Yi, Z_fit):
+                if do_leg:
+                    lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines',
+                        line=line_marker,name='fit',legendgroup='fitgroup'))
+                else:
+                    lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines',
+                        line=line_marker, name='fit',legendgroup='fitgroup',showlegend=False))
+                do_leg = False
+
+            z_offset=(np.min(Z)-abs(np.min(Z)*0.3))*np.ones(Z.shape)
+            textz=[['x: '+'{:0.5f}'.format(Xi[i][j])+'<br>y: '+'{:0.5f}'.format(Yi[i][j])+
+                '<br>z: '+'{:0.5f}'.format(data_fit_diff[i][j]) for j in
+                range(data_fit_diff.shape[1])] for i in range(data_fit_diff.shape[0])]
+            proj_z=lambda x, y, z: z #projection in the z-direction
+            colorsurfz=proj_z(Xi,Yi,data_fit_diff)
+            tracez = go.Surface(z=z_offset,
+                x=Xi,
+                y=Yi,
+                colorscale='Viridis',
+                colorbar=dict(title='Data-Fit (G)',
+                    titlefont=dict(size=18),
+                    tickfont=dict(size=20),
+                    xanchor='left'),
+                zmin=-2,
+                zmax=2,
+                name = 'residual',
+                showlegend=True,
+                showscale=True,
+                surfacecolor=colorsurfz,
+                text=textz,
+                hoverinfo='text',
+               )
+            lines.append(tracez)
+
+
+        else:
+            surface = go.Surface(x=Xi, y=Yi, z=Z,
+                colorbar = go.ColorBar(title='Tesla',titleside='right'), colorscale = 'Viridis')
+            lines = [surface]
+
+        fig = go.Figure(data=lines, layout=layout)
 
         if mode == 'plotly_nb':
             init_notebook_mode()

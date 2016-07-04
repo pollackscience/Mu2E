@@ -178,7 +178,7 @@ cfg_pickle_Mau_825mm_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load
 cfg_pickle_GA05_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_800mm', save_name = 'GA05_800mm', recreate = False)
 cfg_pickle_GA05_offset = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_offset', save_name = 'GA05_offset', recreate = False)
 
-cfg_pickle_Mau_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm', save_name = 'Mau10_800mm', recreate = False)
+cfg_pickle_Mau_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm', save_name = 'Mau10_800mm', recreate = True)
 cfg_pickle_Mau_800mm_bessel = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm_bessel', save_name = 'Mau10_800mm_bessel', recreate = False)
 cfg_pickle_Mau_800mm_bessel_hybrid = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm_bessel_hybrid', save_name = 'Mau10_800mm_bessel_hybrid', recreate = False)
 cfg_pickle_Mau_800mm_20cm = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_800mm_20cm', save_name = 'Mau10_800mm_20cm', recreate = True)
