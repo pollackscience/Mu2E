@@ -87,10 +87,12 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
     double cdp, cdm;
     vector<double> out(3,0);
     if (cart){
-        //if (a==0) a+=1e-8;
-        //if (b==0) b+=1e-8;
+        if (a==0 || b==0){
+            phi=0;
+        }else{
+            phi = atan2(b,a);
+        }
         r = sqrt(pow(a,2)+pow(b,2));
-        phi = atan2(b,a);
     }else{
         r = a;
         phi = b;
@@ -103,7 +105,11 @@ vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z
             bessels[0]  = gsl_sf_bessel_In(n,tmp_rho);
             bessels[1]  = gsl_sf_bessel_In(n+1,tmp_rho);
             iv[n][m-1]  = bessels[0];
-            ivp[n][m-1] = (n/tmp_rho)*bessels[0]+bessels[1];
+            if (tmp_rho==0){
+                ivp[n][m-1] = 0.5*(gsl_sf_bessel_In(n-1,0)+bessels[1]);
+            }else{
+                ivp[n][m-1] = (n/tmp_rho)*bessels[0]+bessels[1];
+            }
         }
     }
 

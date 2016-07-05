@@ -2,9 +2,6 @@
 
 from __future__ import division
 import numpy as np
-import pandas as pd
-from mu2e.tools.fiteval import get_mag_field_function
-from numba import jit
 import odespy
 
 
@@ -23,6 +20,7 @@ def gamma(v):
 def calc_lorentz_accel(v_vec,b_vec):
     '''Calculate lorentz acceleration on a charged particle.
     Currently just accel due to magnetic field on an electron'''
+    #b_vec = np.asarray([b_vec[0],b_vec[1],b_vec[2]])
     a = -1*q_o_me*np.cross(v_vec,b_vec)/(gamma(v_vec))
     return a
 
