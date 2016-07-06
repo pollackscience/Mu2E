@@ -4,12 +4,11 @@ from __future__ import division
 import os
 import mu2e
 import numpy as np
-import pandas as pd
 import cPickle as pkl
-from mu2e.tools.fit_funcs import *
+#from mu2e.tools.fit_funcs import *
 from scipy import special
 from mu2e.datafileprod import DataFileMaker
-from numba import double, int32, jit, vectorize, float64, guvectorize
+from numba import jit
 from itertools import izip
 
 
@@ -65,8 +64,6 @@ def get_mag_field_function(param_name):
     def mag_field_function(a,b,z,cart=False):
         '''give r,phi,z, (or x,y,z) and return br,bphi,bz (or bx,by,bz)'''
         if cart:
-            #if a==0: a+=1e-8
-            #if b==0: b+=1e-8
             r = np.sqrt(a**2+b**2)
             phi = np.arctan2(b,a)
         else:

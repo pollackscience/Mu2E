@@ -16,8 +16,8 @@ from time import time
 mag_field_function_ideal = get_mag_field_function('Mau10_825mm_v1')
 ffm= FitFunctionMaker("../mu2e/src/param_825.csv")
 
-out = ffm.mag_field_function(0,0,6000,True)
+out = ffm.mag_field_function(0,600,7000,True)
 print out[0],out[1],out[2]
-print mag_field_function_ideal(0,0,6000,True)
+print mag_field_function_ideal(0,600,7000,True)
 
 
