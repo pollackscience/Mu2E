@@ -436,16 +436,17 @@ class FieldFitter:
         best_fit = self.result.best_fit
 
         df_fit = pd.DataFrame()
+        isc = np.isclose
         for i,phi in enumerate(self.phi_steps):
             if phi==0: nphi = np.pi
             else: nphi=phi-np.pi
-            data_frame_phi = self.input_data[(np.abs(self.input_data.Phi-phi)<1e-6)|(np.abs(self.input_data.Phi-nphi)<1e-6)]
-            #data_frame_phi.ix[np.abs(data_frame_phi.Phi-nphi)<1e-6, 'R']*=-1
-            #if phi>np.pi/2:
-            #    data_frame_phi.Phi=data_frame_phi.Phi+np.pi
-            #    data_frame_phi.ix[data_frame_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
-            df_fit_tmp = data_frame_phi[['Z','R','Phi']].copy()
-            #df_fit_tmp.sort_values(['R','Z','Phi'], inplace=True)
+            data_frame_phi = self.input_data[(isc(self.input_data.Phi,phi))|(isc(self.input_data.Phi,nphi))]
+
+            # careful sorting of values to match up with fit output bookkeeping
+            df_fit_tmp = data_frame_phi[isc(data_frame_phi.Phi,nphi)]\
+                    [['Z','R','Phi']].sort_values(['R','Phi','Z'],ascending=[False,True,True])
+            df_fit_tmp = df_fit_tmp.append(data_frame_phi[isc(data_frame_phi.Phi,phi)]\
+                    [['Z','R','Phi']].sort_values(['R','Phi','Z'],ascending=[True,True,True]))
 
             l = int(len(best_fit)/3)
             br = best_fit[:l]
@@ -461,8 +462,6 @@ class FieldFitter:
             df_fit_tmp['Br_fit'] = np.transpose(br.reshape((z_size, r_size))).flatten()
             df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, r_size))).flatten()
             df_fit_tmp['Bphi_fit'] = np.transpose(bphi.reshape((z_size, r_size))).flatten()
-            #print df_fit_tmp
-            #raw_input()
 
             df_fit = df_fit.append(df_fit_tmp)
 

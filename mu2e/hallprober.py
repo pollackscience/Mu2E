@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import Rbf
 from mu2e.datafileprod import DataFileMaker
 from mu2e.fieldfitter import FieldFitter
-from mu2e.plotter import Plotter
+from mu2e.mu2eplots import mu2e_plot3d
 
 
 class HallProbeGenerator(object):
@@ -184,36 +184,27 @@ class HallProbeGenerator(object):
 
 
 
-def make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot):
-    '''make a series of fit plots, given a plotter class and some information
+def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot):
+    '''Make a series of fit plots, given a dataframe and some information
         on the kind of plots you want. must specify phi steps or xy_steps'''
 
     geom = cfg_geom.geom
     plot_type = cfg_plot.plot_type
     if geom == 'cyl': steps = cfg_geom.phi_steps
-    if geom == 'cart': steps = cfg_geom.xy_steps
+    if geom == 'cart': raise NotImplementedError('geom = cart not implemented for plotter')
     conditions = cfg_data.conditions
-    zlims = cfg_plot.zlims
+    #zlims = cfg_plot.zlims
 
-    ABC_geom = {'cyl':[['Bz','R','Z'],['Br','R','Z'],['Bphi','R','Z']],
-                'cart':[['Bx','Y','Z'],['By','Y','Z'],['Bz','Y','Z'],
-                       ['Bx','X','Z'],['By','X','Z'],['Bz','X','Z']]}
+    ABC_geom = {'cyl':[['R','Z','Bz'],['R','Z','Br'],['R','Z','Bphi']],
+                'cart':[['Y','Z','Bx'],['Y','Z','By'],['Y','Z','Bz'],
+                       ['X','Z','Bx'],['X','Z','By'],['X','Z','Bz']]}
 
-    if cfg_plot.plot_type == 'mpl':
-        if cfg_geom.geom == 'cart':
-            for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
-        elif geom == 'cyl':
-            for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
-    elif plot_type == 'plotly':
-        if geom == 'cart':
-            for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_ext_plotly(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
-        elif geom == 'cyl':
-            for ABC in ABC_geom[geom]:
-                plot_maker.plot_A_v_B_and_C_fit_cyl_plotly(ABC[0],ABC[1],ABC[2],steps,zlims,False,*conditions)
-    if cfg_plot.plot_type=='mpl':plt.show()
+    for step in steps:
+        for ABC in ABC_geom[geom]:
+            conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
+            mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str, df_fit = True, mode = plot_type)
+    if plot_type=='mpl':plt.show()
+
 
 
 def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
@@ -244,13 +235,13 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     else:
         ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile = profile)
 
-    plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
-    plot_maker.extra_suffix=suffix
+    #plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
+    #plot_maker.extra_suffix=suffix
 
-    #make_fit_plots(plot_maker, cfg_data, cfg_geom, cfg_plot)
     ff.merge_data_fit_res()
+    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot)
 
-    return hall_measure_data, ff, plot_maker
+    return hall_measure_data, ff
 
 
 if __name__=="__main__":

@@ -74,6 +74,8 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
             phi = None
 
         df = df.query(conditions_nophi)
+
+        # Make radii negative for negative phi values (for plotting purposes)
         if phi != None:
             isc = np.isclose
             if isc(phi,0):

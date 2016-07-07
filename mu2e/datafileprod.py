@@ -91,11 +91,11 @@ if __name__ == "__main__":
     #for DS
     #data_maker = DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
     #data_maker = DataFileMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA01')
-    #data_maker = DataFileMaker('../datafiles/FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
+    data_maker = DataFileMaker('../datafiles/FieldMapsGA02/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA02')
     #data_maker = DataFileMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,field_map_version='GA04')
     #data_maker = DataFileMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',use_pickle = False,field_map_version='GA05')
     #data_maker = DataFileMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0',use_pickle = False,field_map_version='GA05')
-    data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
+    #data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
     #data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',use_pickle = False,field_map_version='Mau10')
     #data_maker = DataFileMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')
     #data_maker = DataFileMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle = False,field_map_version='Mau10')

@@ -88,3 +88,20 @@ print 'bad measure xyz :',X_bm[-1,0:3], 'ideal-{this}:', X[-1,0:3] - X_bm[-1,0:3
 print 'bad position xyz:',X_bp[-1,0:3], 'ideal-{this}:', X[-1,0:3] - X_bp[-1,0:3]
 print 'bad rotation xyz:',X_br[-1,0:3], 'ideal-{this}:', X[-1,0:3] - X_br[-1,0:3]
 
+df_ideal = pd.DataFrame(X[:,0:3], columns=['X','Y','Z'])
+df_bm = pd.DataFrame(X_bm[:,0:3], columns=['X','Y','Z'])
+df_br = pd.DataFrame(X_br[:,0:3], columns=['X','Y','Z'])
+df_bp = pd.DataFrame(X_bp[:,0:3], columns=['X','Y','Z'])
+
+def interp(df,row_index):
+    anchor = df.ix[row_index][np.isfinite(df.ix[row_index])].keys()[0]
+    step_size = ((df.ix[row_index][anchor]-df.ix[row_index-1][anchor])/
+            (df.ix[row_index+1][anchor]-df.ix[row_index-1][anchor]))
+    nan_cols = df.ix[row_index][np.isnan(df.ix[row_index])].keys()
+    for col in nan_cols:
+        new_val = df.ix[row_index-1][col]+step_size*(df.ix[row_index+1][col]-df.ix[row_index-1][col])
+        print new_val
+        df.set_value(row_index,col,new_val)
+
+def get_close_rows():
+    pass
