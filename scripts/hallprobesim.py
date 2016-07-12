@@ -11,7 +11,7 @@ cfg_data = namedtuple('cfg_data', 'datatype magnet path conditions')
 cfg_geom = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps xy_steps bad_calibration')
 cfg_params = namedtuple('cfg_params', 'ns ms cns cms Reff func_version')
 cfg_pickle = namedtuple('cfg_pickle', 'use_pickle save_pickle load_name save_name recreate')
-cfg_plot = namedtuple('cfg_plot', 'plot_type zlims html_loc')
+cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
 
 #################
 # the data cfgs #
@@ -208,15 +208,15 @@ cfg_pickle_Mau_fullsim = cfg_pickle(use_pickle = True, save_pickle = False, load
 
 cfg_pickle_Mau_interp = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_interp', save_name = 'Mau10_interp', recreate = False)
 
-cfg_pickle_GA02_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA02_800mm', save_name = 'GA02_800mm', recreate = False)
+cfg_pickle_GA02_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA02_800mm', save_name = 'GA02_800mm', recreate = True)
 
 #################
 # the plot cfgs #
 #################
-cfg_plot_mpl = cfg_plot('mpl',[-2,2],True)
-cfg_plot_mpl_high_lim = cfg_plot('mpl',[-5,5],True)
-cfg_plot_plotly = cfg_plot('plotly',[-2,2],True)
-cfg_plot_plotly_high_lim = cfg_plot('plotly',[-10,10],True)
+cfg_plot_mpl = cfg_plot('mpl',[-2,2],'html', None)
+cfg_plot_mpl_high_lim = cfg_plot('mpl',[-5,5],'html', None)
+cfg_plot_plotly = cfg_plot('plotly_html',[-2,2],'html', None)
+cfg_plot_plotly_high_lim = cfg_plot('plotly',[-10,10],'html', None)
 
 
 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     #field_map_analysis('halltoy_GA05_offset', cfg_data_DS_GA05_offset, cfg_geom_cyl_offset, cfg_params_GA05_DS_offset, cfg_pickle_GA05_offset, cfg_plot_mpl)
     #field_map_analysis('halltoy_Mau10_offset', cfg_data_DS_Mau10_offset, cfg_geom_cyl_offset, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_offset, cfg_plot_mpl)
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
-    hmd, ff = field_map_analysis('halltoy_GA02_800mm', cfg_data_DS_GA02, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_GA02_800mm, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_GA02_800mm', cfg_data_DS_GA02, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_GA02_800mm, cfg_plot_plotly)
 
     #field_map_analysis('halltoy_interp', cfg_data_DS_Mau10, cfg_geom_cyl_800mm_interp_slice, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_interp, cfg_plot_mpl)
 

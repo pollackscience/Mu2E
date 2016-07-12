@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
@@ -48,7 +49,7 @@ def mu2e_plot(df, x, y, conditions = None, mode = 'mpl', info = None, savename =
     if savename:
         plt.savefig(savename)
 
-def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, savename = None, df_fit = None):
+def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_dir = None, df_fit = None):
     from mpl_toolkits.mplot3d import Axes3D
     del Axes3D
     '''Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).
@@ -100,6 +101,13 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
         Xa = np.concatenate(([X[0]],0.5*(X[1:]+X[:-1]),[X[-1]]))
         Ya = np.concatenate(([Y[0]],0.5*(Y[1:]+Y[:-1]),[Y[-1]]))
 
+    if save_dir:
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions.split() if i!='and']))
+        if df_fit:
+            save_name += '_fit'
+
     if mode == 'mpl':
         fig = plt.figure().gca(projection='3d')
 
@@ -120,6 +128,8 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
         fig.zaxis.set_tick_params(direction='out',pad=10)
         plt.title(' '.join(filter(lambda x:x, [info, x, y, 'v', z, conditions])))
         fig.view_init(elev=35., azim=30)
+        if save_dir:
+            plt.savefig(save_dir+'/'+save_name+'.pdf')
 
         if df_fit:
             fig2 = plt.figure()
@@ -131,6 +141,8 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
             ax2.set_xlabel(x)
             ax2.set_ylabel(y)
             datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
+            if save_dir:
+                plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
 
 
     elif 'plotly' in mode:
@@ -220,6 +232,9 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, saven
             init_notebook_mode()
             iplot(fig)
         elif mode == 'plotly_html':
-            plot(fig)
+            if save_dir:
+                plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg')
+            else:
+                plot(fig)
 
 

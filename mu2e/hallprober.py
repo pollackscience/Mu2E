@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 
+import os
 import math
 import collections
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import Rbf
+import mu2e
 from mu2e.datafileprod import DataFileMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
@@ -181,10 +183,7 @@ class HallProbeGenerator(object):
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
 
 
-
-
-
-def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot):
+def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     '''Make a series of fit plots, given a dataframe and some information
         on the kind of plots you want. must specify phi steps or xy_steps'''
 
@@ -199,15 +198,20 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot):
                 'cart':[['Y','Z','Bx'],['Y','Z','By'],['Y','Z','Bz'],
                        ['X','Z','Bx'],['X','Z','By'],['X','Z','Bz']]}
 
+    if cfg_plot.save_loc == 'local':
+        save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/'+name
+    elif cfg_plot.save_loc == 'html':
+        save_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/'+name
+
     for step in steps:
         for ABC in ABC_geom[geom]:
             conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
-            mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str, df_fit = True, mode = plot_type)
+            mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str,
+                    df_fit = True, mode = plot_type, save_dir = save_dir)
     if plot_type=='mpl':plt.show()
 
 
-
-def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
+def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
     '''Universal function to perform all types of hall probe measurements, plots,
     and further analysis.  Takes input cfg namedtuples to determine analysis'''
 
@@ -239,7 +243,8 @@ def field_map_analysis(suffix, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_p
     #plot_maker.extra_suffix=suffix
 
     ff.merge_data_fit_res()
-    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot)
+
+    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
     return hall_measure_data, ff
 
