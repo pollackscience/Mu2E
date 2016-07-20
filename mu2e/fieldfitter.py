@@ -42,9 +42,9 @@ class FieldFitter:
         Bz = []
         Br =[]
         Bphi = []
-        Bzerr = []
-        Brerr =[]
-        Bphierr = []
+        #Bzerr = []
+        #Brerr =[]
+        #Bphierr = []
         RR =[]
         ZZ = []
         PP = []
@@ -82,7 +82,7 @@ class FieldFitter:
             use_phis = np.sort(input_data_phi.Phi.unique())
             if phi==0: use_phis = use_phis[::-1]
             PP_slice = np.full_like(RR_slice,use_phis[0])
-            PP_slice[:,PP_slice.shape[1]/2:]=use_phis[1]
+            PP_slice[:,int(PP_slice.shape[1]/2):]=use_phis[1]
             PP.append(PP_slice)
 
         ZZ = np.concatenate(ZZ)
@@ -170,7 +170,7 @@ class FieldFitter:
                 #    np.ones(Bz.shape,dtype=float),
                 #    np.ones(Bphi.shape,dtype=float)*0.05]).ravel(),
                 weights = np.concatenate([mag,mag,mag]).ravel(),
-                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':2000})
+                r=RR, z=ZZ, phi=PP, params = self.params, method='leastsq',fit_kws={'maxfev':10000})
                 #r=RR, z=ZZ, phi=PP, params = self.params, method='powell')
         else:
             mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)

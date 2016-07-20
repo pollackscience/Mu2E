@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 import os
+import time
+import shutil
 import math
 import collections
 import numpy as np
@@ -40,7 +42,7 @@ class HallProbeGenerator(object):
             self.apply_selection('X',x_steps)
             self.apply_selection('Y',y_steps)
         for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
-            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag))
+            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
 
         #self.interpolate_points()
 
@@ -96,11 +98,13 @@ class HallProbeGenerator(object):
         return self.sparse_field
 
     def bad_calibration(self,measure = False, position=False, rotation=False):
-        measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
-        pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+        #measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
+        measure_sf = [ 1-2.58342250e-05,  1-5.00578244e-05,   1+4.87132812e-05, 1+7.79452585e-05,   1+1.85119047e-05] #uniform(-0.0001, 0.0001)
+        #pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+        pos_offset = [ 0.09557545,  0.07018995, -0.08877238,  0.03336723, -0.04361852] # uniform(-0.1, 0.1)
         #rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
-        rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
-        #rotation_angle = [ 0.4,  0.35,  0.55, 0.22,  0.18]
+        #rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
+        rotation_angle = [  6.58857659e-05,   9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -2.09926476e-05]
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
             if measure:
@@ -198,17 +202,32 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
                 'cart':[['Y','Z','Bx'],['Y','Z','By'],['Y','Z','Bz'],
                        ['X','Z','Bx'],['X','Z','By'],['X','Z','Bz']]}
 
+
     if cfg_plot.save_loc == 'local':
         save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/'+name
     elif cfg_plot.save_loc == 'html':
         save_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/'+name
 
+    fit_file_names = []
     for step in steps:
         for ABC in ABC_geom[geom]:
             conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
-            mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str,
+            save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str,
                     df_fit = True, mode = plot_type, save_dir = save_dir)
-    if plot_type=='mpl':plt.show()
+            fit_file_names.append(save_name)
+
+    if plot_type == 'mpl':
+        plt.show()
+
+# If we are saving the plotly_html, we also want to download stills and transfer them to
+# the appropriate save location.
+    elif plot_type == 'plotly_html':
+        for fit_file in fit_file_names:
+            init_loc = '/Users/brianpollack/Downloads/'+fit_file+'.jpeg'
+            while not os.path.exists(init_loc):
+                    print 'waiting for', init_loc, 'to download'
+                    time.sleep(5)
+            shutil.move(init_loc, save_dir)
 
 
 def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):

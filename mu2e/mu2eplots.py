@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from plotly.offline import init_notebook_mode, iplot, plot
+from offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
 import plotly.graph_objs as go
 from mpldatacursor import datacursor
@@ -56,6 +56,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
     For now, the mpl and plotly generation are seperate (may converge in future if necessary).'''
 
     _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
+    save_name = None
 
     if conditions:
 
@@ -69,6 +70,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         phi_str = p.search(conditions)
         conditions_nophi = p.sub('', conditions)
         conditions_nophi = re.sub(r'^\s*and\s*','',conditions_nophi)
+        conditions_nophi = conditions_nophi.strip()
         try:
             phi = float(phi_str.group(1))
         except:
@@ -85,6 +87,10 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
                 nphi = phi-np.pi
             df = df[(isc(phi,df.Phi)) | (isc(nphi,df.Phi))]
             df.ix[isc(nphi,df.Phi), 'R']*=-1
+
+        conditions_title = conditions_nophi.replace(' and ', ', ')
+        if phi != None:
+            conditions_title +=', Phi=={0:.2f}'.format(phi)
 
     if mode not in _modes:
         raise ValueError(mode+' not in '+_modes)
@@ -104,7 +110,10 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
     if save_dir:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions.split() if i!='and']))
+        #save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions.split() if i!='and']))
+        save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions_title.split(', ') if i!='and']))
+        save_name = re.sub(r'[<>=!]', '', save_name)
+
         if df_fit:
             save_name += '_fit'
 
@@ -126,7 +135,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         fig.zaxis.labelpad=20
         fig.zaxis.set_tick_params(direction='out',pad=10)
-        plt.title(' '.join(filter(lambda x:x, [info, x, y, 'v', z, conditions])))
+        plt.title(' '.join(filter(lambda x:x, [info, x, y, 'v', z, conditions_title])))
         fig.view_init(elev=35., azim=30)
         if save_dir:
             plt.savefig(save_dir+'/'+save_name+'.pdf')
@@ -147,7 +156,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
 
     elif 'plotly' in mode:
         layout = go.Layout(
-                        title='Plot of {0} vs {1} and {2} for DS<br>{3}'.format(z,x,y,conditions),
+                        title='Plot of {0} vs {1} and {2} for DS<br>{3}'.format(z,x,y,conditions_title),
                         autosize=False,
                         width=800,
                         height=650,
@@ -233,8 +242,10 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
             iplot(fig)
         elif mode == 'plotly_html':
             if save_dir:
-                plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg')
+                plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg', image_filename = save_name)
             else:
                 plot(fig)
+
+    return save_name
 
 
