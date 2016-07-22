@@ -89,6 +89,9 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
             df.ix[isc(nphi,df.Phi), 'R']*=-1
 
         conditions_title = conditions_nophi.replace(' and ', ', ')
+        conditions_title = conditions_title.replace('R!=0','')
+        conditions_title = conditions_title.strip()
+        conditions_title = conditions_title.strip(',')
         if phi != None:
             conditions_title +=', Phi=={0:.2f}'.format(phi)
 
@@ -126,16 +129,20 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         else:
             fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'), linewidth=0, antialiased=False)
 
-        fig.zaxis.set_major_locator(LinearLocator(10))
-        fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+        #fig.zaxis.set_major_locator(LinearLocator(10))
+        #fig.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-        plt.xlabel(x)
-        plt.ylabel(y)
-        fig.set_zlabel(z)
-        fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        plt.xlabel(x+' (mm)', fontsize=18)
+        plt.ylabel(y+' (mm)', fontsize=18)
+        fig.set_zlabel(z+' (T)', fontsize=18)
+        #fig.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        #fig.zaxis.get_major_formatter().set_useOffset(True)
+        fig.ticklabel_format(style='sci', axis='z')
         fig.zaxis.labelpad=20
+        fig.xaxis.labelpad=20
+        fig.yaxis.labelpad=20
         fig.zaxis.set_tick_params(direction='out',pad=10)
-        plt.title(' '.join(filter(lambda x:x, [info, x, y, 'v', z, conditions_title])))
+        plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z,x,y,conditions_title), fontsize=20)
         fig.view_init(elev=35., azim=30)
         if save_dir:
             plt.savefig(save_dir+'/'+save_name+'.pdf')
@@ -143,65 +150,84 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         if df_fit:
             fig2 = plt.figure()
             ax2 = fig2.add_subplot(111)
-            heat = ax2.pcolormesh(Xa,Ya,data_fit_diff,vmin=-2,vmax=2,cmap=plt.get_cmap('viridis'))
-            plt.title('{0}_v_{1}_and_{2}_phi={3}'.format(x,y,z,phi))
-            cb = plt.colorbar(heat, aspect=7)
-            cb.set_label('Data-Fit (G)')
-            ax2.set_xlabel(x)
-            ax2.set_ylabel(y)
+            max_val = np.max(data_fit_diff)
+            min_val = np.min(data_fit_diff)
+            if (max(abs(max_val), abs(min_val))) >5:
+                heat = ax2.pcolormesh(Xa,Ya,data_fit_diff,vmin=-5,vmax=5,cmap=plt.get_cmap('viridis'))
+                cb = plt.colorbar(heat, aspect=7)
+                cb_ticks = cb.ax.get_yticklabels()
+                cb_ticks[0] = '< -5'
+                cb_ticks[-1] = '> 5'
+                cb_ticks = cb.ax.set_yticklabels(cb_ticks)
+            else:
+                heat = ax2.pcolormesh(Xa,Ya,data_fit_diff,cmap=plt.get_cmap('viridis'))
+                cb = plt.colorbar(heat, aspect=7)
+            plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z,x,y,conditions_title), fontsize=20)
+            cb.set_label('Data-Fit (G)', fontsize=18)
+            ax2.set_xlabel(x+' (mm)', fontsize=18)
+            ax2.set_ylabel(y+' (mm)', fontsize=18)
             datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
             if save_dir:
                 plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
 
 
     elif 'plotly' in mode:
+        axis_title_size = 18
+        axis_tick_size = 14
         layout = go.Layout(
-                        title='Plot of {0} vs {1} and {2} for DS<br>{3}'.format(z,x,y,conditions_title),
+                        title='{0} vs {1} and {2} for DS<br>{3}'.format(z,x,y,conditions_title),
+                        titlefont=dict(size=30),
                         autosize=False,
                         width=800,
                         height=650,
                         scene=dict(
                                 xaxis=dict(
                                         title='{} (mm)'.format(x),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
-                                        backgroundcolor='rgb(230, 230,230)'
+                                        backgroundcolor='rgb(230, 230,230)',
                                         ),
                                 yaxis=dict(
                                         title='{} (mm)'.format(y),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
-                                        backgroundcolor='rgb(230, 230,230)'
+                                        backgroundcolor='rgb(230, 230,230)',
                                         ),
                                 zaxis=dict(
                                         title='{} (T)'.format(z),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
                                         gridcolor='rgb(255, 255, 255)',
                                         zerolinecolor='rgb(255, 255, 255)',
                                         showbackground=True,
-                                        backgroundcolor='rgb(230, 230,230)'
+                                        backgroundcolor='rgb(230, 230,230)',
                                         ),
                                 ),
                         showlegend=True,
-                        legend=dict(x=0.8,y=1),
+                        legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
                         )
         if df_fit:
             scat = go.Scatter3d(x=Xi.ravel(), y=Yi.ravel(), z=Z.ravel(),
                 mode='markers',
                 marker=dict(size=3, color='rgb(0, 0, 0)',
                             line=dict(color='rgb(0, 0, 0)'), opacity=1),
-                name = 'data')
+                name = 'Data')
             lines = [scat]
             line_marker = dict(color='green', width=2)
             do_leg = True
             for i, j, k in zip(Xi, Yi, Z_fit):
                 if do_leg:
                     lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines',
-                        line=line_marker,name='fit',legendgroup='fitgroup'))
+                        line=line_marker,name='Fit',legendgroup='fitgroup'))
                 else:
                     lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines',
-                        line=line_marker, name='fit',legendgroup='fitgroup',showlegend=False))
+                        line=line_marker, name='Fit',legendgroup='fitgroup',showlegend=False))
                 do_leg = False
 
             z_offset=(np.min(Z)-abs(np.min(Z)*0.3))*np.ones(Z.shape)
@@ -217,7 +243,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
                 colorbar=dict(title='Data-Fit (G)',
                     titlefont=dict(size=18),
                     tickfont=dict(size=20),
-                    xanchor='left'),
+                    xanchor='center'),
                 zmin=-2,
                 zmax=2,
                 name = 'residual',

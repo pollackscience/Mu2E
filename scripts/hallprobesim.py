@@ -27,9 +27,10 @@ cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../datafiles/Mau10/Standard_Maps/Mu
 cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
 cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
 
-cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>9000','Z<11000','R!=0'))
-cfg_data_DS_GA05_offset = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap_offset8mm', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_GA02 = cfg_data('GA02', 'DS', '../datafiles/FieldMapsGA02/Mu2e_DS_GA0', ('Z>5000','Z<13000','R!=0'))
+#cfg_data_DS_GA05_offset = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap_offset8mm', ('Z>5000','Z<13000','R!=0'))
+#cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>9000','Z<11000','R!=0'))
+cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>4000','Z<14000','R!=0'))
+cfg_data_DS_GA02 = cfg_data('GA02', 'DS', '../datafiles/FieldMapsGA02/Mu2e_DS_GA0', ('Z>4000','Z<14000','R!=0'))
 #################
 # the geom cfgs #
 #################
@@ -170,7 +171,7 @@ cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns = 4, ms = 50, cns = 0, cms
 cfg_params_Mau_DS_700 = cfg_params(ns = 3, ms = 70, cns = 0, cms=0, Reff = 7000, func_version=1)
 cfg_params_Mau_DS_bad = cfg_params(ns = 3, ms = 80, cns = 0, cms=0, Reff = 7000, func_version=1)
 
-cfg_params_GA05_DS_800mm = cfg_params(ns = 10, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=5)
+cfg_params_GA05_DS_800mm = cfg_params(ns = 10, ms = 60, cns = 0, cms=0, Reff = 7000, func_version=5)
 cfg_params_GA05_DS_offset = cfg_params(ns = 4, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=5)
 cfg_params_Mau10_DS_offset = cfg_params(ns = 3, ms = 50, cns = 0, cms=0, Reff = 7000, func_version=1)
 
@@ -185,10 +186,10 @@ cfg_pickle_Mau_700 = cfg_pickle(use_pickle = True, save_pickle = False, load_nam
 cfg_pickle_Mau_825mm_v1 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v1_tmp', save_name = 'Mau10_825mm_v1_tmp', recreate = False)
 cfg_pickle_Mau_825mm_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_825mm_v2', save_name = 'Mau10_825mm_v2', recreate = True)
 
-cfg_pickle_GA05_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_800mm', save_name = 'GA05_800mm', recreate = False)
+cfg_pickle_GA05_800mm = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'GA05_800mm', save_name = 'GA05_800mm', recreate = True)
 cfg_pickle_GA05_offset = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA05_offset', save_name = 'GA05_offset', recreate = False)
 
-cfg_pickle_Mau_800mm_long = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_800mm_long', save_name = 'Mau10_800mm_long', recreate = False)
+cfg_pickle_Mau_800mm_long = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_800mm_long', save_name = 'Mau10_800mm_long', recreate = True)
 cfg_pickle_Mau_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm', save_name = 'Mau10_800mm', recreate = False)
 cfg_pickle_Mau_800mm_bessel = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm_bessel', save_name = 'Mau10_800mm_bessel', recreate = False)
 cfg_pickle_Mau_800mm_bessel_hybrid = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_800mm_bessel_hybrid', save_name = 'Mau10_800mm_bessel_hybrid', recreate = False)
@@ -206,8 +207,8 @@ cfg_pickle_Mau_bad_m_test_v2 = cfg_pickle(use_pickle = True, save_pickle = True,
 cfg_pickle_Mau_bad_p_test_v2 = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_p_test_v2', save_name = 'Mau10_bad_p_test_v2', recreate = True)
 cfg_pickle_Mau_bad_r_test_v2 = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_bad_r_test_v2', save_name = 'Mau10_bad_r_test_v2', recreate = True)
 
-cfg_pickle_Mau_bad_m_test_req = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_m_test_req', save_name = 'Mau10_bad_m_test_req', recreate = False)
-cfg_pickle_Mau_bad_p_test_req = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_p_test_req', save_name = 'Mau10_bad_p_test_req', recreate = False)
+cfg_pickle_Mau_bad_m_test_req = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_m_test_req', save_name = 'Mau10_bad_m_test_req', recreate = True)
+cfg_pickle_Mau_bad_p_test_req = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_p_test_req', save_name = 'Mau10_bad_p_test_req', recreate = True)
 cfg_pickle_Mau_bad_r_test_req = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'Mau10_bad_r_test_req', save_name = 'Mau10_bad_r_test_req', recreate = True)
 
 cfg_pickle_Mau_700_plotly = cfg_pickle(use_pickle = True, save_pickle = False, load_name = 'Mau10_700', save_name = 'Mau10_700', recreate = True)
@@ -222,7 +223,7 @@ cfg_pickle_Mau_fullsim = cfg_pickle(use_pickle = True, save_pickle = False, load
 
 cfg_pickle_Mau_interp = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'Mau10_interp', save_name = 'Mau10_interp', recreate = False)
 
-cfg_pickle_GA02_800mm = cfg_pickle(use_pickle = False, save_pickle = True, load_name = 'GA02_800mm', save_name = 'GA02_800mm', recreate = True)
+cfg_pickle_GA02_800mm = cfg_pickle(use_pickle = True, save_pickle = True, load_name = 'GA02_800mm', save_name = 'GA02_800mm', recreate = True)
 
 #################
 # the plot cfgs #
@@ -297,17 +298,24 @@ if __name__ == "__main__":
 
     #field_map_analysis('halltoy_GA05_no_ext', cfg_data_DS_GA05_no_ext, cfg_geom_cyl_700mm, cfg_params_GA05_DS_opt, cfg_pickle_GA05_no_ext, cfg_plot_mpl)
     #field_map_analysis('halltoy_GA05_no_DS', cfg_data_DS_GA05_no_DS, cfg_geom_cyl_700mm, cfg_params_GA05_DS_opt, cfg_pickle_GA05_no_DS, cfg_plot_mpl)
-    #field_map_analysis('halltoy_GA05', cfg_data_DS_GA05, cfg_geom_cyl_600mm, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm, cfg_plot_mpl)
     #field_map_analysis('halltoy_GA05_offset', cfg_data_DS_GA05_offset, cfg_geom_cyl_offset, cfg_params_GA05_DS_offset, cfg_pickle_GA05_offset, cfg_plot_mpl)
     #field_map_analysis('halltoy_Mau10_offset', cfg_data_DS_Mau10_offset, cfg_geom_cyl_offset, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_offset, cfg_plot_mpl)
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long, cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_fullsim', cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim2, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
-    #hmd, ff = field_map_analysis('halltoy_GA02_800mm', cfg_data_DS_GA02, cfg_geom_cyl_800mm, cfg_params_Mau_DS_800mm, cfg_pickle_GA02_800mm, cfg_plot_plotly)
+    #hmd, ff = field_map_analysis('halltoy_GA02_800mm', cfg_data_DS_GA02, cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long, cfg_pickle_GA02_800mm, cfg_plot_plotly)
+    #hmd, ff = field_map_analysis('halltoy_GA05_800mm', cfg_data_DS_GA05, cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm, cfg_plot_plotly)
 
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long, cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_m_test_req, cfg_plot_mpl)
     #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_p_req', cfg_data_DS_Mau10_long, cfg_geom_cyl_bad_position_req, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_p_test_req, cfg_plot_mpl)
-    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_r_req', cfg_data_DS_Mau10_long, cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_r_test_req, cfg_plot_plotly)
+    #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_r_req', cfg_data_DS_Mau10_long, cfg_geom_cyl_bad_rotation_req, cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_r_test_req, cfg_plot_mpl)
+
+    #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req_fullsim', cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim2,
+    #        cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_m_test_req, cfg_plot_mpl)
+    #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_p_req_fullsim', cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim2,
+    #        cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_p_test_req, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_r_req_fullsim', cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim2,
+            cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_r_test_req, cfg_plot_mpl)
 
     #field_map_analysis('halltoy_interp', cfg_data_DS_Mau10, cfg_geom_cyl_800mm_interp_slice, cfg_params_Mau_DS_800mm, cfg_pickle_Mau_interp, cfg_plot_mpl)
 

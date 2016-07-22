@@ -104,7 +104,7 @@ class HallProbeGenerator(object):
         pos_offset = [ 0.09557545,  0.07018995, -0.08877238,  0.03336723, -0.04361852] # uniform(-0.1, 0.1)
         #rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
         #rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
-        rotation_angle = [  6.58857659e-05,   9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -2.09926476e-05]
+        rotation_angle = [  6.58857659e-05,   -9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -2.09926476e-05]
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
             if measure:
@@ -208,27 +208,25 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     elif cfg_plot.save_loc == 'html':
         save_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/'+name
 
-    fit_file_names = []
     for step in steps:
         for ABC in ABC_geom[geom]:
             conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
             save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str,
                     df_fit = True, mode = plot_type, save_dir = save_dir)
-            fit_file_names.append(save_name)
-
-    if plot_type == 'mpl':
-        plt.show()
 
 # If we are saving the plotly_html, we also want to download stills and transfer them to
 # the appropriate save location.
-    elif plot_type == 'plotly_html':
-        for fit_file in fit_file_names:
-            init_loc = '/Users/brianpollack/Downloads/'+fit_file+'.jpeg'
-            while not os.path.exists(init_loc):
-                    print 'waiting for', init_loc, 'to download'
-                    time.sleep(5)
-            shutil.move(init_loc, save_dir)
+            if plot_type == 'plotly_html':
 
+                init_loc = '/Users/brianpollack/Downloads/'+save_name+'.jpeg'
+                final_loc = save_dir+'/'+save_name+'.jpeg'
+                while not os.path.exists(init_loc):
+                        print 'waiting for', init_loc, 'to download'
+                        time.sleep(2)
+                shutil.move(init_loc, final_loc)
+
+    if plot_type == 'mpl':
+        plt.show()
 
 def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
     '''Universal function to perform all types of hall probe measurements, plots,
