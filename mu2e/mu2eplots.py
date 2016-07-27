@@ -4,8 +4,8 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
+#import matplotlib.ticker as mtick
+#from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
 import plotly.graph_objs as go
@@ -145,7 +145,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z,x,y,conditions_title), fontsize=20)
         fig.view_init(elev=35., azim=30)
         if save_dir:
-            plt.savefig(save_dir+'/'+save_name+'.pdf')
+            plt.savefig(save_dir+'/'+save_name+'.png')
 
         if df_fit:
             fig2 = plt.figure()
@@ -266,9 +266,14 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         if mode == 'plotly_nb':
             init_notebook_mode()
             iplot(fig)
-        elif mode == 'plotly_html':
+        elif mode == 'plotly_html_img':
             if save_dir:
                 plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg', image_filename = save_name)
+            else:
+                plot(fig)
+        elif mode == 'plotly_html':
+            if save_dir:
+                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=False)
             else:
                 plot(fig)
 

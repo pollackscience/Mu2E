@@ -12,7 +12,7 @@ BOOST_LIB = /usr/local/Cellar/boost-python/1.60.0/lib
 CFLAGS  = -Wall -std=c++11 -lpthread -lgsl
 
 # the build target executable:
-TARGET = fiteval_c
+TARGET = fiteval_c2
 
 $(TARGET).so: $(TARGET).o
 	$(CC) $(CFLAGS) -shared -rdynamic $(TARGET).o -L$(BOOST_LIB) -lboost_python -L$(PYTHON_CONFIG) -lpython$(PYTHON_VERSION) -o $(TARGET).so

@@ -60,7 +60,9 @@ class ElectronSwimmer:
         self.init_pos = init_pos
         self.b_field = b_field
         self.time_steps = time_steps
-        self.solver = getattr(odespy,ode_method)(lorentz_force,f_args=(self.b_field,))
+        self.solver = getattr(odespy,ode_method)(lorentz_force,f_args=(self.b_field,),
+                rtol=1e-12, atol=1e-12)
+        #print self.solver.get()
         self.solver.set_initial_condition([self.init_pos[0], self.init_pos[1], self.init_pos[2],
             self.init_v[0], self.init_v[1], self.init_v[2]])
         self.init_E = gamma(self.init_v)*0.511

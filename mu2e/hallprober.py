@@ -101,10 +101,10 @@ class HallProbeGenerator(object):
         #measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
         measure_sf = [ 1-2.58342250e-05,  1-5.00578244e-05,   1+4.87132812e-05, 1+7.79452585e-05,   1+1.85119047e-05] #uniform(-0.0001, 0.0001)
         #pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
-        pos_offset = [ 0.09557545,  0.07018995, -0.08877238,  0.03336723, -0.04361852] # uniform(-0.1, 0.1)
+        pos_offset = [ 0.9557545,  0.7018995, -0.8877238,  0.3336723, -0.4361852] # uniform(-1, 1)
         #rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
         #rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
-        rotation_angle = [  6.58857659e-05,   -9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -2.09926476e-05]
+        rotation_angle = [  6.58857659e-05,   -9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -7.09926476e-05]
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
             if measure:
@@ -216,7 +216,7 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
 
 # If we are saving the plotly_html, we also want to download stills and transfer them to
 # the appropriate save location.
-            if plot_type == 'plotly_html':
+            if plot_type == 'plotly_html_img':
 
                 init_loc = '/Users/brianpollack/Downloads/'+save_name+'.jpeg'
                 final_loc = save_dir+'/'+save_name+'.jpeg'
