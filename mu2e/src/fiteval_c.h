@@ -15,7 +15,7 @@ class FitFunctionMaker
 {
     public: 
         FitFunctionMaker(string fit_csv);
-        vector<double> mag_field_function(double a, double b, double z, bool cart);
+        vector<double> get_field(double a, double b, double z, bool cart);
 
     private:
         int ns;

@@ -15,4 +15,4 @@ main.exe: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o main.exe
 
 clean:
-	$(RM) $(OBJECTS)
+	$(RM) $(OBJECTS) main.exe

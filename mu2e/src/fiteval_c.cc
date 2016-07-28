@@ -72,11 +72,11 @@ FitFunctionMaker::FitFunctionMaker(string fit_csv):
    cout<<"CSV loaded"<<endl;
 }
 
-vector<double> FitFunctionMaker::mag_field_function(double a, double b, double z, bool cart=true){
+vector<double> FitFunctionMaker::get_field(double a, double b, double z, bool cart=true){
     // Usage:
     // FitFunctionMaker ffm = FitFunctionMaker("my_params.csv");
-    // vector<double> Bxyz = ffm.mag_field_function(x, y, z, cart = true);
-    // vector<double> Brpz = ffm.mag_field_function(r, phi, z, cart = false);
+    // vector<double> Bxyz = ffm.get_field(x, y, z, cart = true);
+    // vector<double> Brpz = ffm.get_field(r, phi, z, cart = false);
     
     double r,phi;
     double bessels[2];
@@ -165,7 +165,7 @@ BOOST_PYTHON_MODULE(fiteval_c)
         .def(vector_indexing_suite<vec_d>());
 
     class_<FitFunctionMaker>("FitFunctionMaker",init<string>())
-        .def("mag_field_function",&FitFunctionMaker::mag_field_function);
+        .def("get_field",&FitFunctionMaker::get_field);
 
 };
 #endif

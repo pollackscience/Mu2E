@@ -3,8 +3,8 @@
 int main(){
     FitFunctionMaker* ffm       = new FitFunctionMaker("Mau10_800mm_long.csv");
     FitFunctionMaker* ffm_bad_m = new FitFunctionMaker("Mau10_bad_m_test_req.csv");
-    vector<double> bxyz         = ffm->mag_field_function(100,-200,9000, true);
-    vector<double> bxyz_bad_m   = ffm_bad_m->mag_field_function(100,-200,9000, true);
+    vector<double> bxyz         = ffm->get_field(100,-500,10000, true);
+    vector<double> bxyz_bad_m   = ffm_bad_m->get_field(100,-500,10000, true);
 
     cout<<"\tBx\t\tBy\tBz";
     cout<<"\nIdeal Map:\n";
