@@ -1,18 +1,18 @@
-# the compiler: gcc for C program, define as g++ for C++
 CC = clang++
 
-# compiler flags:
-#  -g    adds debugging information to the executable file
-#  -Wall turns on most, but not all, compiler warnings
 CFLAGS  = -Wall -std=c++11 -lpthread -lgsl
 
 # the build target executable:
-TARGET = fiteval_c
-
-all: $(TARGET)
+OBJECTS = fiteval_c.o main.o
 
 $(TARGET): $(TARGET).cc
 	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).cc
 
+%.o: %.cc
+	$(CC) $(CFLAGS) -c $<
+
+main.exe: $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o main.exe
+
 clean:
-	$(RM) $(TARGET)
+	$(RM) $(OBJECTS)

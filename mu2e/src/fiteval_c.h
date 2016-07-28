@@ -23,7 +23,6 @@ class FitFunctionMaker
         double Reff;
         vector<vector<double> > As;
         vector<vector<double> > Bs;
-        vector<double> Cs;
         vector<double> Ds;
         vector<vector<double> > kms;
         vector<vector<double> > iv;
