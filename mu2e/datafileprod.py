@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 
-import pandas as pd
-import numpy as np
-import cPickle as pkl
-import src.RowTransformations as rt
 import re
+import cPickle as pkl
+import numpy as np
+import pandas as pd
+from root_pandas import read_root
+import mu2e.src.RowTransformations as rt
 
 class DataFileMaker:
     """Convert Field Map plain text into pandas Data File"""
@@ -80,7 +81,16 @@ class DataFileMaker:
     def make_bottom_half(self,row):
         return (-row['Y'])
 
-
+def g4root_to_df(input_name, make_pickle = False):
+    '''give input file path name without suffix.
+    return a tuple of dataframes, or pickle and save the tuple'''
+    input_root = input_name + '.root'
+    df_nttvd = read_root(input_root,'readvd/nttvd')
+    df_ntpart = read_root(input_root,'readvd/ntpart',ignore='*vd')
+    if make_pickle:
+        pkl.dump((df_nttvd,df_ntpart), open(input_name +'.p', "wb"), pkl.HIGHEST_PROTOCOL)
+    else:
+        return (df_nttvd,df_ntpart)
 
 if __name__ == "__main__":
     #for PS
@@ -107,6 +117,7 @@ if __name__ == "__main__":
     #data_maker.make_dump('_8mmOffset')
     print data_maker.data_frame.head()
     print data_maker.data_frame.tail()
+
 
 
 
