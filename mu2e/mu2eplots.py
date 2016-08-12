@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.ticker as mtick
 #from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import plotly.plotly as py
 from offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
 import plotly.graph_objs as go
@@ -279,4 +280,97 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
 
     return save_name
 
+def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = None, color=None):
+    from mpl_toolkits.mplot3d import Axes3D
+    del Axes3D
+    '''Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).
+    For now, the mpl and plotly generation are seperate (may converge in future if necessary).'''
+
+    _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_html_img', 'plotly_nb']
+    save_name = None
+
+
+    if mode not in _modes:
+        raise ValueError(mode+' not in '+_modes)
+
+    if save_dir:
+        pass
+
+    if mode == 'mpl':
+        pass
+
+    elif 'plotly' in mode:
+        axis_title_size = 18
+        axis_tick_size = 14
+        layout = go.Layout(
+                        title='Particle Trapping Exercise',
+                        titlefont=dict(size=30),
+                        autosize=False,
+                        width=900,
+                        height=650,
+                        scene=dict(
+                                xaxis=dict(
+                                        title='{} (mm)'.format(x),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)',
+                                        ),
+                                yaxis=dict(
+                                        title='{} (mm)'.format(y),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)',
+                                        ),
+                                zaxis=dict(
+                                        title='{} (mm)'.format(z),
+                                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                        tickfont=dict(size=axis_tick_size),
+                                        gridcolor='rgb(255, 255, 255)',
+                                        zerolinecolor='rgb(255, 255, 255)',
+                                        showbackground=True,
+                                        backgroundcolor='rgb(230, 230,230)',
+                                        ),
+                                aspectmode='data',
+                                ),
+                        showlegend=True,
+                        legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
+                        )
+
+        if color:
+            scat = go.Scatter3d(x=df[x], y=df[y], z=df[z],
+                mode='markers',
+                marker=dict(size=3, color=df[color], colorscale='Viridis', opacity=0.1),
+                name = 'Data')
+        else:
+            scat = go.Scatter3d(x=df[x], y=df[y], z=df[z],
+                mode='markers',
+                marker=dict(size=3, color='rgb(0, 0, 0)', opacity=0.04),
+                name = 'Data')
+
+        fig = go.Figure(data=[scat], layout=layout)
+
+        if mode == 'plotly_nb':
+            init_notebook_mode()
+            iplot(fig)
+        elif mode == 'plotly_html_img':
+            if save_dir:
+                plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg', image_filename = save_name)
+            else:
+                plot(fig)
+        elif mode == 'plotly_html':
+            if save_dir:
+                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=False)
+            else:
+                plot(fig)
+        elif mode == 'plotly':
+            py.iplot(fig)
+
+
+    return save_name
 
