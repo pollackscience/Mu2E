@@ -10,7 +10,7 @@ mpl.rcParams['figure.figsize'] = 14, 10
 from mu2e.tools.fiteval import get_mag_field_function
 from mu2e.tools.fiteval import get_mag_field_function2
 #from mu2e.src.fiteval_c import FitFunctionMaker
-from mu2e.src.fiteval_c2 import FitFunctionMaker
+from mu2e.src.fiteval_c2 import FitFunctionMaker2
 import mu2e.tools.particletransport as patr
 from numba import jit
 from time import time
