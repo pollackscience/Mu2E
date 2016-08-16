@@ -8,7 +8,25 @@ from root_pandas import read_root
 import mu2e.src.RowTransformations as rt
 
 class DataFileMaker:
-    """Convert Field Map plain text into pandas Data File"""
+    """Convert Field Map plaintext into pandas DataFrame.
+
+    It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
+
+    Notes:
+    - The expected headers are:
+        'X Y Z Bx By Bz'
+
+    - The DataFileMaker converts these into DFs, where each header is its own row, as expected.
+    - The input must be in units of mm and T (certain GA maps are hard-coded to convert from m to mm).
+    - Offsets in the X direction are applied if specified.
+    - If the map only covers one region of Y, the map is doubled and reflected about Y,
+    such that Y->-Y and By->-By.
+    - The following columns are constructed and added to the DF by default:
+        'R Phi Br Bphi'
+
+    The outputs are saved as compressed pickle files, and should be loaded from those files for further use.
+
+    """
     def __init__(self, file_name,header_names = None,use_pickle = False,field_map_version='Mau9'):
         self.file_name = re.sub('\.\w*$','',file_name)
         self.field_map_version = field_map_version
@@ -38,7 +56,7 @@ class DataFileMaker:
 
 
     def do_basic_modifications(self,offset=None):
-        '''Modify the field map to add more columns, offset the X axis so it is recentered to 0,
+        '''Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
         and reflect the map about the Y-axis, if applicable.
 
         -Default offset is 0
@@ -82,8 +100,16 @@ class DataFileMaker:
         return (-row['Y'])
 
 def g4root_to_df(input_name, make_pickle = False):
-    '''give input file path name without suffix.
-    return a tuple of dataframes, or pickle and save the tuple'''
+    '''
+    Quick converter for virtual detector ROOT files from the Mu2E Art Framework.
+    Usage:
+         Input file path name without suffix.
+         If make_pickle == True, no dfs are returned, and a pickle is created
+
+         containing a tuple of the relevant dfs.
+    Return:
+        A tuple of dataframes, or none
+    '''
     input_root = input_name + '.root'
     df_nttvd = read_root(input_root,'readvd/nttvd')
     df_ntpart = read_root(input_root,'readvd/ntpart',ignore='*vd')
