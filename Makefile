@@ -14,7 +14,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 # Added to make github pages
-GH_PAGES_SOURCES = source build mu2e Makefile
+GH_PAGES_SOURCES = source mu2e Makefile
 
 .PHONY: help
 help:
