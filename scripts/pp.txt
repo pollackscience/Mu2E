@@ -1,0 +1,48 @@
+Timer unit: 1e-06 s
+
+Total time: 0 s
+File: /Users/brianpollack/Documents/Mu2E/src/fit_funcs_c.pyx
+Function: brzphi_3d_fast at line 26
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    26                                             def brzphi_3d_fast(z,r,phi,R,ns,ms,delta,offset,**AB_params):
+    27                                             #def brzphi_3d_fast(z,r,phi,R,ns,ms,offset,**AB_params):
+    28                                               """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+    29                                           #    def model_r(n, i, a,b):
+    30                                           #      return (np.cos(n*phi+delta)*ivp[n][i]*kms[n][i]*(AB_params[a]*np.        cos(kms[n][i]*(z-offset)) + AB_params[b]*np.sin(-kms[n][i]*(z-offset))))
+    31                                           #
+    32                                           #    mr = np.vectorize(model_r,otypes=[np.ndarray])
+    33                                           #    n_args = []
+    34                                           #    i_args = []
+    35                                           #    a_args = []
+    36                                           #    b_args = []
+    37                                           
+    38                                               model_r = 0.0
+    39                                               model_z = 0.0
+    40                                               model_phi = 0.0
+    41                                               R = R
+    42                                               ABs = sorted(AB_params,key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    43                                               for n in range(ns):
+    44                                                 for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+    45                                           #        n_args.append(n)
+    46                                           #        i_args.append(i)
+    47                                           #        a_args.append(ab[0])
+    48                                           #        b_args.append(ab[1])
+    49                                           
+    50                                                   #model_r += np.cos(n*phi)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    51                                                   #model_z += -np.cos(n*phi)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+    52                                                   #model_phi += -n*np.sin(n*phi)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    53                                                   model_r += np.cos(n*phi+delta)*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    54                                           
+    55                                                   model_z += -np.cos(n*phi+delta)*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+    56                                                   model_phi += -n*np.sin(n*phi+delta)*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    57                                                   #model_r += (np.cos(n*phi+delta)+np.sin(n*phi+delta))*ivp[n][i]*kms[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    58                                                   #model_z += -(np.cos(n*phi+delta)+np.sin(n*phi+delta))*iv[n][i]*kms[n][i]*(AB_params[ab[0]]*np.sin(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.cos(-kms[n][i]*(z-offset)))
+    59                                                   #model_phi += n*(-np.sin(n*phi+delta)+np.cos(n*phi+delta))*(1/abs(r))*iv[n][i]*(AB_params[ab[0]]*np.cos(kms[n][i]*(z-offset)) + AB_params[ab[1]]*np.sin(-kms[n][i]*(z-offset)))
+    60                                               model_phi[np.isinf(model_phi)]=0
+    61                                               #m = mr(n_args,i_args,a_args,b_args)
+    62                                               #model_r = np.sum(mr(n_args,i_args,a_args,b_args),dtype=np.ndarray)
+    63                                               #model_r = np.add.reduce(m)
+    64                                               #model_r = np.sum(mr(n_args,i_args,a_args,b_args),dtype=np.ndarray)
+    65                                               return np.concatenate([model_r,model_z,model_phi]).ravel()
