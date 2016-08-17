@@ -204,7 +204,8 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
 
 
     if cfg_plot.save_loc == 'local':
-        save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/'+name
+        #save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/'+name
+        save_dir = mu2e.mu2e_ext_path+'plots/'+name
     elif cfg_plot.save_loc == 'html':
         save_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/'+name
 

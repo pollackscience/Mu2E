@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from __future__ import division
-import os
+# import os
 from time import time
 import collections
 import numpy as np
@@ -22,7 +22,8 @@ class FieldFitter:
             self.r_steps= cfg_geom.r_steps
         elif cfg_geom.geom == 'cart':
             self.xy_steps = cfg_geom.xy_steps
-        self.pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
+        #self.pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
+        self.pickle_path = mu2e.mu2e_ext_path+'fit_params/'
 
 
     def fit(self, geom, cfg_params, cfg_pickle, profile=False):

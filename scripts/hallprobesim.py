@@ -3,6 +3,7 @@
 from mu2e.hallprober import field_map_analysis
 from collections import namedtuple
 import numpy as np
+import mu2e
 
 ############################
 # defining the cfg structs #
@@ -17,20 +18,20 @@ cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
 # the data cfgs #
 #################
 #cfg_data_DS_Mau10_TEST = cfg_data('Mau10', 'DS', 'offset_interp_test', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_Mau10_offset = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap_8mmOffset', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_Mau10_long = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4200','Z<13900','R!=0'))
-cfg_data_DS2_Mau10 = cfg_data('Mau10', 'DS', '../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4000','Z<14000','R!=0'))
-cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', '../datafiles/Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
+cfg_data_DS_Mau10_offset = cfg_data('Mau10', 'DS', mu2e.mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_8mmOffset', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_Mau10 = cfg_data('Mau10', 'DS', mu2e.mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_Mau10_long = cfg_data('Mau10', 'DS', mu2e.mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4200','Z<13900','R!=0'))
+cfg_data_DS2_Mau10 = cfg_data('Mau10', 'DS', mu2e.mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap', ('Z>4000','Z<14000','R!=0'))
+cfg_data_PS_Mau10 = cfg_data('Mau10', 'PS', mu2e.mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_PSMap', ('Z>-7900','Z<-4000','R!=0'))
 
 
-cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
-cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_GA05_no_ext = cfg_data('GA05', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0', ('Z>5000','Z<13000','R!=0'))
+cfg_data_DS_GA05_no_DS = cfg_data('GA05', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0', ('Z>5000','Z<13000','R!=0'))
 
-#cfg_data_DS_GA05_offset = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap_offset8mm', ('Z>5000','Z<13000','R!=0'))
-#cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>9000','Z<11000','R!=0'))
-cfg_data_DS_GA05 = cfg_data('GA05', 'DS', '../datafiles/FieldMapsGA05/DSMap', ('Z>4000','Z<14000','R!=0'))
-cfg_data_DS_GA02 = cfg_data('GA02', 'DS', '../datafiles/FieldMapsGA02/Mu2e_DS_GA0', ('Z>4000','Z<14000','R!=0'))
+#cfg_data_DS_GA05_offset = cfg_data('GA05', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA05/DSMap_offset8mm', ('Z>5000','Z<13000','R!=0'))
+#cfg_data_DS_GA05 = cfg_data('GA05', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA05/DSMap', ('Z>9000','Z<11000','R!=0'))
+cfg_data_DS_GA05 = cfg_data('GA05', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA05/DSMap', ('Z>4000','Z<14000','R!=0'))
+cfg_data_DS_GA02 = cfg_data('GA02', 'DS', mu2e.mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0', ('Z>4000','Z<14000','R!=0'))
 #################
 # the geom cfgs #
 #################

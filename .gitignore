@@ -64,7 +64,6 @@ target/
 *.tar
 *.gz
 *.p
-*.csv
 *.table
 
 # MSFT Files
