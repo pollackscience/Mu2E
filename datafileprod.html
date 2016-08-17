@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
@@ -9,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Mu2E 1.0.0 documentation</title>
+  <title>DataFileProd &mdash; Mu2E 1.0.0 documentation</title>
   
 
   
@@ -31,7 +30,9 @@
   
 
   
-    <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/> 
+    <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/>
+        <link rel="next" title="Mu2e Plotting Documentation" href="mu2eplots.html"/>
+        <link rel="prev" title="Mu2E Experiment Overview" href="intro.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -80,9 +81,9 @@
           
             
             
-                <ul>
+                <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="datafileprod.html">DataFileProd</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DataFileProd</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
 
@@ -106,7 +107,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -114,9 +115,11 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li></li>
+    <li>DataFileProd</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+            <a href="_sources/datafileprod.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -126,94 +129,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-<h1 id="index">Index</h1>
-
-<div class="genindex-jumpbox">
- <a href="#D"><strong>D</strong></a>
- | <a href="#G"><strong>G</strong></a>
- | <a href="#M"><strong>M</strong></a>
- 
+  <div class="section" id="datafileprod">
+<h1>DataFileProd<a class="headerlink" href="#datafileprod" title="Permalink to this headline">¶</a></h1>
+<p>The data used in this mu2e package must be formatted as a valid pandas DataFrame. To accomplish this,
+the <cite>datafileprod.py</cite> module has a useful class for taking a csv-like magnetic field simulation
+and converting it to a DF, along with some additional column creation.</p>
+<p>There is also a small helper function to convert a ROOT file to a DF, for particle trapping simulation studies.</p>
 </div>
-<h2 id="D">D</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker">DataFileMaker (class in mu2e.datafileprod)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.do_basic_modifications">do_basic_modifications() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.g4root_to_df">g4root_to_df() (in module mu2e.datafileprod)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="M">M</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_bottom_half">make_bottom_half() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_br">make_br() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_dump">make_dump() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_r">make_r() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_theta">make_theta() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#module-mu2e.datafileprod">mu2e.datafileprod (module)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#module-mu2e.mu2eplots">mu2e.mu2eplots (module)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot">mu2e_plot() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d">mu2e_plot3d() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d_ptrap">mu2e_plot3d_ptrap() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
 
 
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mu2eplots.html" class="btn btn-neutral float-right" title="Mu2e Plotting Documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="intro.html" class="btn btn-neutral" title="Mu2E Experiment Overview" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
