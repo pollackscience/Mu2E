@@ -4,8 +4,9 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-#import matplotlib.ticker as mtick
-#from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import pandas as pd
+# import matplotlib.ticker as mtick
+# from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import plotly.plotly as py
 from offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
@@ -17,7 +18,7 @@ from mpldatacursor import datacursor
 # Plots can be displayed in matplotlib, plotly (offline mode), or plotly (html only)
 # Plot functions all take a dataframe input
 
-def mu2e_plot(df, x, y, conditions = None, mode = 'mpl', info = None, savename = None):
+def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
     '''Currently plotly can convert simple mpl plots directly into plotly.
     Therefor, generate the mpl first, then convert to plotly if necessary.'''
 
@@ -32,7 +33,7 @@ def mu2e_plot(df, x, y, conditions = None, mode = 'mpl', info = None, savename =
     ax = df.plot(x, y, kind='line')
     ax.grid(True)
     plt.ylabel(y)
-    plt.title(' '.join(filter(lambda x:x, [info, x, 'v', y, conditions])))
+    plt.title(' '.join(filter(lambda x: x, [info, x, 'v', y, conditions])))
     if mode == 'mpl':
         plt.legend()
 
@@ -280,7 +281,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
 
     return save_name
 
-def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = None, color=None):
+def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = None, color=None, xray=None):
     from mpl_toolkits.mplot3d import Axes3D
     del Axes3D
     '''Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).
@@ -341,19 +342,29 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = N
                         showlegend=True,
                         legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
                         )
+        scat_plots = []
+
+        print type(xray)
+        if isinstance(xray, pd.DataFrame):
+            xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
+            xray = xray.query(xray_query).ix[0:70000]
+            scat_plots.append(go.Scatter3d(x=xray.zstop, y=xray.xstop, z=xray.ystop,
+                mode='markers',
+                marker=dict(size=3, color='black', opacity=0.06),
+                name = 'x-ray'))
 
         if color:
-            scat = go.Scatter3d(x=df[x], y=df[y], z=df[z],
+            scat_plots.append(go.Scatter3d(x=df[x], y=df[y], z=df[z],
                 mode='markers',
                 marker=dict(size=3, color=df[color], colorscale='Viridis', opacity=0.1),
-                name = 'Data')
+                name = 'Data'))
         else:
-            scat = go.Scatter3d(x=df[x], y=df[y], z=df[z],
+            scat_plots.append(go.Scatter3d(x=df[x], y=df[y], z=df[z],
                 mode='markers',
-                marker=dict(size=3, color='rgb(0, 0, 0)', opacity=0.04),
-                name = 'Data')
+                marker=dict(size=3, color='blue', opacity=0.5),
+                name = 'Data'))
 
-        fig = go.Figure(data=[scat], layout=layout)
+        fig = go.Figure(data=scat_plots, layout=layout)
 
         if mode == 'plotly_nb':
             init_notebook_mode()
