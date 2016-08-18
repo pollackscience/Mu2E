@@ -60,7 +60,10 @@ gh-pages:
 	mv -fv build/html/* ./
 	rm -rf $(GH_PAGES_SOURCES) build
 	git add -A
-	git add _images
+	git add -f _images/*.png
+	git add -f _images/*.pdf
+	git add -f _images/*.jpeg
+	git add -f _images/*.gif
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
 	rm -rf _sources _static _modules _images
 
