@@ -58,13 +58,15 @@ docs/_build/
 target/
 
 # Data, Images, tar
-*.png
-*.pdf
+# *.png
+# *.pdf
 *.txt
 *.tar
 *.gz
 *.p
 *.table
+scripts/*.png
+scripts/*.pdf
 
 # MSFT Files
 *.doc*
