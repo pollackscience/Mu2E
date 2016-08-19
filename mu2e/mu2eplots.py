@@ -117,7 +117,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
             os.makedirs(save_dir)
         #save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions.split() if i!='and']))
         save_name = '{0}_{1}{2}_{3}'.format(z,x,y,'_'.join([i for i in conditions_title.split(', ') if i!='and']))
-        save_name = re.sub(r'[<>=!]', '', save_name)
+        save_name = re.sub(r'[<>=!\s]', '', save_name)
 
         if df_fit:
             save_name += '_fit'
