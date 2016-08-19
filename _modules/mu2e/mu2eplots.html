@@ -161,7 +161,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
         <span class="c">#save_name = &#39;{0}_{1}{2}_{3}&#39;.format(z,x,y,&#39;_&#39;.join([i for i in conditions.split() if i!=&#39;and&#39;]))</span>
         <span class="n">save_name</span> <span class="o">=</span> <span class="s">&#39;{0}_{1}{2}_{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="s">&#39;and&#39;</span><span class="p">]))</span>
-        <span class="n">save_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[&lt;&gt;=!]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">save_name</span><span class="p">)</span>
+        <span class="n">save_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[&lt;&gt;=!\s]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">save_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">df_fit</span><span class="p">:</span>
             <span class="n">save_name</span> <span class="o">+=</span> <span class="s">&#39;_fit&#39;</span>
@@ -448,6 +448,7 @@
 <h3>Navigation</h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../datafileprod.html">DataFileProd</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>

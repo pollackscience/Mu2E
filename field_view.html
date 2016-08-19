@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; Mu2E 1.0.0 documentation</title>
+    <title>The Mu2E Magnetic Fields &mdash; Mu2E 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,6 +25,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="DataFileProd" href="datafileprod.html" />
+    <link rel="prev" title="Mu2E Experiment Overview" href="intro.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -41,89 +42,16 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-
-<h1 id="index">Index</h1>
-
-<div class="genindex-jumpbox">
- <a href="#D"><strong>D</strong></a>
- | <a href="#G"><strong>G</strong></a>
- | <a href="#M"><strong>M</strong></a>
- 
+  <div class="section" id="the-mu2e-magnetic-fields">
+<h1>The Mu2E Magnetic Fields<a class="headerlink" href="#the-mu2e-magnetic-fields" title="Permalink to this headline">¶</a></h1>
+<p>We&#8217;ll be using a pandas DataFrame object to store the magnetic field information for the DS. The
+Mau10 map has been processed such that cylindrical coordinates and a cylindrical vector field were
+generated from the initial Cartesian information. We&#8217;ve also recentered the X coordinate, such that
+there is an equal number of steps above and below the X=0 line. This may not be equivalent to
+recentering the DS on the geometric center, however (we will revisit this issue later, and the
+complications that arise because of it).</p>
+<iframe width="900" height="800" frameborder="0" scrolling="no" src="_static/Bz_RZ_R1000_3200Z14000_Phi0.00.html"></iframe><p>There should be an iframe above.</p>
 </div>
-<h2 id="D">D</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker">DataFileMaker (class in mu2e.datafileprod)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.do_basic_modifications">do_basic_modifications() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.g4root_to_df">g4root_to_df() (in module mu2e.datafileprod)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="M">M</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_bottom_half">make_bottom_half() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_br">make_br() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_dump">make_dump() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_r">make_r() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-      
-  <dt><a href="datafileprod.html#mu2e.datafileprod.DataFileMaker.make_theta">make_theta() (mu2e.datafileprod.DataFileMaker method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="datafileprod.html#module-mu2e.datafileprod">mu2e.datafileprod (module)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#module-mu2e.mu2eplots">mu2e.mu2eplots (module)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot">mu2e_plot() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d">mu2e_plot3d() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-      
-  <dt><a href="mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d_ptrap">mu2e_plot3d_ptrap() (in module mu2e.mu2eplots)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
 
 
           </div>
@@ -141,9 +69,9 @@
 
 
 <h3>Navigation</h3>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datafileprod.html">DataFileProd</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
@@ -152,6 +80,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="intro.html" title="previous chapter">Mu2E Experiment Overview</a></li>
+      <li>Next: <a href="datafileprod.html" title="next chapter">DataFileProd</a></li>
   </ul></li>
 </ul>
 </div>
@@ -176,6 +106,9 @@
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
+      |
+      <a href="_sources/field_view.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     
