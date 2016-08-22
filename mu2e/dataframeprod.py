@@ -1,28 +1,71 @@
 #! /usr/bin/env python
+"""Module for converting Mu2e data into DataFrames.
+
+This module defines classes and functions that takes Mu2E-style input files, typically csv or ROOT
+files, and generates pandas DataFrames for use in this Python Mu2E package.  This module can also
+save the output DataFrames as compressed cPickle files.  The input and output data are saved to a
+subdir of the user-defined mu2e_ext_path, and are not committed to github.
+
+Example:
+    Using the DataFrameMaker class::
+        $ from mu2e.dataframeprod import DataFrameMaker
+        $ from mu2e import mu2e_ext_path
+        $ print mu2e_ext_path
+        '/User/local/local_data'
+        $ df = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
+            use_pickle=True, field_map_version='GA02').data_frame
+        $ print df.head()
+            X       Y       Z        Bx        By        Bz            R  \
+        0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327  1697.056275
+        1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158  1697.056275
+        2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726  1697.056275
+        3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024  1697.056275
+        4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
+
+        Phi      Bphi        Br
+        0 -2.356194 -0.001951 -0.184780
+        1 -2.356194 -0.001960 -0.188787
+        2 -2.356194 -0.001969 -0.192725
+        3 -2.356194 -0.001977 -0.196573
+        4 -2.356194 -0.001985 -0.200307
+
+
+Todo:
+    * Update the particle trapping function with something more flexible.
+
+
+2016 Brian Pollack, Northwestern University
+brianleepollack@gmail.com
+"""
+
 
 import re
 import cPickle as pkl
 import numpy as np
 import pandas as pd
 from root_pandas import read_root
-import mu2e
 import mu2e.src.RowTransformations as rt
 
 
-class DataFileMaker:
-    """Convert Field Map plaintext into pandas DataFrame.
+class DataFrameMaker:
+    """Convert a FieldMap csv into a pandas DataFrame.
 
     It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
 
-    - The expected headers are: 'X Y Z Bx By Bz'
-    - The DataFileMaker converts these into DFs, where each header is its own row, as expected.
-    - The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
-    - Offsets in the X direction are applied if specified.
-    - If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y->-Y and By->-By.
-    - The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
+    * The expected headers are: 'X Y Z Bx By Bz'
+    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as expected.
+    * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
+    * Offsets in the X direction are applied if specified.
+    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y->-Y and By->-By.
+    * The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
 
-    The outputs are saved as compressed pickle files, and should be loaded from those files
+    The outputs should be saved as compressed pickle files, and should be loaded from those files
     for further use.  Each pickle contains a single DF.
+
+    Attributes:
+        file_name (str): File path and name, no suffix.
+        field_map_version (str): Mau or GA simulation type.
+        data_frame (pandas.DataFrame): Output DF.
 
     """
     def __init__(self, file_name, header_names=None, use_pickle=False, field_map_version='Mau9'):
@@ -155,32 +198,32 @@ def g4root_to_df(input_name, make_pickle=False):
 
 if __name__ == "__main__":
     # for PS
-    # data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False,
     #                            field_map_version='Mau10')
     # data_maker.do_basic_modifications(3904)
     # data_maker.make_dump()
 
     # for DS
-    # data_maker = DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
-    # data_maker = DataFileMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
+    # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA01')
-    data_maker = DataFileMaker(mu2e.mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0', use_pickle=False,
+    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0', use_pickle=False,
                                field_map_version='GA02')
-    # data_maker = DataFileMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA04')
-    # data_maker = DataFileMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
     #                            use_pickle=False, field_map_version='GA05')
-    # data_maker = DataFileMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0',
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0',
     #                            use_pickle=False, field_map_version='GA05')
-    # data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=False,
     #                            field_map_version='Mau10')
-    # data_maker = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
+    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
     #                            use_pickle=False, field_map_version='Mau10')
-    # data_maker = DataFileMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle=False,
     #                            field_map_version='Mau10')
-    # data_maker = DataFileMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle=False,
     #                            field_map_version='Mau10')
-    # data_maker = DataFileMaker('../datafiles/FieldMapsGA05/DSMap',use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA05/DSMap',use_pickle=False,
     #                            field_map_version='GA05')
     data_maker.do_basic_modifications(-3896)
     # data_maker.do_basic_modifications(-3904)
