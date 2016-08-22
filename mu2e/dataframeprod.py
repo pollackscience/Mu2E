@@ -4,7 +4,7 @@
 This module defines classes and functions that takes Mu2E-style input files, typically csv or ROOT
 files, and generates pandas DataFrames for use in this Python Mu2E package.  This module can also
 save the output DataFrames as compressed cPickle files.  The input and output data are saved to a
-subdir of the user-defined mu2e_ext_path, and are not committed to github.
+subdir of the user defined mu2e_ext_path, and are not committed to github.
 
 Example:
     Using the DataFrameMaker class::
