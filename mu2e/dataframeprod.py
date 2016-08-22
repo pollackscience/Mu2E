@@ -8,6 +8,7 @@ subdir of the user-defined `mu2e_ext_path`, and are not committed to github.
 
 Example:
     Using the DataFrameMaker class::
+
         $ from mu2e.dataframeprod import DataFrameMaker
         $ from mu2e import mu2e_ext_path
         $ print mu2e_ext_path
@@ -52,12 +53,12 @@ class DataFrameMaker:
 
     It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
 
-    * The expected headers are: 'X Y Z Bx By Bz' * The DataFrameMaker converts these into `pandas`
-    DFs, where each header is its own row, as expected.  * The input must be in units of mm and T
-    (certain GA maps are hard-coded to convert to mm).  * Offsets in the X direction are applied if
-    specified.  * If the map only covers one region of Y, the map is doubled and reflected about Y,
-    such that Y->-Y and By->-By.  * The following columns are constructed and added to the DF by
-    default: 'R Phi Br Bphi'
+    * The expected headers are: 'X Y Z Bx By Bz'
+    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as expected.
+    * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
+    * Offsets in the X direction are applied if specified.
+    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y->-Y and By->-By.
+    * The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
 
     The outputs should be saved as compressed pickle files, and should be loaded from those files
     for further use.  Each pickle contains a single DF.
