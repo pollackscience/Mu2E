@@ -91,7 +91,7 @@
 <span class="kn">import</span> <span class="nn">mu2e.src.RowTransformations</span> <span class="k">as</span> <span class="nn">rt</span>
 
 
-<div class="viewcode-block" id="DataFrameMaker"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker">[docs]</a><span class="k">class</span> <span class="nc">DataFrameMaker</span><span class="p">:</span>
+<div class="viewcode-block" id="DataFrameMaker"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker">[docs]</a><span class="k">class</span> <span class="nc">DataFrameMaker</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Convert a FieldMap csv into a pandas DataFrame.</span>
 
 <span class="sd">    It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</span>
@@ -162,7 +162,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&quot;&#39;Mau&#39; or &#39;GA&#39; not found in field_map_version: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">field_map_version</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DataFrameMaker.do_basic_modifications"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.do_basic_modifications">[docs]</a>    <span class="k">def</span> <span class="nf">do_basic_modifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.do_basic_modifications"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.do_basic_modifications">[docs]</a>    <span class="k">def</span> <span class="nf">do_basic_modifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Modify the field map to add more columns, offset the X axis so it is re-centered to 0,</span>
 <span class="sd">        and reflect the map about the Y-axis, if applicable.</span>
 
@@ -206,23 +206,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
         <span class="nb">print</span> <span class="s">&#39;num of columns end&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataFrameMaker.make_dump"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.make_dump">[docs]</a>    <span class="k">def</span> <span class="nf">make_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.make_dump"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.make_dump">[docs]</a>    <span class="k">def</span> <span class="nf">make_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="o">+</span><span class="n">suffix</span><span class="o">+</span><span class="s">&#39;.p&#39;</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="n">pkl</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataFrameMaker.make_r"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.make_r">[docs]</a>    <span class="k">def</span> <span class="nf">make_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.make_r"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.make_r">[docs]</a>    <span class="k">def</span> <span class="nf">make_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataFrameMaker.make_br"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.make_br">[docs]</a>    <span class="k">def</span> <span class="nf">make_br</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.make_br"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.make_br">[docs]</a>    <span class="k">def</span> <span class="nf">make_br</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Bx&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;By&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataFrameMaker.make_theta"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.make_theta">[docs]</a>    <span class="k">def</span> <span class="nf">make_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.make_theta"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.make_theta">[docs]</a>    <span class="k">def</span> <span class="nf">make_theta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="DataFrameMaker.make_bottom_half"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.DataFrameMaker.make_bottom_half">[docs]</a>    <span class="k">def</span> <span class="nf">make_bottom_half</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<div class="viewcode-block" id="DataFrameMaker.make_bottom_half"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker.make_bottom_half">[docs]</a>    <span class="k">def</span> <span class="nf">make_bottom_half</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">])</span></div></div>
 
 
-<div class="viewcode-block" id="g4root_to_df"><a class="viewcode-back" href="../../datafileprod.html#mu2e.dataframeprod.g4root_to_df">[docs]</a><span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+<div class="viewcode-block" id="g4root_to_df"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.g4root_to_df">[docs]</a><span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Quick converter for virtual detector ROOT files from the Mu2E Art Framework.</span>
 
@@ -296,6 +296,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
 
