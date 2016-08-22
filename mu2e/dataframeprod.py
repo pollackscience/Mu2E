@@ -80,14 +80,14 @@ class DataFrameMaker(object):
 
     Attributes:
         file_name (str): File path and name, no suffix.
-        field_map_version (str): Mau or GA simulation type.
+        field_map_version (Optional[str]): Mau or GA simulation type. Default to 'Mau10'.
         data_frame (pandas.DataFrame): Output DF.
         input_source (str): Indicator for input, `pickle` or `csv`.
 
 
 
     """
-    def __init__(self, file_name, field_map_version, header_names=None, use_pickle=False):
+    def __init__(self, file_name, field_map_version='Mau10', header_names=None, use_pickle=False):
         """The DataFrameMaker initialization process.
 
         """

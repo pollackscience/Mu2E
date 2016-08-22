@@ -7,9 +7,10 @@ import numpy as np
 import cPickle as pkl
 #from mu2e.tools.fit_funcs import *
 from scipy import special
-from mu2e.datafileprod import DataFileMaker
+from mu2e.dataframeprod import DataFrameMaker
 from numba import jit
 from itertools import izip
+from mu2e import mu2e_ext_path
 
 
 def pairwise(iterable):
@@ -28,7 +29,8 @@ point = (50,0,8000)
 
 def get_mag_field_function(param_name):
     '''pre-calculate what can be done, cache, return function to calc mag field'''
-    pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
+    #pickle_path = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../fit_params/'
+    pickle_path = mu2e_ext_path+'fit_params/'
     params = pkl.load(open(pickle_path+param_name+'_results.p',"rb"))
 #params.pretty_print()
     param_dict = params.valuesdict()
@@ -174,7 +176,7 @@ def quick_print(df, a,b,z, cart=False):
         print df_tmp.Br.values[0], df_tmp.Bphi.values[0], df_tmp.Bz.values[0]
 
 if __name__=='__main__':
-    df = DataFileMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=True).data_frame
+    df = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=True).data_frame
     mag_field_function = get_mag_field_function()
 
 
