@@ -68,7 +68,7 @@ $ print df.head()
 ...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158  1697.056275
 ...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726  1697.056275
 ...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024  1697.056275
-...     4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
+...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
 
 ...    Phi      Bphi        Br
 ...    0 -2.356194 -0.001951 -0.184780
@@ -93,15 +93,14 @@ $ print df.head()
 <p>It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</p>
 <ul class="simple">
 <li>The expected headers are: &#8216;X Y Z Bx By Bz&#8217;</li>
-<li>The DataFrameMaker converts these into <cite>pandas</cite> DFs, where each header is its own row, as</li>
+<li>The DataFrameMaker converts these into <cite>pandas</cite> DFs, where each header is its own row, as
+expected.</li>
+<li>The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).</li>
+<li>Offsets in the X direction are applied if specified.</li>
+<li>If the map only covers one region of Y, the map is doubled and reflected about Y, such that
+Y-&gt;-Y and By-&gt;-By.</li>
+<li>The following columns are constructed and added to the DF by default: &#8216;R Phi Br Bphi&#8217;</li>
 </ul>
-<p>expected.
-* The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
-* Offsets in the X direction are applied if specified.
-* If the map only covers one region of Y, the map is doubled and reflected about Y, such that
-Y-&gt;-Y and
-By-&gt;-By.
-* The following columns are constructed and added to the DF by default: &#8216;R Phi Br Bphi&#8217;</p>
 <p>The outputs should be saved as compressed pickle files, and should be loaded from those files
 for further use.  Each pickle contains a single DF.</p>
 <dl class="attribute">
