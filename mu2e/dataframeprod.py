@@ -16,19 +16,19 @@ Example:
         $ df = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
         use_pickle=True, field_map_version='GA02').data_frame
         $ print df.head()
-        ...    X       Y       Z        Bx        By        Bz            R  \
-        ...    0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327  1697.056275
-        ...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158  1697.056275
-        ...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726  1697.056275
-        ...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024  1697.056275
-        ...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
+        ...         X       Y       Z        Bx        By        Bz
+        ...    0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327
+        ...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158
+        ...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726
+        ...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024
+        ...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045
 
-        ...    Phi      Bphi        Br
-        ...    0 -2.356194 -0.001951 -0.184780
-        ...    1 -2.356194 -0.001960 -0.188787
-        ...    2 -2.356194 -0.001969 -0.192725
-        ...    3 -2.356194 -0.001977 -0.196573
-        ...    4 -2.356194 -0.001985 -0.200307
+        ...        R          Phi      Bphi        Br
+        ...    0 1697.056275 -2.356194 -0.001951 -0.184780
+        ...    1 1697.056275 -2.356194 -0.001960 -0.188787
+        ...    2 1697.056275 -2.356194 -0.001969 -0.192725
+        ...    3 1697.056275 -2.356194 -0.001977 -0.196573
+        ...    4 1697.056275 -2.356194 -0.001985 -0.200307
 
 
 Todo:
@@ -49,7 +49,7 @@ from root_pandas import read_root
 import mu2e.src.RowTransformations as rt
 
 
-class DataFrameMaker:
+class DataFrameMaker(object):
     """Convert a FieldMap csv into a pandas DataFrame.
 
     It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
@@ -70,14 +70,36 @@ class DataFrameMaker:
         file_name (str): File path and name, no suffix.
         field_map_version (str): Mau or GA simulation type.
         data_frame (pandas.DataFrame): Output DF.
+        input_source (str): Indicator for input, `pickle` or `csv`.
 
     """
-    def __init__(self, file_name, header_names=None, use_pickle=False, field_map_version='Mau9'):
+    def __init__(self, file_name, field_map_version, header_names=None, use_pickle=False):
+        """The DataFrameMaker initialization process.
+
+        The DataFrameMaker acts as a wrapper for :function:`pandas.DataFrame.read_csv` when
+        `use_pickle` is `False`. Due to multiple differing input data csv formats, the exact csv
+        options are hardcoded, depending on the `field_map_version`.
+
+        Args:
+            file_name (str): File path and name for csv/txt/pickle file.  Do not include suffix.
+            field_map_version (str): Specify field map type and version (Mau9, Mau10,
+                GA01/2/3/4/5)
+            header_names (Optional[List[str]]): List of headers if default is not valid.
+                Default is `['X', 'Y', 'Z', 'Bx', 'By', 'Bz']`.
+            use_pickle (Optional[bool]): Load data from pickle (instead of csv). Default is
+                False.
+        """
+
         self.file_name = re.sub('\.\w*$', '', file_name)
         self.field_map_version = field_map_version
+        if use_pickle:
+            self.input_source = 'pickle'
+        else:
+            self.input_source = 'csv'
         if header_names is None:
             header_names = ['X', 'Y', 'Z', 'Bx', 'By', 'Bz']
 
+        # Load from pickle (all are identical in format).  Otherwise, load from csv
         if use_pickle:
             self.data_frame = pkl.load(open(self.file_name+'.p', "rb"))
 
@@ -123,16 +145,31 @@ class DataFrameMaker:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
     def do_basic_modifications(self, offset=None):
-        '''Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
-        and reflect the map about the Y-axis, if applicable.
+        """Perform the expected modifications to the input, needed for further analysis.
 
-        - Default offset is 0.
-        - The PS offset is +3904 (for Mau).
-        - The DS offset is -3896 (for Mau).
+        Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
+        and reflect the map about the Y-axis, if applicable.  In general these modifactions should
+        not be applied to already-pickled inputs, as they should have already been sufficiently
+        modified.
 
-        GA field maps are converted from meters to millimeters.'''
+        Note:
+            * Default offset is 0.
+            * The PS offset is +3904 (for Mau).
+            * The DS offset is -3896 (for Mau).
+            * GA field maps are converted from meters to millimeters.
+
+        Args:
+            offset (Optional[float]): If specified, apply this offset to x-axis. Value should be in
+                millimeters.
+
+        Returns:
+            Nothing. Operations are performed in place, and modify the internal `data_frame`.
+
+        """
 
         print 'num of columns start', len(self.data_frame.index)
+
+        # Convert to mm for some hard-coded versions
         if (('GA' in self.field_map_version and '5' not in self.field_map_version) or
            ('rand' in self.file_name)):
 
@@ -140,12 +177,15 @@ class DataFrameMaker:
             self.data_frame.eval('Y = Y*1000', inplace=True)
             self.data_frame.eval('Z = Z*1000', inplace=True)
 
+        # Offset x-axis
         if offset:
             self.data_frame.eval('X = X-{0}'.format(offset), inplace=True)
 
+        # Generate radial position column
         self.data_frame.loc[:, 'R'] = rt.apply_make_r(self.data_frame['X'].values,
                                                       self.data_frame['Y'].values)
 
+        # Generate negative Y-axis values for some hard-coded versions.
         if (any([vers in self.field_map_version for vers in ['Mau9', 'Mau10', 'GA01']]) and
            ('rand' not in self.file_name)):
 
@@ -153,20 +193,30 @@ class DataFrameMaker:
             data_frame_lower.eval('Y = Y*-1', inplace=True)
             data_frame_lower.eval('By = By*-1', inplace=True)
             self.data_frame = pd.concat([self.data_frame, data_frame_lower])
+
+        # Generate phi position column
         self.data_frame.loc[:, 'Phi'] = rt.apply_make_theta(self.data_frame['X'].values,
                                                             self.data_frame['Y'].values)
+        # Generate Bphi field column
         self.data_frame.loc[:, 'Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values,
                                                             self.data_frame['Bx'].values,
                                                             self.data_frame['By'].values)
+        # Generate Br field column
         self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
                                                         self.data_frame['Bx'].values,
                                                         self.data_frame['By'].values)
+        # Clean up, sort, round off.
         self.data_frame.sort_values(['X', 'Y', 'Z'], inplace=True)
         self.data_frame.reset_index(inplace=True, drop=True)
         self.data_frame = self.data_frame.round(9)
         print 'num of columns end', len(self.data_frame.index)
 
     def make_dump(self, suffix=''):
+        """Create a pickle file containing the data_frame, in the same dir as the input.
+
+        Args:
+            suffix (Optional[str]): Attach a suffix to the file name, before the '.p' suffix.
+        """
         pkl.dump(self.data_frame, open(self.file_name+suffix+'.p', "wb"), pkl.HIGHEST_PROTOCOL)
 
     def make_r(self, row):
@@ -187,9 +237,10 @@ def g4root_to_df(input_name, make_pickle=False):
     Quick converter for virtual detector ROOT files from the Mu2E Art Framework.
 
     Args:
-         input_name: file path name without suffix.
-         make_pickle: no dfs are returned, and a pickle is created containing a tuple of the
-         relevant dfs.
+         input_name (str): file path name without suffix.
+         make_pickle (Optional[bool]): If `True`, no dfs are returned, and a pickle is created
+             containing a tuple of the relevant dfs.
+
     Return:
         A tuple of dataframes, or none.
     '''

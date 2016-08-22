@@ -12,5 +12,4 @@ The `dataframeprod` Module
 **************************
 .. automodule:: mu2e.dataframeprod
     :members:
-    :undoc-members:
     :show-inheritance:
