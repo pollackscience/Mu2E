@@ -14,7 +14,7 @@ Example:
         $ print mu2e_ext_path
         '/User/local/local_data'
         $ df = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
-        ... use_pickle=True, field_map_version='GA02').data_frame
+        use_pickle=True, field_map_version='GA02').data_frame
         $ print df.head()
         ...    X       Y       Z        Bx        By        Bz            R  \
         ...    0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327  1697.056275
@@ -35,7 +35,8 @@ Todo:
     * Update the particle trapping function with something more flexible.
 
 
-2016 Brian Pollack, Northwestern University
+*2016 Brian Pollack, Northwestern University*
+
 brianleepollack@gmail.com
 """
 
@@ -54,10 +55,13 @@ class DataFrameMaker:
     It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
 
     * The expected headers are: 'X Y Z Bx By Bz'
-    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as expected.
+    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as
+    expected.
     * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
     * Offsets in the X direction are applied if specified.
-    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y->-Y and By->-By.
+    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that
+    Y->-Y and
+    By->-By.
     * The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
 
     The outputs should be saved as compressed pickle files, and should be loaded from those files
