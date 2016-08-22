@@ -7,6 +7,9 @@ and converting it to a DF, along with some additional column creation.
 
 There is also a small helper function to convert a ROOT file to a DF, for particle trapping simulation studies.
 
+**************************
+The `dataframeprod` Module
+**************************
 .. automodule:: mu2e.dataframeprod
     :members:
     :undoc-members:
