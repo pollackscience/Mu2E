@@ -52,6 +52,7 @@
 
 <span class="sd">Example:</span>
 <span class="sd">    Using the DataFrameMaker class::</span>
+
 <span class="sd">        $ from mu2e.dataframeprod import DataFrameMaker</span>
 <span class="sd">        $ from mu2e import mu2e_ext_path</span>
 <span class="sd">        $ print mu2e_ext_path</span>
@@ -96,12 +97,12 @@
 
 <span class="sd">    It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</span>
 
-<span class="sd">    * The expected headers are: &#39;X Y Z Bx By Bz&#39; * The DataFrameMaker converts these into `pandas`</span>
-<span class="sd">    DFs, where each header is its own row, as expected.  * The input must be in units of mm and T</span>
-<span class="sd">    (certain GA maps are hard-coded to convert to mm).  * Offsets in the X direction are applied if</span>
-<span class="sd">    specified.  * If the map only covers one region of Y, the map is doubled and reflected about Y,</span>
-<span class="sd">    such that Y-&gt;-Y and By-&gt;-By.  * The following columns are constructed and added to the DF by</span>
-<span class="sd">    default: &#39;R Phi Br Bphi&#39;</span>
+<span class="sd">    * The expected headers are: &#39;X Y Z Bx By Bz&#39;</span>
+<span class="sd">    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as expected.</span>
+<span class="sd">    * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).</span>
+<span class="sd">    * Offsets in the X direction are applied if specified.</span>
+<span class="sd">    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y-&gt;-Y and By-&gt;-By.</span>
+<span class="sd">    * The following columns are constructed and added to the DF by default: &#39;R Phi Br Bphi&#39;</span>
 
 <span class="sd">    The outputs should be saved as compressed pickle files, and should be loaded from those files</span>
 <span class="sd">    for further use.  Each pickle contains a single DF.</span>
