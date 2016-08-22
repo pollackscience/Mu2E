@@ -13,7 +13,7 @@ Example:
         $ print mu2e_ext_path
         '/User/local/local_data'
         $ df = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
-            use_pickle=True, field_map_version='GA02').data_frame
+        ... use_pickle=True, field_map_version='GA02').data_frame
         $ print df.head()
             X       Y       Z        Bx        By        Bz            R  \
         0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327  1697.056275
@@ -52,12 +52,12 @@ class DataFrameMaker:
 
     It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.
 
-    * The expected headers are: 'X Y Z Bx By Bz'
-    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as expected.
-    * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
-    * Offsets in the X direction are applied if specified.
-    * If the map only covers one region of Y, the map is doubled and reflected about Y, such that Y->-Y and By->-By.
-    * The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
+    * The expected headers are: 'X Y Z Bx By Bz' * The DataFrameMaker converts these into `pandas`
+    DFs, where each header is its own row, as expected.  * The input must be in units of mm and T
+    (certain GA maps are hard-coded to convert to mm).  * Offsets in the X direction are applied if
+    specified.  * If the map only covers one region of Y, the map is doubled and reflected about Y,
+    such that Y->-Y and By->-By.  * The following columns are constructed and added to the DF by
+    default: 'R Phi Br Bphi'
 
     The outputs should be saved as compressed pickle files, and should be loaded from those files
     for further use.  Each pickle contains a single DF.
@@ -184,7 +184,8 @@ def g4root_to_df(input_name, make_pickle=False):
 
     Args:
          input_name: file path name without suffix.
-         make_pickle: no dfs are returned, and a pickle is created containing a tuple of the relevant dfs.
+         make_pickle: no dfs are returned, and a pickle is created containing a tuple of the
+         relevant dfs.
     Return:
         A tuple of dataframes, or none.
     '''
@@ -197,6 +198,7 @@ def g4root_to_df(input_name, make_pickle=False):
         return (df_nttvd, df_ntpart)
 
 if __name__ == "__main__":
+    from mu2e import mu2e_ext_path
     # for PS
     # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False,
     #                            field_map_version='Mau10')
@@ -207,8 +209,8 @@ if __name__ == "__main__":
     # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA01')
-    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0', use_pickle=False,
-                               field_map_version='GA02')
+    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
+                                use_pickle=False, field_map_version='GA02')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
