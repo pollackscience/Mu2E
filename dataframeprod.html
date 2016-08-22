@@ -52,9 +52,9 @@ and converting it to a DF, along with some additional column creation.</p>
 <span id="the-dataframeprod-module"></span><h2>The <cite>dataframeprod</cite> Module<a class="headerlink" href="#module-mu2e.dataframeprod" title="Permalink to this headline">¶</a></h2>
 <p>Module for converting Mu2e data into DataFrames.</p>
 <p>This module defines classes and functions that takes Mu2E-style input files, typically csv or ROOT
-files, and generates pandas DataFrames for use in this Python Mu2E package.  This module can also
-save the output DataFrames as compressed cPickle files.  The input and output data are saved to a
-subdir of the user-defined <cite>mu2e_ext_path</cite>, and are not committed to github.</p>
+files, and generates <code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code> for use in this Python Mu2E package.  This module
+can also save the output DataFrames as compressed cPickle files.  The input and output data are
+saved to a subdir of the user-defined <cite>mu2e_ext_path</cite>, and are not committed to github.</p>
 <p class="rubric">Example</p>
 <p>Using the DataFrameMaker class:</p>
 <div class="highlight-default"><div class="highlight"><pre>$ from mu2e.dataframeprod import DataFrameMaker
@@ -90,10 +90,12 @@ $ print df.head()
 <dl class="class">
 <dt id="mu2e.dataframeprod.DataFrameMaker">
 <em class="property">class </em><code class="descclassname">mu2e.dataframeprod.</code><code class="descname">DataFrameMaker</code><span class="sig-paren">(</span><em>file_name</em>, <em>field_map_version</em>, <em>header_names=None</em>, <em>use_pickle=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/dataframeprod.html#DataFrameMaker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>Convert a FieldMap csv into a pandas DataFrame.</p>
-<p>It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</p>
+<dd><p>Convert a FieldMap csv into a pandas DataFrame.</p>
+<p>The DataFrameMaker acts as a wrapper for <code class="xref py py-func docutils literal"><span class="pre">pandas.DataFrame.read_csv()</span></code> when
+<cite>use_pickle</cite> is <cite>False</cite>. Due to multiple differing input data csv formats, the exact csv
+options are hardcoded, depending on the <cite>field_map_version</cite>.</p>
 <ul class="simple">
+<li>It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</li>
 <li>The expected headers are: &#8216;X Y Z Bx By Bz&#8217;</li>
 <li>The DataFrameMaker converts these into <cite>pandas</cite> DFs, where each header is its own row, as
 expected.</li>
@@ -105,6 +107,23 @@ Y-&gt;-Y and By-&gt;-By.</li>
 </ul>
 <p>The outputs should be saved as compressed pickle files, and should be loaded from those files
 for further use.  Each pickle contains a single DF.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_name</strong> (<em>str</em>) &#8211; File path and name for csv/txt/pickle file.  Do not include suffix.</li>
+<li><strong>field_map_version</strong> (<em>str</em>) &#8211; Specify field map type and version (Mau9, Mau10,
+GA01/2/3/4/5)</li>
+<li><strong>header_names</strong> (<em>Optional[List[str]]</em>) &#8211; List of headers if default is not valid.
+Default is <cite>[&#8216;X&#8217;, &#8216;Y&#8217;, &#8216;Z&#8217;, &#8216;Bx&#8217;, &#8216;By&#8217;, &#8216;Bz&#8217;]</cite>.</li>
+<li><strong>use_pickle</strong> (<em>Optional[bool]</em>) &#8211; Load data from pickle (instead of csv). Default is
+False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="attribute">
 <dt id="mu2e.dataframeprod.DataFrameMaker.file_name">
 <code class="descname">file_name</code><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker.file_name" title="Permalink to this definition">¶</a></dt>

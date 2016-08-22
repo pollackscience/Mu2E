@@ -46,9 +46,9 @@
 <span class="sd">&quot;&quot;&quot;Module for converting Mu2e data into DataFrames.</span>
 
 <span class="sd">This module defines classes and functions that takes Mu2E-style input files, typically csv or ROOT</span>
-<span class="sd">files, and generates pandas DataFrames for use in this Python Mu2E package.  This module can also</span>
-<span class="sd">save the output DataFrames as compressed cPickle files.  The input and output data are saved to a</span>
-<span class="sd">subdir of the user-defined `mu2e_ext_path`, and are not committed to github.</span>
+<span class="sd">files, and generates :class:`pandas.DataFrame` for use in this Python Mu2E package.  This module</span>
+<span class="sd">can also save the output DataFrames as compressed cPickle files.  The input and output data are</span>
+<span class="sd">saved to a subdir of the user-defined `mu2e_ext_path`, and are not committed to github.</span>
 
 <span class="sd">Example:</span>
 <span class="sd">    Using the DataFrameMaker class::</span>
@@ -96,8 +96,11 @@
 <div class="viewcode-block" id="DataFrameMaker"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.DataFrameMaker">[docs]</a><span class="k">class</span> <span class="nc">DataFrameMaker</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert a FieldMap csv into a pandas DataFrame.</span>
 
-<span class="sd">    It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</span>
+<span class="sd">    The DataFrameMaker acts as a wrapper for :func:`pandas.DataFrame.read_csv` when</span>
+<span class="sd">    `use_pickle` is `False`. Due to multiple differing input data csv formats, the exact csv</span>
+<span class="sd">    options are hardcoded, depending on the `field_map_version`.</span>
 
+<span class="sd">    * It is assumed that the plaintext is formatted as a csv file, with comma or space delimiters.</span>
 <span class="sd">    * The expected headers are: &#39;X Y Z Bx By Bz&#39;</span>
 <span class="sd">    * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as</span>
 <span class="sd">      expected.</span>
@@ -110,28 +113,27 @@
 <span class="sd">    The outputs should be saved as compressed pickle files, and should be loaded from those files</span>
 <span class="sd">    for further use.  Each pickle contains a single DF.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        file_name (str): File path and name for csv/txt/pickle file.  Do not include suffix.</span>
+<span class="sd">        field_map_version (str): Specify field map type and version (Mau9, Mau10,</span>
+<span class="sd">            GA01/2/3/4/5)</span>
+<span class="sd">        header_names (Optional[List[str]]): List of headers if default is not valid.</span>
+<span class="sd">            Default is `[&#39;X&#39;, &#39;Y&#39;, &#39;Z&#39;, &#39;Bx&#39;, &#39;By&#39;, &#39;Bz&#39;]`.</span>
+<span class="sd">        use_pickle (Optional[bool]): Load data from pickle (instead of csv). Default is</span>
+<span class="sd">            False.</span>
+
 <span class="sd">    Attributes:</span>
 <span class="sd">        file_name (str): File path and name, no suffix.</span>
 <span class="sd">        field_map_version (str): Mau or GA simulation type.</span>
 <span class="sd">        data_frame (pandas.DataFrame): Output DF.</span>
 <span class="sd">        input_source (str): Indicator for input, `pickle` or `csv`.</span>
 
+
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">field_map_version</span><span class="p">,</span> <span class="n">header_names</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">use_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The DataFrameMaker initialization process.</span>
 
-<span class="sd">        The DataFrameMaker acts as a wrapper for :function:`pandas.DataFrame.read_csv` when</span>
-<span class="sd">        `use_pickle` is `False`. Due to multiple differing input data csv formats, the exact csv</span>
-<span class="sd">        options are hardcoded, depending on the `field_map_version`.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            file_name (str): File path and name for csv/txt/pickle file.  Do not include suffix.</span>
-<span class="sd">            field_map_version (str): Specify field map type and version (Mau9, Mau10,</span>
-<span class="sd">                GA01/2/3/4/5)</span>
-<span class="sd">            header_names (Optional[List[str]]): List of headers if default is not valid.</span>
-<span class="sd">                Default is `[&#39;X&#39;, &#39;Y&#39;, &#39;Z&#39;, &#39;Bx&#39;, &#39;By&#39;, &#39;Bz&#39;]`.</span>
-<span class="sd">            use_pickle (Optional[bool]): Load data from pickle (instead of csv). Default is</span>
-<span class="sd">                False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;\.\w*$&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
