@@ -26,7 +26,7 @@ functions and bessel functions, where the coefficients are free parameters that 
 fitting this function to the measured points.  Below is a proposed Mu2E Schematic from ~2012 (basic
 design is still valid):
 
-.. image:: ../scripts/Mu2e-Solenoid-Main-Assembly-2012-01-31.png
+.. image:: _images/Mu2e-Solenoid-Main-Assembly-2012-01-31.pdf
 
 The DS starts at a Z of 3239 and extends to 13989. Muons are incident from the left, after traveling
 through the two quarter toroids that make up the Transition Solenoid (TS). They strike the aluminum
