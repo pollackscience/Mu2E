@@ -21,7 +21,7 @@ Example:
         ...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158  1697.056275
         ...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726  1697.056275
         ...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024  1697.056275
-        ...     4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
+        ...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045  1697.056275
 
         ...    Phi      Bphi        Br
         ...    0 -2.356194 -0.001951 -0.184780
@@ -56,12 +56,11 @@ class DataFrameMaker:
 
     * The expected headers are: 'X Y Z Bx By Bz'
     * The DataFrameMaker converts these into `pandas` DFs, where each header is its own row, as
-    expected.
+      expected.
     * The input must be in units of mm and T (certain GA maps are hard-coded to convert to mm).
     * Offsets in the X direction are applied if specified.
     * If the map only covers one region of Y, the map is doubled and reflected about Y, such that
-    Y->-Y and
-    By->-By.
+      Y->-Y and By->-By.
     * The following columns are constructed and added to the DF by default: 'R Phi Br Bphi'
 
     The outputs should be saved as compressed pickle files, and should be loaded from those files
