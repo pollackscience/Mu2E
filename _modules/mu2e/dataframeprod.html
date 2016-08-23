@@ -124,14 +124,14 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        file_name (str): File path and name, no suffix.</span>
-<span class="sd">        field_map_version (str): Mau or GA simulation type.</span>
+<span class="sd">        field_map_version (Optional[str]): Mau or GA simulation type. Default to &#39;Mau10&#39;.</span>
 <span class="sd">        data_frame (pandas.DataFrame): Output DF.</span>
 <span class="sd">        input_source (str): Indicator for input, `pickle` or `csv`.</span>
 
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">field_map_version</span><span class="p">,</span> <span class="n">header_names</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">use_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">field_map_version</span><span class="o">=</span><span class="s">&#39;Mau10&#39;</span><span class="p">,</span> <span class="n">header_names</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">use_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The DataFrameMaker initialization process.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -356,6 +356,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
 

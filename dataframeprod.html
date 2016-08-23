@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html" />
-    <link rel="next" title="Mu2e Plotting Documentation" href="mu2eplots.html" />
+    <link rel="next" title="Fitting Data" href="fitting.html" />
     <link rel="prev" title="The Mu2E Magnetic Fields" href="field_view.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -89,7 +89,7 @@ $ print df.head()
 <p><a class="reference external" href="mailto:brianleepollack&#37;&#52;&#48;gmail&#46;com">brianleepollack<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="class">
 <dt id="mu2e.dataframeprod.DataFrameMaker">
-<em class="property">class </em><code class="descclassname">mu2e.dataframeprod.</code><code class="descname">DataFrameMaker</code><span class="sig-paren">(</span><em>file_name</em>, <em>field_map_version</em>, <em>header_names=None</em>, <em>use_pickle=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/dataframeprod.html#DataFrameMaker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">mu2e.dataframeprod.</code><code class="descname">DataFrameMaker</code><span class="sig-paren">(</span><em>file_name</em>, <em>field_map_version='Mau10'</em>, <em>header_names=None</em>, <em>use_pickle=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/dataframeprod.html#DataFrameMaker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a FieldMap csv into a pandas DataFrame.</p>
 <p>The DataFrameMaker acts as a wrapper for <code class="xref py py-func docutils literal"><span class="pre">pandas.DataFrame.read_csv()</span></code> when
 <cite>use_pickle</cite> is <cite>False</cite>. Due to multiple differing input data csv formats, the exact csv
@@ -133,7 +133,7 @@ False.</li>
 <dl class="attribute">
 <dt id="mu2e.dataframeprod.DataFrameMaker.field_map_version">
 <code class="descname">field_map_version</code><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker.field_map_version" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em> &#8211; Mau or GA simulation type.</p>
+<dd><p><em>Optional[str]</em> &#8211; Mau or GA simulation type. Default to &#8216;Mau10&#8217;.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -242,6 +242,7 @@ containing a tuple of the relevant dfs.</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-mu2e.dataframeprod">The <cite>dataframeprod</cite> Module</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
 
@@ -250,7 +251,7 @@ containing a tuple of the relevant dfs.</li>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="field_view.html" title="previous chapter">The Mu2E Magnetic Fields</a></li>
-      <li>Next: <a href="mu2eplots.html" title="next chapter">Mu2e Plotting Documentation</a></li>
+      <li>Next: <a href="fitting.html" title="next chapter">Fitting Data</a></li>
   </ul></li>
 </ul>
 </div>

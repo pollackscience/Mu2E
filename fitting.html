@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Fitting Data &mdash; Mu2E 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="Mu2e Plotting Documentation" href="mu2eplots.html" />
+    <link rel="prev" title="Prepping Data" href="dataframeprod.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fitting-data">
+<h1>Fitting Data<a class="headerlink" href="#fitting-data" title="Permalink to this headline">¶</a></h1>
+<p>The actual fitting of the field measurements is mainly handled by the <cite>fieldfitter.py</cite> module.
+Typically, the parametric fitting function has ~400 free parameters, so care has been taken to
+optimize the function calls.  The outputs of the fitting procedure are appended to the dataframe of
+the input data, to assist in visualization and further analysis.  The fit parameters are saved in a
+pickle file, and can be used to recreate the fit, act as initial values for further refinement of
+the fit, or used in a standalone plugin to generate field values based on the fit.</p>
+<div class="section" id="module-mu2e.fieldfitter">
+<span id="the-fieldfitter-module"></span><h2>The <cite>fieldfitter</cite> Module<a class="headerlink" href="#module-mu2e.fieldfitter" title="Permalink to this headline">¶</a></h2>
+<p>Module for fitting magnetic field data with a parametric expression.</p>
+<p>This is the main workhorse module for fitting the magnetic field data.  It is assumed that the data
+has passed through the <a class="reference internal" href="dataframeprod.html#mu2e.dataframeprod.DataFrameMaker" title="mu2e.dataframeprod.DataFrameMaker"><code class="xref py py-class docutils literal"><span class="pre">mu2e.dataframeprod.DataFrameMaker</span></code></a>, and thus in the expected format.
+In most cases the data has also passed through the <code class="xref py py-mod docutils literal"><span class="pre">mu2e.hallprober</span></code> module, to imitate the act
+of surveying one of the Mu2E solenoids with a series of hall probes.  The
+<a class="reference internal" href="#mu2e.fieldfitter.FieldFitter" title="mu2e.fieldfitter.FieldFitter"><code class="xref py py-class docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter</span></code></a> preps the data, flattens it into 1D, and uses the <code class="xref py py-mod docutils literal"><span class="pre">lmfit</span></code>
+package extensively for parameter-handling, fitting, optimization, etc.</p>
+<p class="rubric">Example</p>
+<p>Coming soon...</p>
+<p><em>2016 Brian Pollack, Northwestern University</em></p>
+<p><a class="reference external" href="mailto:brianleepollack&#37;&#52;&#48;gmail&#46;com">brianleepollack<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="class">
+<dt id="mu2e.fieldfitter.FieldFitter">
+<em class="property">class </em><code class="descclassname">mu2e.fieldfitter.</code><code class="descname">FieldFitter</code><span class="sig-paren">(</span><em>input_data</em>, <em>cfg_geom</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input field measurements, perform parametric fit, return relevant quantities.</p>
+<p>The <a class="reference internal" href="#mu2e.fieldfitter.FieldFitter" title="mu2e.fieldfitter.FieldFitter"><code class="xref py py-class docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter</span></code></a> takes a 3D set of field measurements and their
+associated position values, and performs a parametric fit.  The parameters and fit model are
+handled by the <code class="xref py py-mod docutils literal"><span class="pre">lmfit</span></code> package, which in turn wraps the <code class="xref py py-mod docutils literal"><span class="pre">scipy.optimize</span></code> module, which
+actually performs the parameter optimization.  The default optimizer is the Levenberg-Marquardt
+algorithm.</p>
+<p>The <a class="reference internal" href="#mu2e.fieldfitter.FieldFitter.fit" title="mu2e.fieldfitter.FieldFitter.fit"><code class="xref py py-func docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter.fit()</span></code></a> requires multiple cfg <cite>namedtuples</cite>, and performs
+the actual fitting (or recreates a fit for a given set of saved parameters).  After fitting, the
+generated class members can be used for further analysis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_data</strong> (<em>pandas.DataFrame</em>) &#8211; DF that contains the field component values to be fit.</li>
+<li><strong>cfg_geom</strong> (<em>namedtuple</em>) &#8211; namedtuple with the following members:
+&#8216;geom z_steps r_steps phi_steps xy_steps bad_calibration&#8217;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.input_data">
+<code class="descname">input_data</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>pandas.DataFrame</em> &#8211; The input DF, with possible modifications.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.phi_steps">
+<code class="descname">phi_steps</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.phi_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>List[float]</em> &#8211; The axial values of the field data (cylindrial coords)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.r_steps">
+<code class="descname">r_steps</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.r_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>List[float]</em> &#8211; The radial values of the field data (cylindrial coords)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.xy_steps">
+<code class="descname">xy_steps</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.xy_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>List[float]</em> &#8211; The xy values of the field data (cartesian coords)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.pickle_path">
+<code class="descname">pickle_path</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.pickle_path" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> &#8211; Location to read/write the pickled fit parameter values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.params">
+<code class="descname">params</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>lmfit.Parameters</em> &#8211; Set of Parameters, inherited from <cite>lmfit</cite></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mu2e.fieldfitter.FieldFitter.result">
+<code class="descname">result</code><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.result" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>lmfit.ModelResult</em> &#8211; Container for resulting fit information, inherited from <cite>lmfit</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.fieldfitter.FieldFitter.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>geom</em>, <em>cfg_params</em>, <em>cfg_pickle</em>, <em>profile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that chooses one of the subsequent fitting functions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.fieldfitter.FieldFitter.fit_external">
+<code class="descname">fit_external</code><span class="sig-paren">(</span><em>cns=1</em>, <em>cms=1</em>, <em>use_pickle=False</em>, <em>pickle_name='default'</em>, <em>line_profile=False</em>, <em>recreate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter.fit_external"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.fit_external" title="Permalink to this definition">¶</a></dt>
+<dd><p>For fitting an external field in cartesian space.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not currently used or maintained.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.fieldfitter.FieldFitter.fit_solenoid">
+<code class="descname">fit_solenoid</code><span class="sig-paren">(</span><em>cfg_params</em>, <em>cfg_pickle</em>, <em>profile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter.fit_solenoid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.fit_solenoid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main fitting function for FieldFitter class.</p>
+<p>The typical magnetic field geometry for the Mu2E experiment is determined by one or more
+solenoids, with some contaminating external fields.  The purpose of this function is to fit
+a set of sparse magnetic field data that would, in practice, be generated by a field
+measurement device.</p>
+<dl class="docutils">
+<dt>The following assumptions must hold for the input data:</dt>
+<dd><ul class="first last simple">
+<li>The data is represented in a cylindrical coordiante system.</li>
+<li>The data forms a series of planes, where all planes intersect at R=0.</li>
+<li>All planes has the same R and Z values.</li>
+<li>All positive Phi values have an associated negative phi value, which uniquely defines a
+single plane in R-Z space.</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cfg_params</strong> (<em>namedtuple</em>) &#8211; &#8216;ns ms cns cms Reff func_version&#8217;</li>
+<li><strong>cfg_pickle</strong> (<em>namedtuple</em>) &#8211; &#8216;use_pickle save_pickle load_name save_name recreate&#8217;</li>
+<li><strong>profile</strong> (<em>Optional[bool]</em>) &#8211; True if you want to exit after the model is built, before
+actual fitting is performed for profiling. Default is False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing.  Generates class attributes after fitting, and saves parameter values, if
+saving is specified.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.fieldfitter.FieldFitter.merge_data_fit_res">
+<code class="descname">merge_data_fit_res</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter.merge_data_fit_res"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.merge_data_fit_res" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the fit results and the input data into one dataframe for easier
+comparison of results.</p>
+<p>Adds three columns to input_data: <cite>Br_fit, Bphi_fit, Bz_fit</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.fieldfitter.FieldFitter.pickle_results">
+<code class="descname">pickle_results</code><span class="sig-paren">(</span><em>pickle_name='default'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/fieldfitter.html#FieldFitter.pickle_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.fieldfitter.FieldFitter.pickle_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pickle the resulting Parameters after a fit is performed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Mu2E</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fitting Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-mu2e.fieldfitter">The <cite>fieldfitter</cite> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mu2eplots.html">Mu2e Plotting Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="dataframeprod.html" title="previous chapter">Prepping Data</a></li>
+      <li>Next: <a href="mu2eplots.html" title="next chapter">Mu2e Plotting Documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Brian Pollack.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/fitting.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -57,6 +57,13 @@
 <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">mpldatacursor</span> <span class="k">import</span> <span class="n">datacursor</span>
 
+<span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">widgets</span>
+<span class="kn">from</span> <span class="nn">ipywidgets</span> <span class="k">import</span> <span class="n">interact</span><span class="p">,</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">fixed</span>
+<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">clear_output</span>
+<span class="kn">from</span> <span class="nn">plotly.widgets</span> <span class="k">import</span> <span class="n">GraphWidget</span>
+
+
 
 <span class="c"># Definitions of mu2e-specific plotting functions.</span>
 <span class="c"># Plots can be displayed in matplotlib, plotly (offline mode), or plotly (html only)</span>
@@ -428,7 +435,6 @@
 
 
     <span class="k">return</span> <span class="n">save_name</span></div>
-
 </pre></div>
 
           </div>
@@ -450,6 +456,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
 </ul>
 
