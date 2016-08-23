@@ -32,8 +32,9 @@ class FieldFitter:
     The :class:`mu2e.fieldfitter.FieldFitter` takes a 3D set of field measurements and their
     associated position values, and performs a parametric fit.  The parameters and fit model are
     handled by the :mod:`lmfit` package, which in turn wraps the :mod:`scipy.optimize` module, which
-    actually performs the parameter optimization.  The default optimizer is the Levenberg–Marquardt
+    actually performs the parameter optimization.  The default optimizer is the Levenberg-Marquardt
     algorithm.
+
 
     The :func:`mu2e.fieldfitter.FieldFitter.fit` requires multiple cfg `namedtuples`, and performs
     the actual fitting (or recreates a fit for a given set of saved parameters).  After fitting, the
@@ -387,8 +388,8 @@ class FieldFitter:
     def merge_data_fit_res(self):
         """Combine the fit results and the input data into one dataframe for easier
         comparison of results.
-        Adds three columns to input_data::
-            Br_fit, Bphi_fit, Bz_fit
+
+        Adds three columns to input_data: `Br_fit, Bphi_fit, Bz_fit`
         """
         best_fit = self.result.best_fit
 
