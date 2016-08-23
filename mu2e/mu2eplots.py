@@ -13,6 +13,13 @@ import plotly.tools as tls
 import plotly.graph_objs as go
 from mpldatacursor import datacursor
 
+import ipywidgets as widgets
+from ipywidgets import interact, interactive, fixed
+from IPython.core.display import HTML
+from IPython.display import display, clear_output
+from plotly.widgets import GraphWidget
+
+
 
 # Definitions of mu2e-specific plotting functions.
 # Plots can be displayed in matplotlib, plotly (offline mode), or plotly (html only)
@@ -384,4 +391,3 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = N
 
 
     return save_name
-
