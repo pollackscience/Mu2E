@@ -18,6 +18,7 @@ from ipywidgets import interact, interactive, fixed
 from IPython.core.display import HTML
 from IPython.display import display, clear_output
 from plotly.widgets import GraphWidget
+import time
 
 
 
@@ -391,3 +392,122 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = N
 
 
     return save_name
+
+def mu2e_plot3d_ptrap_anim(df, x, y, z, df_xray):
+    '''Make animated plots using plotly widgets.
+
+    To run, you must do::
+        In [1]: g, fig = mu2e_plot3d_ptrap_anim(df, x, y, z, df_xray)
+        In [2]: g.plot(fig)
+    This must be broken into two lines.  Otherwise it will look like hot garbage.
+
+    '''
+    init_notebook_mode()
+    axis_title_size = 18
+    axis_tick_size = 14
+    layout = go.Layout(
+                    title='Particle Trapping Exercise',
+                    titlefont=dict(size=30),
+                    autosize=False,
+                    width=900,
+                    height=650,
+                    scene=dict(
+                            xaxis=dict(
+                                    title='{} (mm)'.format(x),
+                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                    tickfont=dict(size=axis_tick_size),
+                                    gridcolor='rgb(255, 255, 255)',
+                                    zerolinecolor='rgb(255, 255, 255)',
+                                    showbackground=True,
+                                    backgroundcolor='rgb(230, 230,230)',
+                                    ),
+                            yaxis=dict(
+                                    title='{} (mm)'.format(y),
+                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                    tickfont=dict(size=axis_tick_size),
+                                    gridcolor='rgb(255, 255, 255)',
+                                    zerolinecolor='rgb(255, 255, 255)',
+                                    showbackground=True,
+                                    backgroundcolor='rgb(230, 230,230)',
+                                    ),
+                            zaxis=dict(
+                                    title='{} (mm)'.format(z),
+                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
+                                    tickfont=dict(size=axis_tick_size),
+                                    gridcolor='rgb(255, 255, 255)',
+                                    zerolinecolor='rgb(255, 255, 255)',
+                                    showbackground=True,
+                                    backgroundcolor='rgb(230, 230,230)',
+                                    ),
+                            aspectmode='data',
+                            ),
+                    showlegend=True,
+                    legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
+                    )
+    class time_shifter:
+        def __init__(self):
+            self.x = df[df.sid==sids[0]][x]
+            self.y = df[df.sid==sids[0]][y]
+            self.z = df[df.sid==sids[0]][z]
+
+        def on_time_change(self, name, old_value, new_value):
+            self.x = df[df.sid==sids[new_value]][x]
+            self.y = df[df.sid==sids[new_value]][y]
+            self.z = df[df.sid==sids[new_value]][z]
+            self.replot()
+
+        def replot(self):
+            g.restyle({ 'x': [self.x], 'y': [self.y], 'z': [self.z] }, indices=[0])
+
+    sids = np.sort(df.sid.unique())
+
+    xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
+    df_xray = df_xray.query(xray_query).ix[0:50000]
+    xray_scat = go.Scatter3d(x=df_xray.zstop, y=df_xray.xstop, z=df_xray.ystop,
+        mode='markers',
+        marker=dict(size=3, color='black', opacity=0.08),
+        name = 'x-ray')
+    init_scat = go.Scatter3d(
+        x=df[df.sid==sids[0]][x],
+        y=df[df.sid==sids[0]][y],
+        z=df[df.sid==sids[0]][z],
+        mode='markers',
+        marker=dict(size=3, color='blue', opacity=0.7),
+        name = 'Data')
+
+    p_slider = widgets.FloatSlider(min=0, max=len(sids)-1, value=0, step=1)
+    p_slider.description = 'Time Shift'
+    p_slider.value=0
+    p_state = time_shifter()
+    p_slider.on_trait_change(p_state.on_time_change, 'value')
+
+    fig = go.Figure(data=[init_scat,xray_scat], layout=layout)
+    g = GraphWidget()
+    display(g)
+    display(p_slider)
+    #g.delete_traces([0,1])
+    #g.add_traces(go.Scatter3d(x=df[df.sid==sids[0]][x],
+    #                          y=df[df.sid==sids[0]][y],
+    #                          z=df[df.sid==sids[0]][z],
+    #                          mode='markers',
+    #                          marker=dict(size=3, color='blue', opacity=0.5),
+    #                          name = 'Data'))
+
+    #xx = np.linspace(1,10,20)
+    #yy = np.linspace(1,10,20)
+    #zz = np.linspace(1,10,20)
+    #g.restyle({ 'x': df[df.sid==sids[0]][x],
+    #            'y': df[df.sid==sids[0]][y],
+    #            'z': df[df.sid==sids[0]][z],
+    #g.restyle({ 'x': xx,
+    #            'y': yy,
+    #            'z': zz,
+    #            'mode': 'markers',
+    #            'marker':{'size':3,'opacity':0.5,'color':'blue'},
+    #            'type':'scatter3d' } )
+    #print 'wait for it...'
+    #time.sleep(5)
+    #g.plot(fig)
+    #print 'did it work?!'
+    return g, fig
+

@@ -35,7 +35,6 @@ class FieldFitter:
     actually performs the parameter optimization.  The default optimizer is the Levenberg-Marquardt
     algorithm.
 
-
     The :func:`mu2e.fieldfitter.FieldFitter.fit` requires multiple cfg `namedtuples`, and performs
     the actual fitting (or recreates a fit for a given set of saved parameters).  After fitting, the
     generated class members can be used for further analysis.
