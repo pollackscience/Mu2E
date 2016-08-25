@@ -14,12 +14,8 @@ import plotly.graph_objs as go
 from mpldatacursor import datacursor
 
 import ipywidgets as widgets
-from ipywidgets import interact, interactive, fixed
-from IPython.core.display import HTML
-from IPython.display import display, clear_output
+from IPython.display import display
 from plotly.widgets import GraphWidget
-import time
-
 
 
 # Definitions of mu2e-specific plotting functions.
@@ -58,6 +54,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
 
     if savename:
         plt.savefig(savename)
+
 
 def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_dir = None, df_fit = None):
     from mpl_toolkits.mplot3d import Axes3D
@@ -393,7 +390,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode = 'plotly_nb', info = None, save_dir = N
 
     return save_name
 
-def mu2e_plot3d_ptrap_anim(df, x, y, z, df_xray):
+def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2 = None):
     '''Make animated plots using plotly widgets.
 
     To run, you must do::
@@ -406,83 +403,123 @@ def mu2e_plot3d_ptrap_anim(df, x, y, z, df_xray):
     axis_title_size = 18
     axis_tick_size = 14
     layout = go.Layout(
-                    title='Particle Trapping Exercise',
-                    titlefont=dict(size=30),
-                    autosize=False,
-                    width=900,
-                    height=650,
-                    scene=dict(
-                            xaxis=dict(
-                                    title='{} (mm)'.format(x),
-                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                                    tickfont=dict(size=axis_tick_size),
-                                    gridcolor='rgb(255, 255, 255)',
-                                    zerolinecolor='rgb(255, 255, 255)',
-                                    showbackground=True,
-                                    backgroundcolor='rgb(230, 230,230)',
-                                    ),
-                            yaxis=dict(
-                                    title='{} (mm)'.format(y),
-                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                                    tickfont=dict(size=axis_tick_size),
-                                    gridcolor='rgb(255, 255, 255)',
-                                    zerolinecolor='rgb(255, 255, 255)',
-                                    showbackground=True,
-                                    backgroundcolor='rgb(230, 230,230)',
-                                    ),
-                            zaxis=dict(
-                                    title='{} (mm)'.format(z),
-                                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                                    tickfont=dict(size=axis_tick_size),
-                                    gridcolor='rgb(255, 255, 255)',
-                                    zerolinecolor='rgb(255, 255, 255)',
-                                    showbackground=True,
-                                    backgroundcolor='rgb(230, 230,230)',
-                                    ),
-                            aspectmode='data',
-                            ),
-                    showlegend=True,
-                    legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
-                    )
+        title='Particle Trapping Time Exercise',
+        titlefont=dict(size=30),
+        autosize=False,
+        width=900,
+        height=650,
+        scene=dict(
+                xaxis=dict(
+                        title='{} (mm)'.format(x),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                        range=[3700,17500],
+                        ),
+                yaxis=dict(
+                        title='{} (mm)'.format(y),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                        range=[-1000,1000],
+                        ),
+                zaxis=dict(
+                        title='{} (mm)'.format(z),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                        range=[-1000,1000],
+                        ),
+                aspectratio=dict(x=6,y=1,z=1),
+                aspectmode='manual',
+                camera = dict(
+                    eye=dict(x=1.99,y=-2,z=2)
+                ),
+            ),
+        showlegend=True,
+        legend=dict(x=0.8,y=0.9, font=dict(size=18, family='Overpass')),
+        )
     class time_shifter:
-        def __init__(self):
-            self.x = df[df.sid==sids[0]][x]
-            self.y = df[df.sid==sids[0]][y]
-            self.z = df[df.sid==sids[0]][z]
+        def __init__(self,group2=False):
+            self.x = df_group1[df_group1.sid==sids[0]][x]
+            self.y = df_group1[df_group1.sid==sids[0]][y]
+            self.z = df_group1[df_group1.sid==sids[0]][z]
+            self.group2=group2
+
+            if self.group2:
+                self.x2 = df_group2[df_group2.sid==sids[0]][x]
+                self.y2 = df_group2[df_group2.sid==sids[0]][y]
+                self.z2 = df_group2[df_group2.sid==sids[0]][z]
+
 
         def on_time_change(self, name, old_value, new_value):
-            self.x = df[df.sid==sids[new_value]][x]
-            self.y = df[df.sid==sids[new_value]][y]
-            self.z = df[df.sid==sids[new_value]][z]
+            self.x = df_group1[df_group1.sid==sids[new_value]][x]
+            self.y = df_group1[df_group1.sid==sids[new_value]][y]
+            self.z = df_group1[df_group1.sid==sids[new_value]][z]
+            if self.group2:
+                self.x2 = df_group2[df_group2.sid==sids[new_value]][x]
+                self.y2 = df_group2[df_group2.sid==sids[new_value]][y]
+                self.z2 = df_group2[df_group2.sid==sids[new_value]][z]
             self.replot()
 
         def replot(self):
             g.restyle({ 'x': [self.x], 'y': [self.y], 'z': [self.z] }, indices=[0])
+            if self.group2:
+                g.restyle({ 'x': [self.x2], 'y': [self.y2], 'z': [self.z2] }, indices=[1])
 
-    sids = np.sort(df.sid.unique())
+    group2=False
+    if isinstance(df_group2, pd.DataFrame):
+        group2=True
+        print 'true'
+    else:
+        print 'false'
+    sids = np.sort(df_group1.sid.unique())
 
     xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
-    df_xray = df_xray.query(xray_query).ix[0:50000]
+    df_xray = df_xray.query(xray_query).ix[0:40000]
+    scats = []
     xray_scat = go.Scatter3d(x=df_xray.zstop, y=df_xray.xstop, z=df_xray.ystop,
         mode='markers',
-        marker=dict(size=3, color='black', opacity=0.08),
+        marker=dict(size=3, color='black', opacity=0.1),
         name = 'x-ray')
     init_scat = go.Scatter3d(
-        x=df[df.sid==sids[0]][x],
-        y=df[df.sid==sids[0]][y],
-        z=df[df.sid==sids[0]][z],
+        x=df_group1[df_group1.sid==sids[0]][x],
+        y=df_group1[df_group1.sid==sids[0]][y],
+        z=df_group1[df_group1.sid==sids[0]][z],
         mode='markers',
-        marker=dict(size=3, color='blue', opacity=0.7),
-        name = 'Data')
+        marker=dict(size=5, color='red', opacity=0.7),
+        name = 'Long-Lived Muons')
+    scats.append(init_scat)
 
-    p_slider = widgets.FloatSlider(min=0, max=len(sids)-1, value=0, step=1)
+    if group2:
+        init_scat2 = go.Scatter3d(
+            x=df_group2[df_group2.sid==sids[0]][x],
+            y=df_group2[df_group2.sid==sids[0]][y],
+            z=df_group2[df_group2.sid==sids[0]][z],
+            mode='markers',
+            marker=dict(size=5, color='blue', opacity=0.7),
+            name = 'Normal Muons')
+    if group2:
+        scats.append(init_scat2)
+    scats.append(xray_scat)
+
+    p_slider = widgets.IntSlider(min=0, max=989, value=0, step=1)
     p_slider.description = 'Time Shift'
     p_slider.value=0
-    p_state = time_shifter()
+    p_state = time_shifter(group2)
     p_slider.on_trait_change(p_state.on_time_change, 'value')
 
-    fig = go.Figure(data=[init_scat,xray_scat], layout=layout)
-    g = GraphWidget()
+    fig = go.Figure(data=scats, layout=layout)
+    g = GraphWidget('https://plot.ly/~BroverCleveland/70/')
     display(g)
     display(p_slider)
     #g.delete_traces([0,1])
