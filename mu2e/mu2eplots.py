@@ -5,8 +5,6 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-# import matplotlib.ticker as mtick
-# from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import plotly.plotly as py
 from offline import init_notebook_mode, iplot, plot
 import plotly.tools as tls
@@ -56,7 +54,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
         plt.savefig(savename)
 
 
-def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_dir = None, df_fit = None):
+def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, df_fit=None):
     from mpl_toolkits.mplot3d import Axes3D
     del Axes3D
     '''Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).
@@ -76,7 +74,7 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         p = re.compile(r'(?:and)*\s*Phi\s*==\s*([-+]?(?:[0-9]*\.[0-9]+|[0-9]+))')
         phi_str = p.search(conditions)
         conditions_nophi = p.sub('', conditions)
-        conditions_nophi = re.sub(r'^\s*and\s*','',conditions_nophi)
+        conditions_nophi = re.sub(r'^\s*and\s*', '', conditions_nophi)
         conditions_nophi = conditions_nophi.strip()
         try:
             phi = float(phi_str.group(1))
@@ -86,33 +84,33 @@ def mu2e_plot3d(df, x, y, z, conditions = None, mode = 'mpl', info = None, save_
         df = df.query(conditions_nophi)
 
         # Make radii negative for negative phi values (for plotting purposes)
-        if phi != None:
+        if phi is not None:
             isc = np.isclose
-            if isc(phi,0):
+            if isc(phi, 0):
                 nphi = np.pi
             else:
                 nphi = phi-np.pi
-            df = df[(isc(phi,df.Phi)) | (isc(nphi,df.Phi))]
-            df.ix[isc(nphi,df.Phi), 'R']*=-1
+            df = df[(isc(phi, df.Phi)) | (isc(nphi, df.Phi))]
+            df.ix[isc(nphi, df.Phi), 'R'] *= -1
 
         conditions_title = conditions_nophi.replace(' and ', ', ')
-        conditions_title = conditions_title.replace('R!=0','')
+        conditions_title = conditions_title.replace('R!=0', '')
         conditions_title = conditions_title.strip()
         conditions_title = conditions_title.strip(',')
-        if phi != None:
-            conditions_title +=', Phi=={0:.2f}'.format(phi)
+        if phi is not None:
+            conditions_title += ', Phi=={0:.2f}'.format(phi)
 
     if mode not in _modes:
         raise ValueError(mode+' not in '+_modes)
 
     piv = df.pivot(x, y, z)
-    X=piv.index.values
-    Y=piv.columns.values
-    Z=np.transpose(piv.values)
-    Xi,Yi = np.meshgrid(X, Y)
+    X = piv.index.values
+    Y = piv.columns.values
+    Z = np.transpose(piv.values)
+    Xi, Yi = np.meshgrid(X, Y)
     if df_fit:
         piv_fit = df.pivot(x, y, z+'_fit')
-        Z_fit=np.transpose(piv_fit.values)
+        Z_fit = np.transpose(piv_fit.values)
         data_fit_diff = (Z - Z_fit)*10000
         Xa = np.concatenate(([X[0]],0.5*(X[1:]+X[:-1]),[X[-1]]))
         Ya = np.concatenate(([Y[0]],0.5*(Y[1:]+Y[:-1]),[Y[-1]]))
@@ -512,7 +510,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2 = None):
         scats.append(init_scat2)
     scats.append(xray_scat)
 
-    p_slider = widgets.IntSlider(min=0, max=989, value=0, step=1)
+    p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
     p_slider.description = 'Time Shift'
     p_slider.value=0
     p_state = time_shifter(group2)
