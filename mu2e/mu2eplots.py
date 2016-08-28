@@ -10,6 +10,7 @@ the user wants to share the plots.
 
 Example:
     Plotting in a `jupyter notebook`::
+
         In [1]: import os
         ...     from mu2e import mu2e_ext_path
         ...     from mu2e.dataframeprod import DataFrameMaker
