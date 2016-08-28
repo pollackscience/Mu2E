@@ -43,35 +43,78 @@
             
   <h1>Source code for mu2e.mu2eplots</h1><div class="highlight"><pre>
 <span class="c">#! /usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;Module for generating Mu2e plots.</span>
+
+<span class="sd">This module defines a host of useful functions for generating plots for various Mu2E datasets.  It</span>
+<span class="sd">is expected that these datasets be in the form of :class:`pandas.DataFrame` objects, and the</span>
+<span class="sd">independent and dependent variables are strings that correspond to DF columns.  These functions wrap</span>
+<span class="sd">calls to either :mod:`matplotlib` or :mod:`plotly`.  The latter has numerous modes, depending on how</span>
+<span class="sd">the user wants to share the plots.</span>
+
+
+<span class="sd">Example:</span>
+<span class="sd">    Plotting in a `jupyter notebook`::</span>
+<span class="sd">        In [1]: import os</span>
+<span class="sd">        ...     from mu2e import mu2e_ext_path</span>
+<span class="sd">        ...     from mu2e.dataframeprod import DataFrameMaker</span>
+<span class="sd">        ...     from mu2e.mu2eplots import mu2e_plot, mu2e_plot3d</span>
+<span class="sd">        ...     %matplotlib inline # for embedded mpl plots</span>
+<span class="sd">        ...     plt.rcParams[&#39;figure.figsize&#39;] = (12,8) # make them bigger</span>
+<span class="sd">        In [2]: df = DataFrameMaker(mu2e_ext_path+&#39;datafiles/Mau10/Standard_Maps/Mu2e_DSMap&#39;,</span>
+<span class="sd">        ...                         use_pickle = True).data_frame</span>
+<span class="sd">        In [3]: mu2e_plot(df, &#39;Z&#39;, &#39;Bz&#39;, &#39;Y==0 and X==0&#39;, mode=&#39;mpl&#39;) # mpl plot</span>
+<span class="sd">        In [4]: mu2e_plot3d(df, &#39;R&#39;, &#39;Z&#39;, &#39;Bz&#39;, &#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;,</span>
+<span class="sd">        ...                 df_fit=False, mode=&#39;plotly_nb&#39;) # plotly plot</span>
+
+<span class="sd">Todo:</span>
+<span class="sd">    * Allow for \*\*kwargs inheriting from mpl, map them for plotly as well.</span>
+<span class="sd">    * Build in more flexibility for particle trapping plots.</span>
+<span class="sd">    * Particle animation GraphWidget will not work with updated jupyter, keep an eye on dev.</span>
+
+
+<span class="sd">*2016 Brian Pollack, Northwestern University*</span>
+
+<span class="sd">brianleepollack@gmail.com</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="c"># import matplotlib.ticker as mtick</span>
-<span class="c"># from matplotlib.ticker import LinearLocator, FormatStrFormatter</span>
 <span class="kn">import</span> <span class="nn">plotly.plotly</span> <span class="k">as</span> <span class="nn">py</span>
-<span class="kn">from</span> <span class="nn">offline</span> <span class="k">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span><span class="p">,</span> <span class="n">plot</span>
 <span class="kn">import</span> <span class="nn">plotly.tools</span> <span class="k">as</span> <span class="nn">tls</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">mpldatacursor</span> <span class="k">import</span> <span class="n">datacursor</span>
-
 <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">widgets</span>
-<span class="kn">from</span> <span class="nn">ipywidgets</span> <span class="k">import</span> <span class="n">interact</span><span class="p">,</span> <span class="n">interactive</span><span class="p">,</span> <span class="n">fixed</span>
-<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">clear_output</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">plotly.widgets</span> <span class="k">import</span> <span class="n">GraphWidget</span>
+<span class="kn">from</span> <span class="nn">offline</span> <span class="k">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span><span class="p">,</span> <span class="n">plot</span>
 
 
+<div class="viewcode-block" id="mu2e_plot"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">savename</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate 2D plots, x vs y.</span>
 
-<span class="c"># Definitions of mu2e-specific plotting functions.</span>
-<span class="c"># Plots can be displayed in matplotlib, plotly (offline mode), or plotly (html only)</span>
-<span class="c"># Plot functions all take a dataframe input</span>
+<span class="sd">    Generate a 2D plot for a given DF and two columns. An optional selection string is applied to</span>
+<span class="sd">    the data via the :func:`pandas.DataFrame.query` interface, and is added to the title.  This</span>
+<span class="sd">    function supports matplotlib and various plotly plotting modes.</span>
 
-<div class="viewcode-block" id="mu2e_plot"><a class="viewcode-back" href="../../mu2eplots.html#mu2e.mu2eplots.mu2e_plot">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">savename</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Currently plotly can convert simple mpl plots directly into plotly.</span>
-<span class="sd">    Therefor, generate the mpl first, then convert to plotly if necessary.&#39;&#39;&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.DataFrame): The input DF, must contain columns with labels corresponding to the</span>
+<span class="sd">            &#39;x&#39; and &#39;y&#39; args.</span>
+<span class="sd">        x (str): Name of the independent variable.</span>
+<span class="sd">        y (str): Name of the dependent variable.</span>
+<span class="sd">        conditions (str, optional): A string adhering to the :mod:`numexpr` syntax used in</span>
+<span class="sd">            :func:`pandas.DataFrame.query`.</span>
+<span class="sd">        mode (str, optional): A string indicating which plotting package and method should be used.</span>
+<span class="sd">            Default is &#39;mpl&#39;. Valid values: [&#39;mpl&#39;, &#39;plotly&#39;, &#39;plotly_html&#39;, &#39;plotly_nb&#39;]</span>
+<span class="sd">        info (str, optional): Extra information to add to the title.</span>
+<span class="sd">        savename (str, optional): If not `None`, the plot will be saved to the indicated path and</span>
+<span class="sd">            file name.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Nothing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="s">&#39;plotly&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">]</span>
 
@@ -102,11 +145,33 @@
     <span class="k">if</span> <span class="n">savename</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savename</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="mu2e_plot3d"><a class="viewcode-back" href="../../mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">conditions</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">df_fit</span> <span class="o">=</span> <span class="k">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
-    <span class="k">del</span> <span class="n">Axes3D</span>
-    <span class="sd">&#39;&#39;&#39;Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).</span>
-<span class="sd">    For now, the mpl and plotly generation are seperate (may converge in future if necessary).&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="mu2e_plot3d"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">df_fit</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate 3D plots, x and y vs z.</span>
+
+<span class="sd">    Generate a 3D surface plot for a given DF and three columns. An optional selection string is</span>
+<span class="sd">    applied to the data via the :func:`pandas.DataFrame.query` interface, and is added to the title.</span>
+<span class="sd">    Extra processing is done to plot cylindrical coordinates if that is detected from `conditions`.</span>
+<span class="sd">    This function supports matplotlib and various plotly plotting modes.  If `df_fit` is specified,</span>
+<span class="sd">    `df` is plotted as a a scatter plot, and `df_fit` as a wireframe plot.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.DataFrame): The input DF, must contain columns with labels corresponding to the</span>
+<span class="sd">            &#39;x&#39;, &#39;y&#39;, and &#39;z&#39; args.</span>
+<span class="sd">        x (str): Name of the first independent variable.</span>
+<span class="sd">        y (str): Name of the second independent variable.</span>
+<span class="sd">        z (str): Name of the dependent variable.</span>
+<span class="sd">        conditions (str, optional): A string adhering to the :mod:`numexpr` syntax used in</span>
+<span class="sd">            :func:`pandas.DataFrame.query`.</span>
+<span class="sd">        mode (str, optional): A string indicating which plotting package and method should be used.</span>
+<span class="sd">            Default is &#39;mpl&#39;. Valid values: [&#39;mpl&#39;, &#39;plotly&#39;, &#39;plotly_html&#39;, &#39;plotly_nb&#39;]</span>
+<span class="sd">        info (str, optional): Extra information to add to the title.</span>
+<span class="sd">        save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The</span>
+<span class="sd">            file name is automated, based on the input args.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Name of saved image/plot, or None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="s">&#39;plotly&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">]</span>
     <span class="n">save_name</span> <span class="o">=</span> <span class="k">None</span>
@@ -122,7 +187,7 @@
         <span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;(?:and)*\s*Phi\s*==\s*([-+]?(?:[0-9]*\.[0-9]+|[0-9]+))&#39;</span><span class="p">)</span>
         <span class="n">phi_str</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
         <span class="n">conditions_nophi</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
-        <span class="n">conditions_nophi</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;^\s*and\s*&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">conditions_nophi</span><span class="p">)</span>
+        <span class="n">conditions_nophi</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;^\s*and\s*&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">conditions_nophi</span><span class="p">)</span>
         <span class="n">conditions_nophi</span> <span class="o">=</span> <span class="n">conditions_nophi</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">phi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">phi_str</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
@@ -132,70 +197,69 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">conditions_nophi</span><span class="p">)</span>
 
         <span class="c"># Make radii negative for negative phi values (for plotting purposes)</span>
-        <span class="k">if</span> <span class="n">phi</span> <span class="o">!=</span> <span class="k">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">phi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span><span class="p">:</span>
             <span class="n">isc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span>
-            <span class="k">if</span> <span class="n">isc</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">isc</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="n">nphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">nphi</span> <span class="o">=</span> <span class="n">phi</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">isc</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span><span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">isc</span><span class="p">(</span><span class="n">nphi</span><span class="p">,</span><span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">))]</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">isc</span><span class="p">(</span><span class="n">nphi</span><span class="p">,</span><span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">),</span> <span class="s">&#39;R&#39;</span><span class="p">]</span><span class="o">*=-</span><span class="mi">1</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">isc</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">isc</span><span class="p">(</span><span class="n">nphi</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">))]</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">isc</span><span class="p">(</span><span class="n">nphi</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">Phi</span><span class="p">),</span> <span class="s">&#39;R&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
 
         <span class="n">conditions_title</span> <span class="o">=</span> <span class="n">conditions_nophi</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; and &#39;</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="p">)</span>
-        <span class="n">conditions_title</span> <span class="o">=</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;R!=0&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">conditions_title</span> <span class="o">=</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;R!=0&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="n">conditions_title</span> <span class="o">=</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">conditions_title</span> <span class="o">=</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">phi</span> <span class="o">!=</span> <span class="k">None</span><span class="p">:</span>
-            <span class="n">conditions_title</span> <span class="o">+=</span><span class="s">&#39;, Phi=={0:.2f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">phi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="k">None</span><span class="p">:</span>
+            <span class="n">conditions_title</span> <span class="o">+=</span> <span class="s">&#39;, Phi=={0:.2f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_modes</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">mode</span><span class="o">+</span><span class="s">&#39; not in &#39;</span><span class="o">+</span><span class="n">_modes</span><span class="p">)</span>
 
+    <span class="c"># Format the coordinates</span>
     <span class="n">piv</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-    <span class="n">X</span><span class="o">=</span><span class="n">piv</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">Y</span><span class="o">=</span><span class="n">piv</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">Z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">piv</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-    <span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">piv</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">piv</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">piv</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">df_fit</span><span class="p">:</span>
         <span class="n">piv_fit</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">+</span><span class="s">&#39;_fit&#39;</span><span class="p">)</span>
-        <span class="n">Z_fit</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">piv_fit</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">Z_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">piv_fit</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="n">data_fit_diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">Z</span> <span class="o">-</span> <span class="n">Z_fit</span><span class="p">)</span><span class="o">*</span><span class="mi">10000</span>
-        <span class="n">Xa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">X</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),[</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
-        <span class="n">Ya</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">Y</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),[</span><span class="n">Y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
+        <span class="n">Xa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">X</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
+        <span class="n">Ya</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">Y</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="n">Y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
 
+    <span class="c"># Prep save area</span>
     <span class="k">if</span> <span class="n">save_dir</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_dir</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
-        <span class="c">#save_name = &#39;{0}_{1}{2}_{3}&#39;.format(z,x,y,&#39;_&#39;.join([i for i in conditions.split() if i!=&#39;and&#39;]))</span>
-        <span class="n">save_name</span> <span class="o">=</span> <span class="s">&#39;{0}_{1}{2}_{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="s">&#39;and&#39;</span><span class="p">]))</span>
+        <span class="n">save_name</span> <span class="o">=</span> <span class="s">&#39;{0}_{1}{2}_{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">conditions_title</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s">&#39;and&#39;</span><span class="p">]))</span>
         <span class="n">save_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[&lt;&gt;=!\s]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">save_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">df_fit</span><span class="p">:</span>
             <span class="n">save_name</span> <span class="o">+=</span> <span class="s">&#39;_fit&#39;</span>
 
+    <span class="c"># Start plotting</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;mpl&#39;</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s">&#39;3d&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">df_fit</span><span class="p">:</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Yi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="s">&#39;ko&#39;</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">2</span> <span class="p">)</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">plot_wireframe</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">Z_fit</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;green&#39;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Yi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="s">&#39;ko&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">plot_wireframe</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">Z_fit</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;green&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">antialiased</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
-
-        <span class="c">#fig.zaxis.set_major_locator(LinearLocator(10))</span>
-        <span class="c">#fig.zaxis.set_major_formatter(FormatStrFormatter(&#39;%.02f&#39;))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">),</span>
+                             <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">antialiased</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
 
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="s">&#39; (mm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="s">&#39; (mm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">z</span><span class="o">+</span><span class="s">&#39; (T)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
-        <span class="c">#fig.zaxis.set_major_formatter(mtick.FormatStrFormatter(&#39;%.1e&#39;))</span>
-        <span class="c">#fig.zaxis.get_major_formatter().set_useOffset(True)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">ticklabel_format</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s">&#39;sci&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span><span class="n">pad</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&#39;{0} vs {1} and {2} for DS</span><span class="se">\n</span><span class="s">{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">conditions_title</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">labelpad</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s">&#39;out&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&#39;{0} vs {1} and {2} for DS</span><span class="se">\n</span><span class="s">{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">conditions_title</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mf">35.</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">save_dir</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">)</span>
@@ -205,17 +269,19 @@
             <span class="n">ax2</span> <span class="o">=</span> <span class="n">fig2</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
             <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="p">)</span>
             <span class="n">min_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">max_val</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">min_val</span><span class="p">)))</span> <span class="o">&gt;</span><span class="mi">5</span><span class="p">:</span>
-                <span class="n">heat</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Xa</span><span class="p">,</span><span class="n">Ya</span><span class="p">,</span><span class="n">data_fit_diff</span><span class="p">,</span><span class="n">vmin</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">max_val</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">min_val</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">heat</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Xa</span><span class="p">,</span> <span class="n">Ya</span><span class="p">,</span> <span class="n">data_fit_diff</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                      <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">))</span>
                 <span class="n">cb</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">heat</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
                 <span class="n">cb_ticks</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_yticklabels</span><span class="p">()</span>
                 <span class="n">cb_ticks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&lt; -5&#39;</span>
                 <span class="n">cb_ticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&gt; 5&#39;</span>
                 <span class="n">cb_ticks</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">cb_ticks</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">heat</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Xa</span><span class="p">,</span><span class="n">Ya</span><span class="p">,</span><span class="n">data_fit_diff</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">))</span>
+                <span class="n">heat</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Xa</span><span class="p">,</span> <span class="n">Ya</span><span class="p">,</span> <span class="n">data_fit_diff</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;viridis&#39;</span><span class="p">))</span>
                 <span class="n">cb</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">heat</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&#39;{0} vs {1} and {2} for DS</span><span class="se">\n</span><span class="s">{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">conditions_title</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&#39;{0} vs {1} and {2} for DS</span><span class="se">\n</span><span class="s">{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">conditions_title</span><span class="p">),</span>
+                      <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
             <span class="n">cb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;Data-Fit (G)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
             <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="s">&#39; (mm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
             <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="s">&#39; (mm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
@@ -223,105 +289,111 @@
             <span class="k">if</span> <span class="n">save_dir</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;_heat.pdf&#39;</span><span class="p">)</span>
 
-
     <span class="k">elif</span> <span class="s">&#39;plotly&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="n">axis_title_size</span> <span class="o">=</span> <span class="mi">18</span>
         <span class="n">axis_tick_size</span> <span class="o">=</span> <span class="mi">14</span>
         <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
-                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{0} vs {1} and {2} for DS&lt;br&gt;{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">conditions_title</span><span class="p">),</span>
-                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
-                        <span class="n">autosize</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
-                        <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">,</span>
-                        <span class="n">scene</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (T)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="p">),</span>
-                        <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                        <span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Overpass&#39;</span><span class="p">)),</span>
-                        <span class="p">)</span>
+            <span class="n">title</span><span class="o">=</span><span class="s">&#39;{0} vs {1} and {2} for DS&lt;br&gt;{3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">conditions_title</span><span class="p">),</span>
+            <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
+            <span class="n">autosize</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">,</span>
+            <span class="n">scene</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (T)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Overpass&#39;</span><span class="p">)),</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">df_fit</span><span class="p">:</span>
-            <span class="n">scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">=</span><span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
-                <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">=</span><span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
                 <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;rgb(0, 0, 0)&#39;</span><span class="p">,</span>
                             <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;rgb(0, 0, 0)&#39;</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Data&#39;</span><span class="p">)</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">&#39;Data&#39;</span><span class="p">)</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">scat</span><span class="p">]</span>
             <span class="n">line_marker</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;green&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">do_leg</span> <span class="o">=</span> <span class="k">True</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">Z_fit</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">do_leg</span><span class="p">:</span>
-                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;lines&#39;</span><span class="p">,</span>
-                        <span class="n">line</span><span class="o">=</span><span class="n">line_marker</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Fit&#39;</span><span class="p">,</span><span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;fitgroup&#39;</span><span class="p">))</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;lines&#39;</span><span class="p">,</span>
+                                     <span class="n">line</span><span class="o">=</span><span class="n">line_marker</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Fit&#39;</span><span class="p">,</span>
+                                     <span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;fitgroup&#39;</span><span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;lines&#39;</span><span class="p">,</span>
-                        <span class="n">line</span><span class="o">=</span><span class="n">line_marker</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Fit&#39;</span><span class="p">,</span><span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;fitgroup&#39;</span><span class="p">,</span><span class="n">showlegend</span><span class="o">=</span><span class="k">False</span><span class="p">))</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;lines&#39;</span><span class="p">,</span>
+                                     <span class="n">line</span><span class="o">=</span><span class="n">line_marker</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Fit&#39;</span><span class="p">,</span>
+                                     <span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;fitgroup&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="n">do_leg</span> <span class="o">=</span> <span class="k">False</span>
 
-            <span class="n">z_offset</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span><span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">textz</span><span class="o">=</span><span class="p">[[</span><span class="s">&#39;x: &#39;</span><span class="o">+</span><span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Xi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;&lt;br&gt;y: &#39;</span><span class="o">+</span><span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Yi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">+</span>
-                <span class="s">&#39;&lt;br&gt;z: &#39;</span><span class="o">+</span><span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span>
-                <span class="nb">range</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
-            <span class="n">proj_z</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">z</span> <span class="c">#projection in the z-direction</span>
-            <span class="n">colorsurfz</span><span class="o">=</span><span class="n">proj_z</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span><span class="p">,</span><span class="n">data_fit_diff</span><span class="p">)</span>
-            <span class="n">tracez</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Surface</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="n">z_offset</span><span class="p">,</span>
-                <span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="p">,</span>
-                <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="p">,</span>
-                <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span>
-                <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Data-Fit (G)&#39;</span><span class="p">,</span>
+            <span class="c"># For hovertext</span>
+            <span class="n">z_offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span><span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span><span class="o">*</span><span class="mf">0.3</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">textz</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&#39;x: &#39;</span><span class="o">+</span><span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Xi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;&lt;br&gt;y: &#39;</span><span class="o">+</span><span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Yi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="o">+</span>
+                      <span class="s">&#39;&lt;br&gt;z: &#39;</span> <span class="o">+</span> <span class="s">&#39;{:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span>
+                      <span class="nb">range</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data_fit_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+            <span class="c"># For heatmap</span>
+
+            <span class="c"># projection in the z-direction</span>
+            <span class="k">def</span> <span class="nf">proj_z</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">z</span>
+            <span class="n">colorsurfz</span> <span class="o">=</span> <span class="n">proj_z</span><span class="p">(</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="p">,</span> <span class="n">data_fit_diff</span><span class="p">)</span>
+            <span class="n">tracez</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Surface</span><span class="p">(</span>
+                <span class="n">z</span><span class="o">=</span><span class="n">z_offset</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span> <span class="n">zmin</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">zmax</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;residual&#39;</span><span class="p">,</span>
+                <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">showscale</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">surfacecolor</span><span class="o">=</span><span class="n">colorsurfz</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">textz</span><span class="p">,</span>
+                <span class="n">hoverinfo</span><span class="o">=</span><span class="s">&#39;text&#39;</span><span class="p">,</span>
+                <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;Data-Fit (G)&#39;</span><span class="p">,</span>
                     <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">),</span>
                     <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
                     <span class="n">xanchor</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">),</span>
-                <span class="n">zmin</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">zmax</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;residual&#39;</span><span class="p">,</span>
-                <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                <span class="n">showscale</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                <span class="n">surfacecolor</span><span class="o">=</span><span class="n">colorsurfz</span><span class="p">,</span>
-                <span class="n">text</span><span class="o">=</span><span class="n">textz</span><span class="p">,</span>
-                <span class="n">hoverinfo</span><span class="o">=</span><span class="s">&#39;text&#39;</span><span class="p">,</span>
-               <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tracez</span><span class="p">)</span>
 
-
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">surface</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Surface</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">Z</span><span class="p">,</span>
-                <span class="n">colorbar</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">ColorBar</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Tesla&#39;</span><span class="p">,</span><span class="n">titleside</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">),</span> <span class="n">colorscale</span> <span class="o">=</span> <span class="s">&#39;Viridis&#39;</span><span class="p">)</span>
+            <span class="n">surface</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Surface</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">Xi</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">Yi</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">Z</span><span class="p">,</span>
+                <span class="n">colorbar</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">ColorBar</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Tesla&#39;</span><span class="p">,</span> <span class="n">titleside</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">),</span>
+                <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">)</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">surface</span><span class="p">]</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
 
+        <span class="c"># Generate Plot</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">:</span>
             <span class="n">init_notebook_mode</span><span class="p">()</span>
             <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly_html_img&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">save_dir</span><span class="p">:</span>
-                <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.html&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">,</span> <span class="n">image_filename</span> <span class="o">=</span> <span class="n">save_name</span><span class="p">)</span>
+                <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.html&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">,</span>
+                     <span class="n">image_filename</span><span class="o">=</span><span class="n">save_name</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">:</span>
@@ -332,15 +404,34 @@
 
     <span class="k">return</span> <span class="n">save_name</span></div>
 
-<div class="viewcode-block" id="mu2e_plot3d_ptrap"><a class="viewcode-back" href="../../mu2eplots.html#mu2e.mu2eplots.mu2e_plot3d_ptrap">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">xray</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
-    <span class="k">del</span> <span class="n">Axes3D</span>
-    <span class="sd">&#39;&#39;&#39;Currently, plotly cannot convert 3D mpl plots directly into plotly (without a lot of work).</span>
-<span class="sd">    For now, the mpl and plotly generation are seperate (may converge in future if necessary).&#39;&#39;&#39;</span>
 
-    <span class="n">_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mpl&#39;</span><span class="p">,</span> <span class="s">&#39;plotly&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html_img&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="mu2e_plot3d_ptrap"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;plotly_nb&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="k">None</span><span class="p">,</span>
+                      <span class="n">xray</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.</span>
+
+<span class="sd">    Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points</span>
+<span class="sd">    that are typically plotted, :mod:`matplotlib` is not supported.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.DataFrame): The input DF, must contain columns with labels corresponding to the</span>
+<span class="sd">            &#39;x&#39;, &#39;y&#39;, and &#39;z&#39; args.</span>
+<span class="sd">        x (str): Name of the first variable.</span>
+<span class="sd">        y (str): Name of the second variable.</span>
+<span class="sd">        z (str): Name of the third variable.</span>
+<span class="sd">        mode (str, optional): A string indicating which plotting package and method should be used.</span>
+<span class="sd">            Default is &#39;mpl&#39;. Valid values: [&#39;mpl&#39;, &#39;plotly&#39;, &#39;plotly_html&#39;, &#39;plotly_nb&#39;]</span>
+<span class="sd">        info (str, optional): Extra information to add to the title.</span>
+<span class="sd">        save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The</span>
+<span class="sd">            file name is automated, based on the input args.</span>
+<span class="sd">        color: (str, optional): Name of fourth varible, represented by color of marker.</span>
+<span class="sd">        xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of the</span>
+<span class="sd">            material that is typically included during particle simulation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Name of saved image/plot, or None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;plotly&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_html_img&#39;</span><span class="p">,</span> <span class="s">&#39;plotly_nb&#39;</span><span class="p">]</span>
     <span class="n">save_name</span> <span class="o">=</span> <span class="k">None</span>
-
 
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_modes</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">mode</span><span class="o">+</span><span class="s">&#39; not in &#39;</span><span class="o">+</span><span class="n">_modes</span><span class="p">)</span>
@@ -355,65 +446,77 @@
         <span class="n">axis_title_size</span> <span class="o">=</span> <span class="mi">18</span>
         <span class="n">axis_tick_size</span> <span class="o">=</span> <span class="mi">14</span>
         <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
-                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;Particle Trapping Exercise&#39;</span><span class="p">,</span>
-                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
-                        <span class="n">autosize</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
-                        <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">,</span>
-                        <span class="n">scene</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                                        <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
-                                        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
-                                        <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
-                                        <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
-                                        <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                                        <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                                        <span class="p">),</span>
-                                <span class="n">aspectmode</span><span class="o">=</span><span class="s">&#39;data&#39;</span><span class="p">,</span>
-                                <span class="p">),</span>
-                        <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
-                        <span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Overpass&#39;</span><span class="p">)),</span>
-                        <span class="p">)</span>
+            <span class="n">title</span><span class="o">=</span><span class="s">&#39;Particle Trapping Exercise&#39;</span><span class="p">,</span>
+            <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
+            <span class="n">autosize</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">,</span>
+            <span class="n">scene</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
+                    <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                    <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                    <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                    <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                    <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">aspectmode</span><span class="o">=</span><span class="s">&#39;data&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Overpass&#39;</span><span class="p">)),</span>
+        <span class="p">)</span>
         <span class="n">scat_plots</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="nb">print</span> <span class="nb">type</span><span class="p">(</span><span class="n">xray</span><span class="p">)</span>
+        <span class="c"># Set the xray image if available</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="n">xray_query</span> <span class="o">=</span> <span class="s">&#39;xstop&lt;1000 and tstop&lt;200 and sqrt(xstop*xstop+ystop*ystop)&lt;900&#39;</span>
             <span class="n">xray</span> <span class="o">=</span> <span class="n">xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">)</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">70000</span><span class="p">]</span>
-            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">,</span>
-                <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.06</span><span class="p">),</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;x-ray&#39;</span><span class="p">))</span>
+            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.06</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span>
-                <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">color</span><span class="p">],</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Data&#39;</span><span class="p">))</span>
+            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">color</span><span class="p">],</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;Muons&#39;</span><span class="p">))</span>
+
+        <span class="c"># If there is an xray, treat this as main</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;Muons&#39;</span><span class="p">))</span>
+        <span class="c"># If there&#39;s no xray, then treat this as an xray</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span>
-                <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Data&#39;</span><span class="p">))</span>
+            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">))</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">scat_plots</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
 
@@ -422,7 +525,8 @@
             <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly_html_img&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">save_dir</span><span class="p">:</span>
-                <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.html&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">,</span> <span class="n">image_filename</span> <span class="o">=</span> <span class="n">save_name</span><span class="p">)</span>
+                <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">save_dir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.html&#39;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">,</span>
+                     <span class="n">image_filename</span><span class="o">=</span><span class="n">save_name</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">plot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly_html&#39;</span><span class="p">:</span>
@@ -433,8 +537,158 @@
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;plotly&#39;</span><span class="p">:</span>
             <span class="n">py</span><span class="o">.</span><span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
-
     <span class="k">return</span> <span class="n">save_name</span></div>
+
+
+<div class="viewcode-block" id="mu2e_plot3d_ptrap_anim"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap_anim">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap_anim</span><span class="p">(</span><span class="n">df_group1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">df_xray</span><span class="p">,</span> <span class="n">df_group2</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of</span>
+<span class="sd">    charged particles.</span>
+
+<span class="sd">    Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points</span>
+<span class="sd">    that are typically plotted, :mod:`matplotlib` is not supported. A slider widget is generated,</span>
+<span class="sd">    corresponding to the evolution in time.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        * Currently many options are hard-coded.</span>
+<span class="sd">        * Use `g.plot(fig)` after executing this function.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df_group1 (pandas.DataFrame): The input DF, must contain columns with labels corresponding</span>
+<span class="sd">        to the &#39;x&#39;, &#39;y&#39;, and &#39;z&#39; args.</span>
+<span class="sd">        x (str): Name of the first variable.</span>
+<span class="sd">        y (str): Name of the second variable.</span>
+<span class="sd">        z (str): Name of the third variable.</span>
+<span class="sd">        df_xray: (:class:`pandas.DataFrame`): A seperate DF, representing the geometry of the</span>
+<span class="sd">            material that is typically included during particle simulation.</span>
+<span class="sd">        df_group2: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry</span>
+<span class="sd">            of the material that is typically included during particle simulation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (g, fig) for plotting.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">init_notebook_mode</span><span class="p">()</span>
+    <span class="n">axis_title_size</span> <span class="o">=</span> <span class="mi">18</span>
+    <span class="n">axis_tick_size</span> <span class="o">=</span> <span class="mi">14</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s">&#39;Particle Trapping Time Exercise&#39;</span><span class="p">,</span>
+        <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
+        <span class="n">autosize</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">,</span>
+        <span class="n">scene</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="mi">3700</span><span class="p">,</span> <span class="mi">17500</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+                <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
+                <span class="n">titlefont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_title_size</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Arial Black&#39;</span><span class="p">),</span>
+                <span class="n">tickfont</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">axis_tick_size</span><span class="p">),</span>
+                <span class="n">gridcolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
+                <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
+                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">aspectratio</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">aspectmode</span><span class="o">=</span><span class="s">&#39;manual&#39;</span><span class="p">,</span>
+            <span class="n">camera</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">eye</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">1.99</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">showlegend</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">&#39;Overpass&#39;</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">time_shifter</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group2</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">group2</span> <span class="o">=</span> <span class="n">group2</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">z2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">on_time_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">old_value</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">z2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">replot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]},</span> <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x2</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y2</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z2</span><span class="p">]},</span> <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">group2</span> <span class="o">=</span> <span class="k">False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_group2</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">group2</span> <span class="o">=</span> <span class="k">True</span>
+        <span class="nb">print</span> <span class="s">&#39;true&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s">&#39;false&#39;</span>
+    <span class="n">sids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+    <span class="n">xray_query</span> <span class="o">=</span> <span class="s">&#39;xstop&lt;1000 and tstop&lt;200 and sqrt(xstop*xstop+ystop*ystop)&lt;900&#39;</span>
+    <span class="n">df_xray</span> <span class="o">=</span> <span class="n">df_xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">)</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">40000</span><span class="p">]</span>
+    <span class="n">scats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">xray_scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;x-ray&#39;</span><span class="p">)</span>
+    <span class="n">init_scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">],</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">],</span>
+        <span class="n">z</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">],</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;red&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;Long-Lived Muons&#39;</span><span class="p">)</span>
+    <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init_scat</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">group2</span><span class="p">:</span>
+        <span class="n">init_scat2</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">],</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">&#39;Normal Muons&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">group2</span><span class="p">:</span>
+        <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init_scat2</span><span class="p">)</span>
+    <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xray_scat</span><span class="p">)</span>
+
+    <span class="n">p_slider</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntSlider</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">130</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">continuous_update</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
+    <span class="n">p_slider</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;Time Shift&#39;</span>
+    <span class="n">p_slider</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">p_state</span> <span class="o">=</span> <span class="n">time_shifter</span><span class="p">(</span><span class="n">group2</span><span class="p">)</span>
+    <span class="n">p_slider</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">p_state</span><span class="o">.</span><span class="n">on_time_change</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">scats</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">GraphWidget</span><span class="p">(</span><span class="s">&#39;https://plot.ly/~BroverCleveland/70/&#39;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">p_slider</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="n">fig</span></div>
 </pre></div>
 
           </div>
@@ -457,7 +711,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
 </ul>
 
 <div class="relations">

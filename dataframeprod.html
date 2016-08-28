@@ -115,9 +115,9 @@ for further use.  Each pickle contains a single DF.</p>
 <li><strong>file_name</strong> (<em>str</em>) &#8211; File path and name for csv/txt/pickle file.  Do not include suffix.</li>
 <li><strong>field_map_version</strong> (<em>str</em>) &#8211; Specify field map type and version (Mau9, Mau10,
 GA01/2/3/4/5)</li>
-<li><strong>header_names</strong> (<em>Optional[List[str]]</em>) &#8211; List of headers if default is not valid.
+<li><strong>header_names</strong> (<code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">str</span></code>, optional) &#8211; List of headers if default is not valid.
 Default is <cite>[&#8216;X&#8217;, &#8216;Y&#8217;, &#8216;Z&#8217;, &#8216;Bx&#8217;, &#8216;By&#8217;, &#8216;Bz&#8217;]</cite>.</li>
-<li><strong>use_pickle</strong> (<em>Optional[bool]</em>) &#8211; Load data from pickle (instead of csv). Default is
+<li><strong>use_pickle</strong> (<em>bool, optional</em>) &#8211; Load data from pickle (instead of csv). Default is
 False.</li>
 </ul>
 </td>
@@ -133,7 +133,7 @@ False.</li>
 <dl class="attribute">
 <dt id="mu2e.dataframeprod.DataFrameMaker.field_map_version">
 <code class="descname">field_map_version</code><a class="headerlink" href="#mu2e.dataframeprod.DataFrameMaker.field_map_version" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Optional[str]</em> &#8211; Mau or GA simulation type. Default to &#8216;Mau10&#8217;.</p>
+<dd><p><em>str, optional</em> &#8211; Mau or GA simulation type. Default to &#8216;Mau10&#8217;.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -169,7 +169,7 @@ modified.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>offset</strong> (<em>Optional[float]</em>) &#8211; If specified, apply this offset to x-axis. Value should be in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>offset</strong> (<em>float, optional</em>) &#8211; If specified, apply this offset to x-axis. Value should be in
 millimeters.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Nothing. Operations are performed in place, and modify the internal <cite>data_frame</cite>.</td>
@@ -186,7 +186,7 @@ millimeters.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>suffix</strong> (<em>Optional[str]</em>) &#8211; Attach a suffix to the file name, before the &#8216;.p&#8217; suffix.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>suffix</strong> (<em>str, optional</em>) &#8211; Attach a suffix to the file name, before the &#8216;.p&#8217; suffix.</td>
 </tr>
 </tbody>
 </table>
@@ -204,7 +204,7 @@ millimeters.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>input_name</strong> (<em>str</em>) &#8211; file path name without suffix.</li>
-<li><strong>make_pickle</strong> (<em>Optional[bool]</em>) &#8211; If <cite>True</cite>, no dfs are returned, and a pickle is created
+<li><strong>make_pickle</strong> (<em>bool, optional</em>) &#8211; If <cite>True</cite>, no dfs are returned, and a pickle is created
 containing a tuple of the relevant dfs.</li>
 </ul>
 </td>
@@ -243,7 +243,7 @@ containing a tuple of the relevant dfs.</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mu2eplots.html">Mu2e Plotting Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
 </ul>
 
 <div class="relations">

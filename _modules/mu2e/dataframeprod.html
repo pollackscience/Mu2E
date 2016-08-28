@@ -117,14 +117,14 @@
 <span class="sd">        file_name (str): File path and name for csv/txt/pickle file.  Do not include suffix.</span>
 <span class="sd">        field_map_version (str): Specify field map type and version (Mau9, Mau10,</span>
 <span class="sd">            GA01/2/3/4/5)</span>
-<span class="sd">        header_names (Optional[List[str]]): List of headers if default is not valid.</span>
+<span class="sd">        header_names (:obj:`list` of :obj:`str`, optional): List of headers if default is not valid.</span>
 <span class="sd">            Default is `[&#39;X&#39;, &#39;Y&#39;, &#39;Z&#39;, &#39;Bx&#39;, &#39;By&#39;, &#39;Bz&#39;]`.</span>
-<span class="sd">        use_pickle (Optional[bool]): Load data from pickle (instead of csv). Default is</span>
+<span class="sd">        use_pickle (bool, optional): Load data from pickle (instead of csv). Default is</span>
 <span class="sd">            False.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        file_name (str): File path and name, no suffix.</span>
-<span class="sd">        field_map_version (Optional[str]): Mau or GA simulation type. Default to &#39;Mau10&#39;.</span>
+<span class="sd">        field_map_version (str, optional): Mau or GA simulation type. Default to &#39;Mau10&#39;.</span>
 <span class="sd">        data_frame (pandas.DataFrame): Output DF.</span>
 <span class="sd">        input_source (str): Indicator for input, `pickle` or `csv`.</span>
 
@@ -205,7 +205,7 @@
 <span class="sd">            * GA field maps are converted from meters to millimeters.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            offset (Optional[float]): If specified, apply this offset to x-axis. Value should be in</span>
+<span class="sd">            offset (float, optional): If specified, apply this offset to x-axis. Value should be in</span>
 <span class="sd">                millimeters.</span>
 
 <span class="sd">        Returns:</span>
@@ -261,7 +261,7 @@
         <span class="sd">&quot;&quot;&quot;Create a pickle file containing the data_frame, in the same dir as the input.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            suffix (Optional[str]): Attach a suffix to the file name, before the &#39;.p&#39; suffix.</span>
+<span class="sd">            suffix (str, optional): Attach a suffix to the file name, before the &#39;.p&#39; suffix.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="o">+</span><span class="n">suffix</span><span class="o">+</span><span class="s">&#39;.p&#39;</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="n">pkl</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
@@ -284,7 +284,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">         input_name (str): file path name without suffix.</span>
-<span class="sd">         make_pickle (Optional[bool]): If `True`, no dfs are returned, and a pickle is created</span>
+<span class="sd">         make_pickle (bool, optional): If `True`, no dfs are returned, and a pickle is created</span>
 <span class="sd">             containing a tuple of the relevant dfs.</span>
 
 <span class="sd">    Return:</span>
@@ -357,7 +357,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../mu2eplots.html">Mu2e Plotting Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
 </ul>
 
 <div class="relations">
