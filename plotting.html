@@ -55,20 +55,20 @@ independent and dependent variables are strings that correspond to DF columns.  
 calls to either <code class="xref py py-mod docutils literal"><span class="pre">matplotlib</span></code> or <code class="xref py py-mod docutils literal"><span class="pre">plotly</span></code>.  The latter has numerous modes, depending on how
 the user wants to share the plots.</p>
 <p class="rubric">Example</p>
-<dl class="docutils">
-<dt>Plotting in a <cite>jupyter notebook</cite>::</dt>
-<dd>In [1]: import os
-...     from mu2e import mu2e_ext_path
-...     from mu2e.dataframeprod import DataFrameMaker
-...     from mu2e.mu2eplots import mu2e_plot, mu2e_plot3d
-...     %matplotlib inline # for embedded mpl plots
-...     plt.rcParams[&#8216;figure.figsize&#8217;] = (12,8) # make them bigger
-In [2]: df = DataFrameMaker(mu2e_ext_path+&#8217;datafiles/Mau10/Standard_Maps/Mu2e_DSMap&#8217;,
-...                         use_pickle = True).data_frame
-In [3]: mu2e_plot(df, &#8216;Z&#8217;, &#8216;Bz&#8217;, &#8216;Y==0 and X==0&#8217;, mode=&#8217;mpl&#8217;) # mpl plot
-In [4]: mu2e_plot3d(df, &#8216;R&#8217;, &#8216;Z&#8217;, &#8216;Bz&#8217;, &#8216;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#8217;,
-...                 df_fit=False, mode=&#8217;plotly_nb&#8217;) # plotly plot</dd>
-</dl>
+<p>Plotting in a <cite>jupyter notebook</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">os</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e</span> <span class="k">import</span> <span class="n">mu2e_ext_path</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.dataframeprod</span> <span class="k">import</span> <span class="n">DataFrameMaker</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.mu2eplots</span> <span class="k">import</span> <span class="n">mu2e_plot</span><span class="p">,</span> <span class="n">mu2e_plot3d</span>
+<span class="o">...</span>     <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span> <span class="c"># for embedded mpl plots</span>
+<span class="o">...</span>     <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">&#39;figure.figsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span> <span class="c"># make them bigger</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="n">mu2e_ext_path</span><span class="o">+</span><span class="s">&#39;datafiles/Mau10/Standard_Maps/Mu2e_DSMap&#39;</span><span class="p">,</span>
+<span class="o">...</span>                         <span class="n">use_pickle</span> <span class="o">=</span> <span class="k">True</span><span class="p">)</span><span class="o">.</span><span class="n">data_frame</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">mu2e_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span> <span class="s">&#39;Y==0 and X==0&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">)</span> <span class="c"># mpl plot</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span> <span class="s">&#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;</span><span class="p">,</span>
+<span class="o">...</span>                 <span class="n">df_fit</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;plotly_nb&#39;</span><span class="p">)</span> <span class="c"># plotly plot</span>
+</pre></div>
+</div>
 <div class="admonition-todo admonition" id="index-0">
 <p class="first admonition-title">Todo</p>
 <ul class="last simple">
