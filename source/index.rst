@@ -23,7 +23,7 @@ Contents:
    field_view
    dataframeprod
    fitting
-   mu2eplots
+   plotting
 
 
 

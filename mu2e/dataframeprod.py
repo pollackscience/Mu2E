@@ -73,14 +73,14 @@ class DataFrameMaker(object):
         file_name (str): File path and name for csv/txt/pickle file.  Do not include suffix.
         field_map_version (str): Specify field map type and version (Mau9, Mau10,
             GA01/2/3/4/5)
-        header_names (Optional[List[str]]): List of headers if default is not valid.
+        header_names (:obj:`list` of :obj:`str`, optional): List of headers if default is not valid.
             Default is `['X', 'Y', 'Z', 'Bx', 'By', 'Bz']`.
-        use_pickle (Optional[bool]): Load data from pickle (instead of csv). Default is
+        use_pickle (bool, optional): Load data from pickle (instead of csv). Default is
             False.
 
     Attributes:
         file_name (str): File path and name, no suffix.
-        field_map_version (Optional[str]): Mau or GA simulation type. Default to 'Mau10'.
+        field_map_version (str, optional): Mau or GA simulation type. Default to 'Mau10'.
         data_frame (pandas.DataFrame): Output DF.
         input_source (str): Indicator for input, `pickle` or `csv`.
 
@@ -161,7 +161,7 @@ class DataFrameMaker(object):
             * GA field maps are converted from meters to millimeters.
 
         Args:
-            offset (Optional[float]): If specified, apply this offset to x-axis. Value should be in
+            offset (float, optional): If specified, apply this offset to x-axis. Value should be in
                 millimeters.
 
         Returns:
@@ -217,7 +217,7 @@ class DataFrameMaker(object):
         """Create a pickle file containing the data_frame, in the same dir as the input.
 
         Args:
-            suffix (Optional[str]): Attach a suffix to the file name, before the '.p' suffix.
+            suffix (str, optional): Attach a suffix to the file name, before the '.p' suffix.
         """
         pkl.dump(self.data_frame, open(self.file_name+suffix+'.p', "wb"), pkl.HIGHEST_PROTOCOL)
 
@@ -240,7 +240,7 @@ def g4root_to_df(input_name, make_pickle=False):
 
     Args:
          input_name (str): file path name without suffix.
-         make_pickle (Optional[bool]): If `True`, no dfs are returned, and a pickle is created
+         make_pickle (bool, optional): If `True`, no dfs are returned, and a pickle is created
              containing a tuple of the relevant dfs.
 
     Return:
