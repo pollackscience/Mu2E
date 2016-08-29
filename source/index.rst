@@ -21,6 +21,7 @@ Contents:
 
    intro
    field_view
+   formula
    dataframeprod
    fitting
    plotting
