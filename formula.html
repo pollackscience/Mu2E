@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The Mu2E Magnetic Fields &mdash; Mu2E 1.0.0 documentation</title>
+    <title>Mathematical Formalism &mdash; Mu2E 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,8 +25,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html" />
-    <link rel="next" title="Mathematical Formalism" href="formula.html" />
-    <link rel="prev" title="Mu2E Experiment Overview" href="intro.html" />
+    <link rel="next" title="Prepping Data" href="dataframeprod.html" />
+    <link rel="prev" title="The Mu2E Magnetic Fields" href="field_view.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -42,15 +42,36 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="the-mu2e-magnetic-fields">
-<h1>The Mu2E Magnetic Fields<a class="headerlink" href="#the-mu2e-magnetic-fields" title="Permalink to this headline">¶</a></h1>
-<p>We&#8217;ll be using a pandas DataFrame object to store the magnetic field information for the DS. The
-Mau10 map has been processed such that cylindrical coordinates and a cylindrical vector field were
-generated from the initial Cartesian information. We&#8217;ve also recentered the X coordinate, such that
-there is an equal number of steps above and below the X=0 line. This may not be equivalent to
-recentering the DS on the geometric center, however (we will revisit this issue later, and the
-complications that arise because of it).</p>
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="_static/Bz_RZ_R1000_3200Z14000_Phi0.00.html"></iframe><p>There should be an iframe above.</p>
+  <div class="section" id="mathematical-formalism">
+<h1>Mathematical Formalism<a class="headerlink" href="#mathematical-formalism" title="Permalink to this headline">¶</a></h1>
+<p>The magnetic fields within the Mu2E experiment, like most particle physics experiments, are static
+and contain no sources.  Therefore, the fields must obey Laplace&#8217;s equation:</p>
+<div class="math">
+\[\nabla^2\Phi = 0,\]</div>
+<p>where <span class="math">\(\Phi\)</span> is the scalar magnetic field potential, which implies that:</p>
+<div class="math">
+\[B_z = \frac{\partial}{\partial z}\Phi,\quad B_r = \frac{\partial}{\partial r}\Phi,\quad B_\phi =
+\frac{\partial}{\partial \phi}\Phi\]</div>
+<p>The solutions to Laplace&#8217;s equation are separable in a host of different coordinate systems.  Given
+the nature of our particular problem, cylindrical coordinates seem like the natural choice, and
+yield a nice series solution:</p>
+<div class="math">
+\[\Phi = \sum_{n=0}^\infty \sum_{m=1}^\infty
+\big(\sin(n\phi+\delta_n)\big)\big(C_{nm}I_n(k_{m}r)+D_{nm}K_n(k_{m}r)\big)
+\big(A_{nm}\sin(k_{m}z)+B_{nm}\cos(k_{m}z)\big),\]</div>
+<p>where <span class="math">\(I_n\)</span> and <span class="math">\(K_n\)</span> are the modified bessel functions of the first and second kind,
+respectively, and <span class="math">\(A-D\)</span> are free parameters.</p>
+<p>The <span class="math">\(K_n\)</span> terms can immediately be excluded, because they all diverge as
+<span class="math">\(r\rightarrow0\)</span>.  This means that <span class="math">\(D_{nm} =0\)</span> and <span class="math">\(C_{nm}\)</span> can be reabsorbed into
+the <span class="math">\(A,B\)</span> parameters.  In order to guarantee that the scalar field satisfies some constant
+boundary conditions at large Z distances, we define <span class="math">\(k_m\)</span> as:</p>
+<div class="math">
+\[k_m=\frac{m\pi}{L_{eff}},\]</div>
+<p>where <span class="math">\(L_{eff}\)</span> is an effective length that is determined empirically.</p>
+<p>There is also a valid generic solution for Laplace&#8217;s equation in cylindrical coordinates that is
+expressed in terms of regular bessel functions and hyperbolic trig functions.  But given the
+oscillatory nature of the field distributions as a function of Z, it seems more natural to use a
+solution that invokes normal trig functions.</p>
 </div>
 
 
@@ -71,8 +92,8 @@ complications that arise because of it).</p>
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The Mu2E Magnetic Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="formula.html">Mathematical Formalism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mathematical Formalism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
@@ -82,8 +103,8 @@ complications that arise because of it).</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="intro.html" title="previous chapter">Mu2E Experiment Overview</a></li>
-      <li>Next: <a href="formula.html" title="next chapter">Mathematical Formalism</a></li>
+      <li>Previous: <a href="field_view.html" title="previous chapter">The Mu2E Magnetic Fields</a></li>
+      <li>Next: <a href="dataframeprod.html" title="next chapter">Prepping Data</a></li>
   </ul></li>
 </ul>
 </div>
@@ -109,7 +130,7 @@ complications that arise because of it).</p>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/field_view.txt"
+      <a href="_sources/formula.txt"
           rel="nofollow">Page source</a>
     </div>
 
