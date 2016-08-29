@@ -9,26 +9,32 @@ saved to a subdir of the user-defined `mu2e_ext_path`, and are not committed to 
 Example:
     Using the DataFrameMaker class::
 
-        $ from mu2e.dataframeprod import DataFrameMaker
-        $ from mu2e import mu2e_ext_path
-        $ print mu2e_ext_path
-        '/User/local/local_data'
-        $ df = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
-        use_pickle=True, field_map_version='GA02').data_frame
-        $ print df.head()
-        ...         X       Y       Z        Bx        By        Bz
-        ...    0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327
-        ...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158
-        ...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726
-        ...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024
-        ...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045
+        In[1]: from mu2e.dataframeprod import DataFrameMaker
+        ...    from mu2e import mu2e_ext_path
 
-        ...        R          Phi      Bphi        Br
-        ...    0 1697.056275 -2.356194 -0.001951 -0.184780
-        ...    1 1697.056275 -2.356194 -0.001960 -0.188787
-        ...    2 1697.056275 -2.356194 -0.001969 -0.192725
-        ...    3 1697.056275 -2.356194 -0.001977 -0.196573
-        ...    4 1697.056275 -2.356194 -0.001985 -0.200307
+        In[2]: print mu2e_ext_path
+        '/User/local/local_data'
+
+        In[3]: df = DataFrameMaker(
+        ...        mu2e_ext_path + 'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
+        ...        use_pickle=True,
+        ...        field_map_version='GA02'
+        ...    ).data_frame
+
+        In[4]: print df.head()
+        ...  X       Y       Z        Bx        By        Bz
+        0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327
+        1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158
+        2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726
+        3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024
+        4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045
+
+        ...  R          Phi      Bphi        Br
+        0 1697.056275 -2.356194 -0.001951 -0.184780
+        1 1697.056275 -2.356194 -0.001960 -0.188787
+        2 1697.056275 -2.356194 -0.001969 -0.192725
+        3 1697.056275 -2.356194 -0.001977 -0.196573
+        4 1697.056275 -2.356194 -0.001985 -0.200307
 
 
 Todo:

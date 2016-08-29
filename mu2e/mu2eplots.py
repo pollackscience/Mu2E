@@ -9,7 +9,9 @@ the user wants to share the plots.
 
 
 Example:
-    Plotting in a `jupyter notebook`::
+    Plotting in a `jupyter notebook`:
+
+    .. code-block:: python
 
         In [1]: import os
         ...     from mu2e import mu2e_ext_path
@@ -17,11 +19,22 @@ Example:
         ...     from mu2e.mu2eplots import mu2e_plot, mu2e_plot3d
         ...     %matplotlib inline # for embedded mpl plots
         ...     plt.rcParams['figure.figsize'] = (12,8) # make them bigger
-        In [2]: df = DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap',
-        ...                         use_pickle = True).data_frame
-        In [3]: mu2e_plot(df, 'Z', 'Bz', 'Y==0 and X==0', mode='mpl') # mpl plot
-        In [4]: mu2e_plot3d(df, 'R', 'Z', 'Bz', 'R<=800 and Phi==0 and 12700<Z<12900',
-        ...                 df_fit=False, mode='plotly_nb') # plotly plot
+
+        In [2]: df = DataFrameMaker(
+        ...         mu2e_ext_path + 'path/to/Mu2e_DSMap',
+        ...         use_pickle = True
+        ...     ).data_frame
+
+        In [3]: mu2e_plot(df, 'Z', 'Bz', 'Y==0 and X==0', mode='mpl')
+        ...     #static image of 2D matplotlib plot
+
+        In [4]: mu2e_plot3d(
+        ...         df, 'R', 'Z', 'Bz',
+        ...         'R<=800 and Phi==0 and 12700<Z<12900',
+        ...         mode='plotly_nb')
+        ...     #interactive 3D plot in plotly for jupyter nb
+
+
 
 Todo:
     * Allow for \*\*kwargs inheriting from mpl, map them for plotly as well.
