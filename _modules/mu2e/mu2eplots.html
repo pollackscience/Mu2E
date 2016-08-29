@@ -53,7 +53,9 @@
 
 
 <span class="sd">Example:</span>
-<span class="sd">    Plotting in a `jupyter notebook`::</span>
+<span class="sd">    Plotting in a `jupyter notebook`:</span>
+
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        In [1]: import os</span>
 <span class="sd">        ...     from mu2e import mu2e_ext_path</span>
@@ -61,11 +63,22 @@
 <span class="sd">        ...     from mu2e.mu2eplots import mu2e_plot, mu2e_plot3d</span>
 <span class="sd">        ...     %matplotlib inline # for embedded mpl plots</span>
 <span class="sd">        ...     plt.rcParams[&#39;figure.figsize&#39;] = (12,8) # make them bigger</span>
-<span class="sd">        In [2]: df = DataFrameMaker(mu2e_ext_path+&#39;datafiles/Mau10/Standard_Maps/Mu2e_DSMap&#39;,</span>
-<span class="sd">        ...                         use_pickle = True).data_frame</span>
-<span class="sd">        In [3]: mu2e_plot(df, &#39;Z&#39;, &#39;Bz&#39;, &#39;Y==0 and X==0&#39;, mode=&#39;mpl&#39;) # mpl plot</span>
-<span class="sd">        In [4]: mu2e_plot3d(df, &#39;R&#39;, &#39;Z&#39;, &#39;Bz&#39;, &#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;,</span>
-<span class="sd">        ...                 df_fit=False, mode=&#39;plotly_nb&#39;) # plotly plot</span>
+
+<span class="sd">        In [2]: df = DataFrameMaker(</span>
+<span class="sd">        ...         mu2e_ext_path + &#39;path/to/Mu2e_DSMap&#39;,</span>
+<span class="sd">        ...         use_pickle = True</span>
+<span class="sd">        ...     ).data_frame</span>
+
+<span class="sd">        In [3]: mu2e_plot(df, &#39;Z&#39;, &#39;Bz&#39;, &#39;Y==0 and X==0&#39;, mode=&#39;mpl&#39;)</span>
+<span class="sd">        ...     #static image of 2D matplotlib plot</span>
+
+<span class="sd">        In [4]: mu2e_plot3d(</span>
+<span class="sd">        ...         df, &#39;R&#39;, &#39;Z&#39;, &#39;Bz&#39;,</span>
+<span class="sd">        ...         &#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;,</span>
+<span class="sd">        ...         mode=&#39;plotly_nb&#39;)</span>
+<span class="sd">        ...     #interactive 3D plot in plotly for jupyter nb</span>
+
+
 
 <span class="sd">Todo:</span>
 <span class="sd">    * Allow for \*\*kwargs inheriting from mpl, map them for plotly as well.</span>

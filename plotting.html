@@ -56,17 +56,26 @@ calls to either <code class="xref py py-mod docutils literal"><span class="pre">
 the user wants to share the plots.</p>
 <p class="rubric">Example</p>
 <p>Plotting in a <cite>jupyter notebook</cite>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">os</span>
-<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e</span> <span class="k">import</span> <span class="n">mu2e_ext_path</span>
-<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.dataframeprod</span> <span class="k">import</span> <span class="n">DataFrameMaker</span>
-<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.mu2eplots</span> <span class="k">import</span> <span class="n">mu2e_plot</span><span class="p">,</span> <span class="n">mu2e_plot3d</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">os</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e</span> <span class="kn">import</span> <span class="n">mu2e_ext_path</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.dataframeprod</span> <span class="kn">import</span> <span class="n">DataFrameMaker</span>
+<span class="o">...</span>     <span class="kn">from</span> <span class="nn">mu2e.mu2eplots</span> <span class="kn">import</span> <span class="n">mu2e_plot</span><span class="p">,</span> <span class="n">mu2e_plot3d</span>
 <span class="o">...</span>     <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span> <span class="c"># for embedded mpl plots</span>
 <span class="o">...</span>     <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">&#39;figure.figsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span> <span class="c"># make them bigger</span>
-<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="n">mu2e_ext_path</span><span class="o">+</span><span class="s">&#39;datafiles/Mau10/Standard_Maps/Mu2e_DSMap&#39;</span><span class="p">,</span>
-<span class="o">...</span>                         <span class="n">use_pickle</span> <span class="o">=</span> <span class="k">True</span><span class="p">)</span><span class="o">.</span><span class="n">data_frame</span>
-<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">mu2e_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span> <span class="s">&#39;Y==0 and X==0&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">)</span> <span class="c"># mpl plot</span>
-<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span> <span class="s">&#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;</span><span class="p">,</span>
-<span class="o">...</span>                 <span class="n">df_fit</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;plotly_nb&#39;</span><span class="p">)</span> <span class="c"># plotly plot</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span>
+<span class="o">...</span>         <span class="n">mu2e_ext_path</span> <span class="o">+</span> <span class="s">&#39;path/to/Mu2e_DSMap&#39;</span><span class="p">,</span>
+<span class="o">...</span>         <span class="n">use_pickle</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="o">...</span>     <span class="p">)</span><span class="o">.</span><span class="n">data_frame</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">mu2e_plot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span> <span class="s">&#39;Y==0 and X==0&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;mpl&#39;</span><span class="p">)</span>
+<span class="o">...</span>     <span class="c">#static image of 2D matplotlib plot</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">mu2e_plot3d</span><span class="p">(</span>
+<span class="o">...</span>         <span class="n">df</span><span class="p">,</span> <span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">,</span>
+<span class="o">...</span>         <span class="s">&#39;R&lt;=800 and Phi==0 and 12700&lt;Z&lt;12900&#39;</span><span class="p">,</span>
+<span class="o">...</span>         <span class="n">mode</span><span class="o">=</span><span class="s">&#39;plotly_nb&#39;</span><span class="p">)</span>
+<span class="o">...</span>     <span class="c">#interactive 3D plot in plotly for jupyter nb</span>
 </pre></div>
 </div>
 <div class="admonition-todo admonition" id="index-0">

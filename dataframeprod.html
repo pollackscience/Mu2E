@@ -57,26 +57,32 @@ can also save the output DataFrames as compressed cPickle files.  The input and 
 saved to a subdir of the user-defined <cite>mu2e_ext_path</cite>, and are not committed to github.</p>
 <p class="rubric">Example</p>
 <p>Using the DataFrameMaker class:</p>
-<div class="highlight-default"><div class="highlight"><pre>$ from mu2e.dataframeprod import DataFrameMaker
-$ from mu2e import mu2e_ext_path
-$ print mu2e_ext_path
-&#39;/User/local/local_data&#39;
-$ df = DataFrameMaker(mu2e_ext_path+&#39;datafiles/FieldMapsGA02/Mu2e_DS_GA0&#39;,
-use_pickle=True, field_map_version=&#39;GA02&#39;).data_frame
-$ print df.head()
-...         X       Y       Z        Bx        By        Bz
-...    0 -1200.0 -1200.0  3071.0  0.129280  0.132039  0.044327
-...    1 -1200.0 -1200.0  3096.0  0.132106  0.134879  0.041158
-...    2 -1200.0 -1200.0  3121.0  0.134885  0.137670  0.037726
-...    3 -1200.0 -1200.0  3146.0  0.137600  0.140397  0.034024
-...    4 -1200.0 -1200.0  3171.0  0.140235  0.143042  0.030045
+<div class="highlight-default"><div class="highlight"><pre><span class="n">In</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">mu2e.dataframeprod</span> <span class="k">import</span> <span class="n">DataFrameMaker</span>
+<span class="o">...</span>    <span class="kn">from</span> <span class="nn">mu2e</span> <span class="k">import</span> <span class="n">mu2e_ext_path</span>
 
-...        R          Phi      Bphi        Br
-...    0 1697.056275 -2.356194 -0.001951 -0.184780
-...    1 1697.056275 -2.356194 -0.001960 -0.188787
-...    2 1697.056275 -2.356194 -0.001969 -0.192725
-...    3 1697.056275 -2.356194 -0.001977 -0.196573
-...    4 1697.056275 -2.356194 -0.001985 -0.200307
+<span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="nb">print</span> <span class="n">mu2e_ext_path</span>
+<span class="s">&#39;/User/local/local_data&#39;</span>
+
+<span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span>
+<span class="o">...</span>        <span class="n">mu2e_ext_path</span> <span class="o">+</span> <span class="s">&#39;datafiles/FieldMapsGA02/Mu2e_DS_GA0&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="n">use_pickle</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+<span class="o">...</span>        <span class="n">field_map_version</span><span class="o">=</span><span class="s">&#39;GA02&#39;</span>
+<span class="o">...</span>    <span class="p">)</span><span class="o">.</span><span class="n">data_frame</span>
+
+<span class="n">In</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="nb">print</span> <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="o">...</span>  <span class="n">X</span>       <span class="n">Y</span>       <span class="n">Z</span>        <span class="n">Bx</span>        <span class="n">By</span>        <span class="n">Bz</span>
+<span class="mi">0</span> <span class="o">-</span><span class="mf">1200.0</span> <span class="o">-</span><span class="mf">1200.0</span>  <span class="mf">3071.0</span>  <span class="mf">0.129280</span>  <span class="mf">0.132039</span>  <span class="mf">0.044327</span>
+<span class="mi">1</span> <span class="o">-</span><span class="mf">1200.0</span> <span class="o">-</span><span class="mf">1200.0</span>  <span class="mf">3096.0</span>  <span class="mf">0.132106</span>  <span class="mf">0.134879</span>  <span class="mf">0.041158</span>
+<span class="mi">2</span> <span class="o">-</span><span class="mf">1200.0</span> <span class="o">-</span><span class="mf">1200.0</span>  <span class="mf">3121.0</span>  <span class="mf">0.134885</span>  <span class="mf">0.137670</span>  <span class="mf">0.037726</span>
+<span class="mi">3</span> <span class="o">-</span><span class="mf">1200.0</span> <span class="o">-</span><span class="mf">1200.0</span>  <span class="mf">3146.0</span>  <span class="mf">0.137600</span>  <span class="mf">0.140397</span>  <span class="mf">0.034024</span>
+<span class="mi">4</span> <span class="o">-</span><span class="mf">1200.0</span> <span class="o">-</span><span class="mf">1200.0</span>  <span class="mf">3171.0</span>  <span class="mf">0.140235</span>  <span class="mf">0.143042</span>  <span class="mf">0.030045</span>
+
+<span class="o">...</span>  <span class="n">R</span>          <span class="n">Phi</span>      <span class="n">Bphi</span>        <span class="n">Br</span>
+<span class="mi">0</span> <span class="mf">1697.056275</span> <span class="o">-</span><span class="mf">2.356194</span> <span class="o">-</span><span class="mf">0.001951</span> <span class="o">-</span><span class="mf">0.184780</span>
+<span class="mi">1</span> <span class="mf">1697.056275</span> <span class="o">-</span><span class="mf">2.356194</span> <span class="o">-</span><span class="mf">0.001960</span> <span class="o">-</span><span class="mf">0.188787</span>
+<span class="mi">2</span> <span class="mf">1697.056275</span> <span class="o">-</span><span class="mf">2.356194</span> <span class="o">-</span><span class="mf">0.001969</span> <span class="o">-</span><span class="mf">0.192725</span>
+<span class="mi">3</span> <span class="mf">1697.056275</span> <span class="o">-</span><span class="mf">2.356194</span> <span class="o">-</span><span class="mf">0.001977</span> <span class="o">-</span><span class="mf">0.196573</span>
+<span class="mi">4</span> <span class="mf">1697.056275</span> <span class="o">-</span><span class="mf">2.356194</span> <span class="o">-</span><span class="mf">0.001985</span> <span class="o">-</span><span class="mf">0.200307</span>
 </pre></div>
 </div>
 <div class="admonition-todo admonition" id="index-0">
