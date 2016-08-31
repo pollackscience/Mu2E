@@ -463,7 +463,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
             scat_plots.append(
                 go.Scatter3d(
                     x=xray.zstop, y=xray.xstop, z=xray.ystop, mode='markers',
-                    marker=dict(size=3, color='black', opacity=0.06),
+                    marker=dict(size=3, color='black', opacity=0.06, symbol='square'),
                     name='X-ray'))
 
         if color:
@@ -482,11 +482,37 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     name='Muons'))
         # If there's no xray, then treat this as an xray
         else:
-            scat_plots.append(
-                go.Scatter3d(
-                    x=df[x], y=df[y], z=df[z], mode='markers',
-                    marker=dict(size=3, color='black', opacity=0.3),
-                    name='X-ray'))
+            #print len(df[x])
+            #scat_plots.append(
+            #    go.Scatter3d(
+            #        x=df[x], y=df[y], z=df[z], mode='markers',
+            #        marker=dict(size=3, color='black', opacity=0.06, symbol='square'),
+            #        name='X-ray'))
+
+
+            print 'binning...'
+            h, edges = np.histogramdd(np.asarray([df[x],df[y],df[z]]).T,bins=(100,25,25))
+            centers = [(e[1:]+e[:-1])/2.0 for e in edges]
+            hadj = np.rot90(h).flatten()/h.max()
+            #print edges
+            #print h
+            cx,cy,cz = np.meshgrid(*centers)
+            df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
+            df_binned['cats']=pd.cut(df_binned.h, 200)
+            print 'binned'
+            groups = np.sort(df_binned.cats.unique())
+            for i, group in enumerate(groups[1:]):
+                df_tmp=df_binned[df_binned.cats==group]
+                if i==0:
+                    sl= True
+                else:
+                    sl= False
+                scat_plots.append(
+                    go.Scatter3d(
+                        x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
+                        marker=dict(sizemode='diameter', size = 4,
+                                    color='black', opacity=0.03*(i+1), symbol='square'),
+                        name='X-ray', showlegend=sl, legendgroup='xray'))
 
         fig = go.Figure(data=scat_plots, layout=layout)
 

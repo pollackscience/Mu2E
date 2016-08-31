@@ -240,7 +240,7 @@ class DataFrameMaker(object):
         return (-row['Y'])
 
 
-def g4root_to_df(input_name, make_pickle=False):
+def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
     '''
     Quick converter for virtual detector ROOT files from the Mu2E Art Framework.
 
@@ -248,6 +248,9 @@ def g4root_to_df(input_name, make_pickle=False):
          input_name (str): file path name without suffix.
          make_pickle (bool, optional): If `True`, no dfs are returned, and a pickle is created
              containing a tuple of the relevant dfs.
+             *Note: Testing out HDF5 storage instead of pickle.*
+         do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column 'runevt' in
+             order to identify individual events.
 
     Return:
         A tuple of dataframes, or none.
@@ -255,8 +258,24 @@ def g4root_to_df(input_name, make_pickle=False):
     input_root = input_name + '.root'
     df_nttvd = read_root(input_root, 'readvd/nttvd')
     df_ntpart = read_root(input_root, 'readvd/ntpart', ignore='*vd')
+
+    if do_basic_modifications:
+        df_nttvd.eval('x = x+3904', inplace=True)
+        df_ntpart.eval('x = x+3904', inplace=True)
+        df_ntpart.eval('xstop = xstop+3904', inplace=True)
+
+        df_nttvd['runevt'] = (df_nttvd.subrun.astype(int).astype(str) +
+                              df_nttvd.evt.astype(int).astype(str)).astype(int)
+        df_ntpart['runevt'] = (df_ntpart.subrun.astype(int).astype(str) +
+                               df_ntpart.evt.astype(int).astype(str)).astype(int)
+
     if make_pickle:
-        pkl.dump((df_nttvd, df_ntpart), open(input_name + '.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        print 'loading into hdf5'
+        # pkl.dump((df_nttvd, df_ntpart), open(input_name + '.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        store = pd.HDFStore(input_name+'.h5')
+        store['df_nttvd'] = df_nttvd
+        store['df_ntpart'] = df_ntpart
+        store.close()
     else:
         return (df_nttvd, df_ntpart)
 
