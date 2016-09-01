@@ -1,45 +1,137 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>mu2e.dataframeprod &mdash; Mu2E 1.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Mu2E 1.0.0 documentation" href="../../index.html" />
-    <link rel="up" title="Module code" href="../index.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
   
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head>
-  <body role="document">
+  <title>mu2e.dataframeprod &mdash; Mu2E 1.0.0 documentation</title>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../../_static/theme_overrides.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Mu2E 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Mu2E
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../formula.html">Mathematical Formalism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">Mu2E</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>mu2e.dataframeprod</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <h1>Source code for mu2e.dataframeprod</h1><div class="highlight"><pre>
 <span class="c">#! /usr/bin/env python</span>
@@ -284,7 +376,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="g4root_to_df"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.g4root_to_df">[docs]</a><span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+<div class="viewcode-block" id="g4root_to_df"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.g4root_to_df">[docs]</a><span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">do_basic_modifications</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Quick converter for virtual detector ROOT files from the Mu2E Art Framework.</span>
 
@@ -292,6 +384,9 @@
 <span class="sd">         input_name (str): file path name without suffix.</span>
 <span class="sd">         make_pickle (bool, optional): If `True`, no dfs are returned, and a pickle is created</span>
 <span class="sd">             containing a tuple of the relevant dfs.</span>
+<span class="sd">             *Note: Testing out HDF5 storage instead of pickle.*</span>
+<span class="sd">         do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column &#39;runevt&#39; in</span>
+<span class="sd">             order to identify individual events.</span>
 
 <span class="sd">    Return:</span>
 <span class="sd">        A tuple of dataframes, or none.</span>
@@ -299,8 +394,25 @@
     <span class="n">input_root</span> <span class="o">=</span> <span class="n">input_name</span> <span class="o">+</span> <span class="s">&#39;.root&#39;</span>
     <span class="n">df_nttvd</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="s">&#39;readvd/nttvd&#39;</span><span class="p">)</span>
     <span class="n">df_ntpart</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="s">&#39;readvd/ntpart&#39;</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="s">&#39;*vd&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_basic_modifications</span><span class="p">:</span>
+        <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+        <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+        <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;xstop = xstop+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+
+        <span class="n">df_nttvd</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_nttvd</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
+                              <span class="n">df_nttvd</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">df_ntpart</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_ntpart</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
+                               <span class="n">df_ntpart</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">make_pickle</span><span class="p">:</span>
-        <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="n">df_nttvd</span><span class="p">,</span> <span class="n">df_ntpart</span><span class="p">),</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_name</span> <span class="o">+</span> <span class="s">&#39;.p&#39;</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="n">pkl</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s">&#39;loading into hdf5&#39;</span>
+        <span class="c"># pkl.dump((df_nttvd, df_ntpart), open(input_name + &#39;.p&#39;, &quot;wb&quot;), pkl.HIGHEST_PROTOCOL)</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">input_name</span><span class="o">+</span><span class="s">&#39;.h5&#39;</span><span class="p">)</span>
+        <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_nttvd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_nttvd</span>
+        <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_ntpart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ntpart</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span> <span class="s">&#39;file finished&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">df_nttvd</span><span class="p">,</span> <span class="n">df_ntpart</span><span class="p">)</span></div>
 
@@ -343,64 +455,63 @@
     <span class="nb">print</span> <span class="n">data_maker</span><span class="o">.</span><span class="n">data_frame</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
 </pre></div>
 
+           </div>
           </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Brian Pollack.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">Mu2E</a></h1>
+
+    </section>
+
+  </div>
+  
 
 
+  
 
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+  
 
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
 
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
 
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../formula.html">Mathematical Formalism</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, Brian Pollack.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
-      
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>

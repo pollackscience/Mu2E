@@ -1,45 +1,137 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>mu2e.mu2eplots &mdash; Mu2E 1.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Mu2E 1.0.0 documentation" href="../../index.html" />
-    <link rel="up" title="Module code" href="../index.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
   
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head>
-  <body role="document">
+  <title>mu2e.mu2eplots &mdash; Mu2E 1.0.0 documentation</title>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../../_static/theme_overrides.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Mu2E 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Mu2E
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../formula.html">Mathematical Formalism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">Mu2E</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>mu2e.mu2eplots</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <h1>Source code for mu2e.mu2eplots</h1><div class="highlight"><pre>
 <span class="c">#! /usr/bin/env python</span>
@@ -420,7 +512,7 @@
 
 
 <div class="viewcode-block" id="mu2e_plot3d_ptrap"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;plotly_nb&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="k">None</span><span class="p">,</span>
-                      <span class="n">xray</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+                      <span class="n">df_xray</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.</span>
 
 <span class="sd">    Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points</span>
@@ -438,8 +530,8 @@
 <span class="sd">        save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The</span>
 <span class="sd">            file name is automated, based on the input args.</span>
 <span class="sd">        color: (str, optional): Name of fourth varible, represented by color of marker.</span>
-<span class="sd">        xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of the</span>
-<span class="sd">            material that is typically included during particle simulation.</span>
+<span class="sd">        df_xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of</span>
+<span class="sd">            the material that is typically included during particle simulation.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Name of saved image/plot, or None.</span>
@@ -501,14 +593,32 @@
         <span class="n">scat_plots</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c"># Set the xray image if available</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="s">&#39;binning...&#39;</span>
             <span class="n">xray_query</span> <span class="o">=</span> <span class="s">&#39;xstop&lt;1000 and tstop&lt;200 and sqrt(xstop*xstop+ystop*ystop)&lt;900&#39;</span>
-            <span class="n">xray</span> <span class="o">=</span> <span class="n">xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">)</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">70000</span><span class="p">]</span>
-            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
-                    <span class="n">x</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.06</span><span class="p">),</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">))</span>
+            <span class="n">df_xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+
+            <span class="n">h</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogramdd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">df_xray</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">df_xray</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">df_xray</span><span class="p">[</span><span class="n">z</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                                      <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
+            <span class="n">centers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">e</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span>
+            <span class="n">hadj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">centers</span><span class="p">)</span>
+            <span class="n">df_binned</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">cy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">z</span><span class="o">=</span><span class="n">cz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">h</span><span class="o">=</span><span class="n">hadj</span><span class="p">))</span>
+            <span class="n">df_binned</span><span class="p">[</span><span class="s">&#39;cats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="s">&#39;binned&#39;</span>
+            <span class="n">groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="n">df_tmp</span> <span class="o">=</span> <span class="n">df_binned</span><span class="p">[</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span> <span class="o">==</span> <span class="n">group</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sl</span> <span class="o">=</span> <span class="k">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sl</span> <span class="o">=</span> <span class="k">False</span>
+                <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                        <span class="n">x</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">sizemode</span><span class="o">=</span><span class="s">&#39;diameter&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                    <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.03</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">symbol</span><span class="o">=</span><span class="s">&#39;square&#39;</span><span class="p">),</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">sl</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;xray&#39;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
             <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -518,7 +628,7 @@
                     <span class="n">name</span><span class="o">=</span><span class="s">&#39;Muons&#39;</span><span class="p">))</span>
 
         <span class="c"># If there is an xray, treat this as main</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
                     <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
@@ -526,11 +636,35 @@
                     <span class="n">name</span><span class="o">=</span><span class="s">&#39;Muons&#39;</span><span class="p">))</span>
         <span class="c"># If there&#39;s no xray, then treat this as an xray</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
-                    <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">))</span>
+            <span class="c"># This is a complicated method of generating the x-ray images</span>
+            <span class="c">#   * The xray hits are binned in 3D.</span>
+            <span class="c">#   * A new df is generated, based on the bin centers and occupancy of each bin.</span>
+            <span class="c">#   * The df is binned into categories, based on occupancy.</span>
+            <span class="c">#   * Each category is plotted, with an opacity based on the occupancy</span>
+            <span class="c">#   * The result is a lego-style plot of the xray hits</span>
+
+            <span class="nb">print</span> <span class="s">&#39;binning...&#39;</span>
+            <span class="n">h</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogramdd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+            <span class="n">centers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">e</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span>
+            <span class="n">hadj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">centers</span><span class="p">)</span>
+            <span class="n">df_binned</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">cy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">z</span><span class="o">=</span><span class="n">cz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">h</span><span class="o">=</span><span class="n">hadj</span><span class="p">))</span>
+
+            <span class="n">df_binned</span><span class="p">[</span><span class="s">&#39;cats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="s">&#39;binned&#39;</span>
+            <span class="n">groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="n">df_tmp</span> <span class="o">=</span> <span class="n">df_binned</span><span class="p">[</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span> <span class="o">==</span> <span class="n">group</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">sl</span> <span class="o">=</span> <span class="k">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sl</span> <span class="o">=</span> <span class="k">False</span>
+                <span class="n">scat_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                        <span class="n">x</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">sizemode</span><span class="o">=</span><span class="s">&#39;diameter&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                    <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.03</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">symbol</span><span class="o">=</span><span class="s">&#39;square&#39;</span><span class="p">),</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">sl</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;xray&#39;</span><span class="p">))</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">scat_plots</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
 
@@ -554,7 +688,7 @@
     <span class="k">return</span> <span class="n">save_name</span></div>
 
 
-<div class="viewcode-block" id="mu2e_plot3d_ptrap_anim"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap_anim">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap_anim</span><span class="p">(</span><span class="n">df_group1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">df_xray</span><span class="p">,</span> <span class="n">df_group2</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+<div class="viewcode-block" id="mu2e_plot3d_ptrap_anim"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap_anim">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap_anim</span><span class="p">(</span><span class="n">df_group1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">df_xray</span><span class="p">,</span> <span class="n">df_group2</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of</span>
 <span class="sd">    charged particles.</span>
 
@@ -575,6 +709,7 @@
 <span class="sd">            material that is typically included during particle simulation.</span>
 <span class="sd">        df_group2: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry</span>
 <span class="sd">            of the material that is typically included during particle simulation.</span>
+<span class="sd">        color (optional): Being implemented...</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        (g, fig) for plotting.</span>
@@ -630,11 +765,14 @@
     <span class="p">)</span>
 
     <span class="k">class</span> <span class="nc">time_shifter</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group2</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group2</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">group2</span> <span class="o">=</span> <span class="n">group2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">docolor</span> <span class="o">=</span> <span class="n">color</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">docolor</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">p</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
@@ -645,6 +783,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">z</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">docolor</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]]</span><span class="o">.</span><span class="n">p</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">x2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">x</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">y2</span> <span class="o">=</span> <span class="n">df_group2</span><span class="p">[</span><span class="n">df_group2</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="n">new_value</span><span class="p">]][</span><span class="n">y</span><span class="p">]</span>
@@ -652,7 +792,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">replot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]},</span> <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">docolor</span><span class="p">:</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
+                           <span class="s">&#39;marker&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                                          <span class="n">opacity</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span> <span class="n">cmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cmax</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
+                                          <span class="n">showscale</span><span class="o">=</span><span class="k">True</span><span class="p">)},</span>
+                          <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]},</span> <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">group2</span><span class="p">:</span>
                 <span class="n">g</span><span class="o">.</span><span class="n">restyle</span><span class="p">({</span><span class="s">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x2</span><span class="p">],</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y2</span><span class="p">],</span> <span class="s">&#39;z&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z2</span><span class="p">]},</span> <span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
@@ -664,19 +811,15 @@
         <span class="nb">print</span> <span class="s">&#39;false&#39;</span>
     <span class="n">sids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
 
-    <span class="n">xray_query</span> <span class="o">=</span> <span class="s">&#39;xstop&lt;1000 and tstop&lt;200 and sqrt(xstop*xstop+ystop*ystop)&lt;900&#39;</span>
-    <span class="n">df_xray</span> <span class="o">=</span> <span class="n">df_xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">)</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">40000</span><span class="p">]</span>
     <span class="n">scats</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">xray_scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
-        <span class="n">x</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">df_xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;x-ray&#39;</span><span class="p">)</span>
     <span class="n">init_scat</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
         <span class="n">x</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">x</span><span class="p">],</span>
         <span class="n">y</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">y</span><span class="p">],</span>
         <span class="n">z</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">z</span><span class="p">],</span>
         <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
-        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;red&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
+        <span class="c"># marker=dict(size=5, color=&#39;red&#39;, opacity=0.7),</span>
+        <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">df_group1</span><span class="p">[</span><span class="n">df_group1</span><span class="o">.</span><span class="n">sid</span> <span class="o">==</span> <span class="n">sids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+                    <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">,</span> <span class="n">cmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cmax</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span> <span class="n">showscale</span><span class="o">=</span><span class="k">True</span><span class="p">),</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;Long-Lived Muons&#39;</span><span class="p">)</span>
     <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init_scat</span><span class="p">)</span>
 
@@ -688,14 +831,36 @@
             <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
             <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.7</span><span class="p">),</span>
             <span class="n">name</span><span class="o">=</span><span class="s">&#39;Normal Muons&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">group2</span><span class="p">:</span>
         <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init_scat2</span><span class="p">)</span>
-    <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xray_scat</span><span class="p">)</span>
+
+    <span class="n">xray_query</span> <span class="o">=</span> <span class="s">&#39;xstop&lt;1000 and tstop&lt;200 and sqrt(xstop*xstop+ystop*ystop)&lt;900&#39;</span>
+    <span class="n">df_xray</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">xray_query</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s">&#39;binning...&#39;</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogramdd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">df_xray</span><span class="o">.</span><span class="n">zstop</span><span class="p">,</span> <span class="n">df_xray</span><span class="o">.</span><span class="n">xstop</span><span class="p">,</span> <span class="n">df_xray</span><span class="o">.</span><span class="n">ystop</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                              <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">e</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span>
+    <span class="n">hadj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">/</span><span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">centers</span><span class="p">)</span>
+    <span class="n">df_binned</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">cy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">z</span><span class="o">=</span><span class="n">cz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">h</span><span class="o">=</span><span class="n">hadj</span><span class="p">))</span>
+    <span class="n">df_binned</span><span class="p">[</span><span class="s">&#39;cats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s">&#39;binned&#39;</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">df_tmp</span> <span class="o">=</span> <span class="n">df_binned</span><span class="p">[</span><span class="n">df_binned</span><span class="o">.</span><span class="n">cats</span> <span class="o">==</span> <span class="n">group</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sl</span> <span class="o">=</span> <span class="k">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sl</span> <span class="o">=</span> <span class="k">False</span>
+        <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;markers&#39;</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.03</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">symbol</span><span class="o">=</span><span class="s">&#39;square&#39;</span><span class="p">),</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">&#39;X-ray&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="n">sl</span><span class="p">,</span> <span class="n">legendgroup</span><span class="o">=</span><span class="s">&#39;xray&#39;</span><span class="p">))</span>
 
     <span class="n">p_slider</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntSlider</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">130</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">continuous_update</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
     <span class="n">p_slider</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s">&#39;Time Shift&#39;</span>
     <span class="n">p_slider</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">p_state</span> <span class="o">=</span> <span class="n">time_shifter</span><span class="p">(</span><span class="n">group2</span><span class="p">)</span>
+    <span class="n">p_state</span> <span class="o">=</span> <span class="n">time_shifter</span><span class="p">(</span><span class="n">group2</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
     <span class="n">p_slider</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">p_state</span><span class="o">.</span><span class="n">on_time_change</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">)</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">scats</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
@@ -705,64 +870,63 @@
     <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="n">fig</span></div>
 </pre></div>
 
+           </div>
           </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Brian Pollack.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">Mu2E</a></h1>
+
+    </section>
+
+  </div>
+  
 
 
+  
 
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+  
 
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
 
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
 
-
-<h3>Navigation</h3>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../formula.html">Mathematical Formalism</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, Brian Pollack.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
-      
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>

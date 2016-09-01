@@ -1,45 +1,140 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Plotting &mdash; Mu2E 1.0.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html" />
-    <link rel="prev" title="Fitting Data" href="fitting.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
   
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head>
-  <body role="document">
+  <title>Plotting &mdash; Mu2E 1.0.0 documentation</title>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/>
+        <link rel="prev" title="Fitting Data" href="fitting.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Mu2E
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formula.html">Mathematical Formalism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-mu2e.mu2eplots">The <cite>mu2eplots</cite> Module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Mu2E</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Plotting</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/plotting.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="plotting">
 <h1>Plotting<a class="headerlink" href="#plotting" title="Permalink to this headline">¶</a></h1>
@@ -159,7 +254,7 @@ file name is automated, based on the input args.</li>
 
 <dl class="function">
 <dt id="mu2e.mu2eplots.mu2e_plot3d_ptrap">
-<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>mode='plotly_nb'</em>, <em>info=None</em>, <em>save_dir=None</em>, <em>color=None</em>, <em>xray=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>mode='plotly_nb'</em>, <em>info=None</em>, <em>save_dir=None</em>, <em>color=None</em>, <em>df_xray=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.</p>
 <p>Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
 that are typically plotted, <code class="xref py py-mod docutils literal"><span class="pre">matplotlib</span></code> is not supported.</p>
@@ -179,8 +274,8 @@ Default is &#8216;mpl&#8217;. Valid values: [&#8216;mpl&#8217;, &#8216;plotly&#8
 <li><strong>save_dir</strong> (<em>str, optional</em>) &#8211; If not <cite>None</cite>, the plot will be saved to the indicated path. The
 file name is automated, based on the input args.</li>
 <li><strong>color</strong> &#8211; (str, optional): Name of fourth varible, represented by color of marker.</li>
-<li><strong>xray</strong> &#8211; (<code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code>, optional): A seperate DF, representing the geometry of the
-material that is typically included during particle simulation.</li>
+<li><strong>df_xray</strong> &#8211; (<code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code>, optional): A seperate DF, representing the geometry of
+the material that is typically included during particle simulation.</li>
 </ul>
 </td>
 </tr>
@@ -193,7 +288,7 @@ material that is typically included during particle simulation.</li>
 
 <dl class="function">
 <dt id="mu2e.mu2eplots.mu2e_plot3d_ptrap_anim">
-<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap_anim</code><span class="sig-paren">(</span><em>df_group1</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>df_xray</em>, <em>df_group2=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap_anim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap_anim" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap_anim</code><span class="sig-paren">(</span><em>df_group1</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>df_xray</em>, <em>df_group2=None</em>, <em>color=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap_anim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap_anim" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of
 charged particles.</p>
 <p>Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -218,6 +313,7 @@ corresponding to the evolution in time.</p>
 material that is typically included during particle simulation.</li>
 <li><strong>df_group2</strong> &#8211; (<code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code>, optional): A seperate DF, representing the geometry
 of the material that is typically included during particle simulation.</li>
+<li><strong>color</strong> (<em>optional</em>) &#8211; Being implemented...</li>
 </ul>
 </td>
 </tr>
@@ -232,69 +328,70 @@ of the material that is typically included during particle simulation.</li>
 </div>
 
 
+           </div>
           </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="fitting.html" class="btn btn-neutral" title="Fitting Data" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Brian Pollack.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Mu2E</a></h1>
+
+    </section>
+
+  </div>
+  
 
 
+  
 
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+  
 
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
 
-
-<h3>Navigation</h3>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Mu2E Experiment Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="formula.html">Mathematical Formalism</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-mu2e.mu2eplots">The <cite>mu2eplots</cite> Module</a></li>
-</ul>
-</li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="fitting.html" title="previous chapter">Fitting Data</a></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, Brian Pollack.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
-      
-      |
-      <a href="_sources/plotting.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>
