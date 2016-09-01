@@ -276,6 +276,7 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
         store['df_nttvd'] = df_nttvd
         store['df_ntpart'] = df_ntpart
         store.close()
+        print 'file finished'
     else:
         return (df_nttvd, df_ntpart)
 

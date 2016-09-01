@@ -376,7 +376,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
 
 
 def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, color=None,
-                      xray=None):
+                      df_xray=None):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
     Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -394,8 +394,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
         save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The
             file name is automated, based on the input args.
         color: (str, optional): Name of fourth varible, represented by color of marker.
-        xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of the
-            material that is typically included during particle simulation.
+        df_xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of
+            the material that is typically included during particle simulation.
 
     Returns:
         Name of saved image/plot, or None.
@@ -457,14 +457,32 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
         scat_plots = []
 
         # Set the xray image if available
-        if isinstance(xray, pd.DataFrame):
+        if isinstance(df_xray, pd.DataFrame):
+            print 'binning...'
             xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
-            xray = xray.query(xray_query).ix[0:70000]
-            scat_plots.append(
-                go.Scatter3d(
-                    x=xray.zstop, y=xray.xstop, z=xray.ystop, mode='markers',
-                    marker=dict(size=3, color='black', opacity=0.06, symbol='square'),
-                    name='X-ray'))
+            df_xray.query(xray_query, inplace=True)
+
+            h, edges = np.histogramdd(np.asarray([df_xray[x], df_xray[y], df_xray[z]]).T,
+                                      bins=(100, 25, 25))
+            centers = [(e[1:]+e[:-1])/2.0 for e in edges]
+            hadj = np.rot90(h).flatten()/h.max()
+            cx, cy, cz = np.meshgrid(*centers)
+            df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
+            df_binned['cats'] = pd.cut(df_binned.h, 200)
+            print 'binned'
+            groups = np.sort(df_binned.cats.unique())
+            for i, group in enumerate(groups[1:]):
+                df_tmp = df_binned[df_binned.cats == group]
+                if i == 0:
+                    sl = True
+                else:
+                    sl = False
+                scat_plots.append(
+                    go.Scatter3d(
+                        x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
+                        marker=dict(sizemode='diameter', size=4,
+                                    color='black', opacity=0.03*(i+1), symbol='square'),
+                        name='X-ray', showlegend=sl, legendgroup='xray'))
 
         if color:
             scat_plots.append(
@@ -474,7 +492,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     name='Muons'))
 
         # If there is an xray, treat this as main
-        elif isinstance(xray, pd.DataFrame):
+        elif isinstance(df_xray, pd.DataFrame):
             scat_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z], mode='markers',
@@ -482,35 +500,33 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     name='Muons'))
         # If there's no xray, then treat this as an xray
         else:
-            #print len(df[x])
-            #scat_plots.append(
-            #    go.Scatter3d(
-            #        x=df[x], y=df[y], z=df[z], mode='markers',
-            #        marker=dict(size=3, color='black', opacity=0.06, symbol='square'),
-            #        name='X-ray'))
-
+            # This is a complicated method of generating the x-ray images
+            #   * The xray hits are binned in 3D.
+            #   * A new df is generated, based on the bin centers and occupancy of each bin.
+            #   * The df is binned into categories, based on occupancy.
+            #   * Each category is plotted, with an opacity based on the occupancy
+            #   * The result is a lego-style plot of the xray hits
 
             print 'binning...'
-            h, edges = np.histogramdd(np.asarray([df[x],df[y],df[z]]).T,bins=(100,25,25))
+            h, edges = np.histogramdd(np.asarray([df[x], df[y], df[z]]).T, bins=(200, 20, 20))
             centers = [(e[1:]+e[:-1])/2.0 for e in edges]
             hadj = np.rot90(h).flatten()/h.max()
-            #print edges
-            #print h
-            cx,cy,cz = np.meshgrid(*centers)
+            cx, cy, cz = np.meshgrid(*centers)
             df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
-            df_binned['cats']=pd.cut(df_binned.h, 200)
+
+            df_binned['cats'] = pd.cut(df_binned.h, 200)
             print 'binned'
             groups = np.sort(df_binned.cats.unique())
             for i, group in enumerate(groups[1:]):
-                df_tmp=df_binned[df_binned.cats==group]
-                if i==0:
-                    sl= True
+                df_tmp = df_binned[df_binned.cats == group]
+                if i == 0:
+                    sl = True
                 else:
-                    sl= False
+                    sl = False
                 scat_plots.append(
                     go.Scatter3d(
                         x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
-                        marker=dict(sizemode='diameter', size = 4,
+                        marker=dict(sizemode='diameter', size=4,
                                     color='black', opacity=0.03*(i+1), symbol='square'),
                         name='X-ray', showlegend=sl, legendgroup='xray'))
 
@@ -536,7 +552,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
     return save_name
 
 
-def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
+def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=None):
     """Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of
     charged particles.
 
@@ -557,6 +573,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
             material that is typically included during particle simulation.
         df_group2: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry
             of the material that is typically included during particle simulation.
+        color (optional): Being implemented...
 
     Returns:
         (g, fig) for plotting.
@@ -612,11 +629,14 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
     )
 
     class time_shifter:
-        def __init__(self, group2=False):
+        def __init__(self, group2=False, color=False):
             self.x = df_group1[df_group1.sid == sids[0]][x]
             self.y = df_group1[df_group1.sid == sids[0]][y]
             self.z = df_group1[df_group1.sid == sids[0]][z]
             self.group2 = group2
+            self.docolor = color
+            if self.docolor:
+                self.color = df_group1[df_group1.sid == sids[0]].p
 
             if self.group2:
                 self.x2 = df_group2[df_group2.sid == sids[0]][x]
@@ -627,6 +647,8 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
             self.x = df_group1[df_group1.sid == sids[new_value]][x]
             self.y = df_group1[df_group1.sid == sids[new_value]][y]
             self.z = df_group1[df_group1.sid == sids[new_value]][z]
+            if self.docolor:
+                self.color = df_group1[df_group1.sid == sids[new_value]].p
             if self.group2:
                 self.x2 = df_group2[df_group2.sid == sids[new_value]][x]
                 self.y2 = df_group2[df_group2.sid == sids[new_value]][y]
@@ -634,7 +656,14 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
             self.replot()
 
         def replot(self):
-            g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z]}, indices=[0])
+            if self.docolor:
+                g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z],
+                           'marker': dict(size=5, color=self.color,
+                                          opacity=0.7, colorscale='Viridis', cmin=0, cmax=110,
+                                          showscale=True)},
+                          indices=[0])
+            else:
+                g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z]}, indices=[0])
             if self.group2:
                 g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2]}, indices=[1])
 
@@ -646,19 +675,15 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
         print 'false'
     sids = np.sort(df_group1.sid.unique())
 
-    xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
-    df_xray = df_xray.query(xray_query).ix[0:40000]
     scats = []
-    xray_scat = go.Scatter3d(
-        x=df_xray.zstop, y=df_xray.xstop, z=df_xray.ystop, mode='markers',
-        marker=dict(size=3, color='black', opacity=0.1),
-        name='x-ray')
     init_scat = go.Scatter3d(
         x=df_group1[df_group1.sid == sids[0]][x],
         y=df_group1[df_group1.sid == sids[0]][y],
         z=df_group1[df_group1.sid == sids[0]][z],
         mode='markers',
-        marker=dict(size=5, color='red', opacity=0.7),
+        # marker=dict(size=5, color='red', opacity=0.7),
+        marker=dict(size=5, color=df_group1[df_group1.sid == sids[0]].p, opacity=0.4,
+                    colorscale='Viridis', cmin=0, cmax=110, showscale=True),
         name='Long-Lived Muons')
     scats.append(init_scat)
 
@@ -670,14 +695,36 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None):
             mode='markers',
             marker=dict(size=5, color='blue', opacity=0.7),
             name='Normal Muons')
-    if group2:
         scats.append(init_scat2)
-    scats.append(xray_scat)
+
+    xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
+    df_xray.query(xray_query, inplace=True)
+    print 'binning...'
+    h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
+                              bins=(200, 20, 20))
+    centers = [(e[1:]+e[:-1])/2.0 for e in edges]
+    hadj = np.rot90(h).flatten()/h.max()
+    cx, cy, cz = np.meshgrid(*centers)
+    df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
+    df_binned['cats'] = pd.cut(df_binned.h, 200)
+    print 'binned'
+    groups = np.sort(df_binned.cats.unique())
+    for i, group in enumerate(groups[1:]):
+        df_tmp = df_binned[df_binned.cats == group]
+        if i == 0:
+            sl = True
+        else:
+            sl = False
+        scats.append(
+            go.Scatter3d(
+                x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
+                marker=dict(size=4, color='black', opacity=0.03*(i+1), symbol='square'),
+                name='X-ray', showlegend=sl, legendgroup='xray'))
 
     p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
     p_slider.description = 'Time Shift'
     p_slider.value = 0
-    p_state = time_shifter(group2)
+    p_state = time_shifter(group2, color)
     p_slider.on_trait_change(p_state.on_time_change, 'value')
 
     fig = go.Figure(data=scats, layout=layout)
