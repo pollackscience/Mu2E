@@ -386,7 +386,7 @@
 <span class="sd">             containing a tuple of the relevant dfs.</span>
 <span class="sd">             *Note: Testing out HDF5 storage instead of pickle.*</span>
 <span class="sd">         do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column &#39;runevt&#39; in</span>
-<span class="sd">             order to identify individual events.</span>
+<span class="sd">             order to identify individual events. Add total momentum for nttvd.</span>
 
 <span class="sd">    Return:</span>
 <span class="sd">        A tuple of dataframes, or none.</span>
@@ -402,6 +402,7 @@
 
         <span class="n">df_nttvd</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_nttvd</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
                               <span class="n">df_nttvd</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;p = sqrt(px**2+py**2+pz**2)&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
         <span class="n">df_ntpart</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_ntpart</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
                                <span class="n">df_ntpart</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
