@@ -266,6 +266,7 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
 
         df_nttvd['runevt'] = (df_nttvd.subrun.astype(int).astype(str) +
                               df_nttvd.evt.astype(int).astype(str)).astype(int)
+        df_nttvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
         df_ntpart['runevt'] = (df_ntpart.subrun.astype(int).astype(str) +
                                df_ntpart.evt.astype(int).astype(str)).astype(int)
 

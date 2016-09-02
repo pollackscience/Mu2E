@@ -552,7 +552,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
     return save_name
 
 
-def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=None):
+def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=None, title=None):
     """Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of
     charged particles.
 
@@ -574,6 +574,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
         df_group2: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry
             of the material that is typically included during particle simulation.
         color (optional): Being implemented...
+        title (str, optional): Title.
 
     Returns:
         (g, fig) for plotting.
@@ -582,7 +583,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
     axis_title_size = 18
     axis_tick_size = 14
     layout = go.Layout(
-        title='Particle Trapping Time Exercise',
+        title=title if title else 'Particle Trapping Time Exercise',
         titlefont=dict(size=30),
         autosize=False,
         width=900,
@@ -625,7 +626,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
             ),
         ),
         showlegend=True,
-        legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
+        legend=dict(x=0.7, y=0.9, font=dict(size=18, family='Overpass')),
     )
 
     class time_shifter:
@@ -642,38 +643,81 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                 self.x2 = df_group2[df_group2.sid == sids[0]][x]
                 self.y2 = df_group2[df_group2.sid == sids[0]][y]
                 self.z2 = df_group2[df_group2.sid == sids[0]][z]
+                if self.docolor:
+                    self.color2 = df_group2[df_group2.sid == sids[0]].p
 
         def on_time_change(self, name, old_value, new_value):
-            self.x = df_group1[df_group1.sid == sids[new_value]][x]
-            self.y = df_group1[df_group1.sid == sids[new_value]][y]
-            self.z = df_group1[df_group1.sid == sids[new_value]][z]
-            if self.docolor:
-                self.color = df_group1[df_group1.sid == sids[new_value]].p
+            try:
+                self.x = df_group1[df_group1.sid == sids[new_value]][x]
+                self.y = df_group1[df_group1.sid == sids[new_value]][y]
+                self.z = df_group1[df_group1.sid == sids[new_value]][z]
+                if self.docolor:
+                    self.color = df_group1[df_group1.sid == sids[new_value]].p
+            except:
+                self.x = []
+                self.y = []
+                self.z = []
+                if self.docolor:
+                    self.color = []
+
             if self.group2:
-                self.x2 = df_group2[df_group2.sid == sids[new_value]][x]
-                self.y2 = df_group2[df_group2.sid == sids[new_value]][y]
-                self.z2 = df_group2[df_group2.sid == sids[new_value]][z]
+                try:
+                    self.x2 = df_group2[df_group2.sid == sids[new_value]][x]
+                    self.y2 = df_group2[df_group2.sid == sids[new_value]][y]
+                    self.z2 = df_group2[df_group2.sid == sids[new_value]][z]
+                    if self.docolor:
+                        self.color2 = df_group2[df_group2.sid == sids[new_value]].p
+                except:
+                    self.x2 = []
+                    self.y2 = []
+                    self.z2 = []
+                    if self.docolor:
+                        self.color2 = []
             self.replot()
 
         def replot(self):
             if self.docolor:
                 g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z],
                            'marker': dict(size=5, color=self.color,
-                                          opacity=0.7, colorscale='Viridis', cmin=0, cmax=110,
-                                          showscale=True)},
+                                          opacity=0.7, colorscale='Viridis', cmin=0, cmax=100,
+                                          showscale=True,
+                                          colorbar=dict(title='Momentum (MeV)', xanchor='left'))
+                           },
                           indices=[0])
             else:
                 g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z]}, indices=[0])
             if self.group2:
-                g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2]}, indices=[1])
+                if self.docolor:
+                    g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2],
+                               'marker': dict(size=5, color=self.color2,
+                                              opacity=0.7, colorscale='Viridis', cmin=0, cmax=100,
+                                              showscale=True,
+                                              colorbar=dict(title='Momentum (MeV)',
+                                                            xanchor='left')),
+                               },
+                              indices=[1])
+                else:
+                    g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2]}, indices=[1])
+    try:
+        g1_name = df_group1.name
+    except:
+        g1_name = 'Group 1'
 
     group2 = False
     if isinstance(df_group2, pd.DataFrame):
         group2 = True
-        print 'true'
+        try:
+            g2_name = df_group2.name
+        except:
+            g2_name = 'Group 1'
+
+    if group2:
+        if len(df_group1.sid.unique()) > len(df_group2.sid.unique()):
+            sids = np.sort(df_group1.sid.unique())
+        else:
+            sids = np.sort(df_group2.sid.unique())
     else:
-        print 'false'
-    sids = np.sort(df_group1.sid.unique())
+        sids = np.sort(df_group1.sid.unique())
 
     scats = []
     init_scat = go.Scatter3d(
@@ -681,10 +725,14 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
         y=df_group1[df_group1.sid == sids[0]][y],
         z=df_group1[df_group1.sid == sids[0]][z],
         mode='markers',
+        # text=df_group1[df_group1.sid == sids[0]]['p'],
         # marker=dict(size=5, color='red', opacity=0.7),
         marker=dict(size=5, color=df_group1[df_group1.sid == sids[0]].p, opacity=0.4,
-                    colorscale='Viridis', cmin=0, cmax=110, showscale=True),
-        name='Long-Lived Muons')
+                    colorscale='Viridis', cmin=0, cmax=100,
+                    showscale=True,
+                    colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+        name=g1_name,
+    )
     scats.append(init_scat)
 
     if group2:
@@ -693,8 +741,9 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
             y=df_group2[df_group2.sid == sids[0]][y],
             z=df_group2[df_group2.sid == sids[0]][z],
             mode='markers',
-            marker=dict(size=5, color='blue', opacity=0.7),
-            name='Normal Muons')
+            marker=dict(size=5, color=df_group2[df_group2.sid == sids[0]].p, opacity=0.4,
+                        colorscale='Viridis', cmin=0, cmax=100,),
+            name=g2_name)
         scats.append(init_scat2)
 
     xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
