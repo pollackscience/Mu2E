@@ -9,7 +9,30 @@ of surveying one of the Mu2E solenoids with a series of hall probes.  The
 package extensively for parameter-handling, fitting, optimization, etc.
 
 Example:
-    Coming soon...
+    Incomplete excerpt, see :func:`mu2e.fieldfitter.field_map_analysis` and `scripts/hallprobesim`
+    for more typical use cases:
+
+    .. code-block:: python
+
+        # assuming config files already defined...
+
+        In [10]: input_data = DataFileMaker(cfg_data.path, use_pickle=True).data_frame
+        ...      input_data.query(' and '.join(cfg_data.conditions))
+
+        In [11]: hpg = HallProbeGenerator(
+        ...         input_data, z_steps = cfg_geom.z_steps,
+        ...         r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
+        ...         x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+
+        In [12]: ff = FieldFitter(hpg.get_toy(), cfg_geom)
+
+        In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+        ...      # This will take some time, especially for many data points and free params
+
+        In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting
+
+        In [15]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+        ...      # defined in :class:`mu2e.fieldfitter`
 
 *2016 Brian Pollack, Northwestern University*
 

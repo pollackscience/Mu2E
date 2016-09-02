@@ -250,7 +250,7 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
              containing a tuple of the relevant dfs.
              *Note: Testing out HDF5 storage instead of pickle.*
          do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column 'runevt' in
-             order to identify individual events.
+             order to identify individual events. Add total momentum for nttvd.
 
     Return:
         A tuple of dataframes, or none.
