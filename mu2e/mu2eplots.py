@@ -375,8 +375,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     return save_name
 
 
-def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, color=None,
-                      df_xray=None):
+def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
+                      df_xray=None, x_range=None, y_range=None, z_range=None, title=None):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
     Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -390,7 +390,6 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
         z (str): Name of the third variable.
         mode (str, optional): A string indicating which plotting package and method should be used.
             Default is 'mpl'. Valid values: ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
-        info (str, optional): Extra information to add to the title.
         save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The
             file name is automated, based on the input args.
         color: (str, optional): Name of fourth varible, represented by color of marker.
@@ -399,6 +398,9 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
 
     Returns:
         Name of saved image/plot, or None.
+
+    Notes:
+        Growing necessity for many input args, should implement `kwargs` in future.
     """
     _modes = ['plotly', 'plotly_html', 'plotly_html_img', 'plotly_nb']
     save_name = None
@@ -416,7 +418,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
         axis_title_size = 18
         axis_tick_size = 14
         layout = go.Layout(
-            title='Particle Trapping Exercise',
+            title=title if title else 'Particle Trapping Exercise',
             titlefont=dict(size=30),
             autosize=False,
             width=900,
@@ -430,6 +432,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     zerolinecolor='rgb(255, 255, 255)',
                     showbackground=True,
                     backgroundcolor='rgb(230, 230,230)',
+                    range=x_range,
                 ),
                 yaxis=dict(
                     title='{} (mm)'.format(y),
@@ -439,6 +442,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     zerolinecolor='rgb(255, 255, 255)',
                     showbackground=True,
                     backgroundcolor='rgb(230, 230,230)',
+                    range=y_range,
                 ),
                 zaxis=dict(
                     title='{} (mm)'.format(z),
@@ -448,8 +452,13 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
                     zerolinecolor='rgb(255, 255, 255)',
                     showbackground=True,
                     backgroundcolor='rgb(230, 230,230)',
+                    range=z_range,
                 ),
-                aspectmode='data',
+                aspectmode='manual' if (x_range or y_range or z_range) else 'data',
+                aspectratio=dict(x=6, y=1, z=1) if (x_range or y_range or z_range) else dict(),
+                camera=dict(
+                    eye=dict(x=1.99, y=-2, z=2)
+                ),
             ),
             showlegend=True,
             legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
@@ -488,7 +497,11 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', info=None, save_dir=None, c
             scat_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z], mode='markers',
-                    marker=dict(size=3, color=df[color], colorscale='Viridis', opacity=0.1),
+                    marker=dict(size=4, color=df[color], colorscale='Viridis', opacity=1,
+                                line=dict(color='black', width=1),
+                                showscale=True, cmin=0, cmax=110,
+                                colorbar=dict(title='Momentum (MeV)')),
+                    text=df[color].astype(int),
                     name='Muons'))
 
         # If there is an xray, treat this as main

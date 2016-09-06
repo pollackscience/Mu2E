@@ -1,4 +1,74 @@
 #! /usr/bin/env python
+"""Module for generating mock FMS measurements.
+
+The Field Mapping System (FMS) hall probe equipment will travel through the PS and DS, measuring a
+sparse set of magnetic field components at regular positions.  These field measurements will then be
+fed to the fitting software, which should be able to reproduce the entire magnetic field map within
+a given region of interest.
+
+The :class:`mu2e.hallprober.HallProbeGenerator` takes an external field simulation, made available
+by the Mu2E collaboration, and generates a set of mock measurements, subject to many potential
+variations.  The default geometry is cylindrical, but can be changed to cartesian.  The default
+measurements are "perfect," such that no additional sources of error are introduced into each
+component value.  There are optional functions that modify the measurements to reflect various
+errors that could arise during data-taking.
+
+This module also contains functions that assist in the full scope of operation, from field
+simulation input, to hall probe data generation, to field fitting, to final plotting and analysis.
+
+Example:
+    Incomplete excerpt, see :func:`mu2e.fieldfitter.field_map_analysis` and `scripts/hallprobesim`
+    for more typical use cases:
+
+    .. code-block:: python
+
+        # assuming config files already defined...
+
+        In [10]: input_data = DataFileMaker(cfg_data.path, use_pickle=True).data_frame
+        ...      input_data.query(' and '.join(cfg_data.conditions))
+
+        In [11]: hpg = HallProbeGenerator(
+        ...         input_data, z_steps = cfg_geom.z_steps,
+        ...         r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
+        ...         x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+
+
+        # Introduce miscalibrations
+        In [12]: if cfg_geom.bad_calibration[0]:
+        ...         hpg.bad_calibration(measure = True, position = False, rotation = False)
+        ...      if cfg_geom.bad_calibration[1]:
+        ...         hpg.bad_calibration(measure = False, position = True, rotation=False)
+        ...      if cfg_geom.bad_calibration[2]:
+        ...         hpg.bad_calibration(measure = False, position = False, rotation = True)
+
+        In [13]: print hpg.get_toy().head()
+        Out[13]:
+        ...                  X    Y       Z        Bx   By        Bz      R       Phi  Bphi  \
+        ...      833646 -800.0  0.0  4221.0  0.039380  0.0  1.976202  800.0  3.141593  -0.0
+        ...      833650 -800.0  0.0  4321.0 -0.015489  0.0  1.985269  800.0  3.141593   0.0
+        ...      833654 -800.0  0.0  4421.0 -0.068838  0.0  1.975510  800.0  3.141593   0.0
+        ...      833658 -800.0  0.0  4521.0 -0.122017  0.0  1.944508  800.0  3.141593   0.0
+        ...      833662 -800.0  0.0  4621.0 -0.170256  0.0  1.885879  800.0  3.141593   0.0
+
+        ...                  Br     Bzerr     Brerr       Bphierr     Bxerr         Byerr
+        ...      833646 -0.039099  0.000198  0.000004  1.000000e-15  0.000004  1.000000e-15
+        ...      833650  0.015771  0.000199  0.000002  1.000000e-15  0.000002  1.000000e-15
+        ...      833654  0.069119  0.000198  0.000007  1.000000e-15  0.000007  1.000000e-15
+        ...      833658  0.122293  0.000194  0.000012  1.000000e-15  0.000012  1.000000e-15
+        ...      833662  0.170523  0.000189  0.000017  1.000000e-15  0.000017  1.000000e-15
+
+Notes:
+    * Remove 'getter' usage (non-pythonic)
+    * Static method could probably be placed elsewhere
+    * Interpolation scheme is not accurate enough for this analysis, eventually replace with
+        something more powerful
+    * Should analysis functions be located in this module?
+
+
+*2016 Brian Pollack, Northwestern University*
+
+brianleepollack@gmail.com
+"""
 
 import os
 import time
@@ -10,14 +80,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import Rbf
 import mu2e
-from mu2e.datafileprod import DataFileMaker
+from mu2e.dataframeprod import DataFrameMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 
 
 class HallProbeGenerator(object):
-    """Class for generating toy outputs for mimicing the Argonne hall probe measurements.
-    The input should be a dataframe made from the magnetic field simulations."""
+    """Class for generating toy outputs for mimicing the Mu2E FMS hall probe measurements.
+
+    This class takes an input DF, and a set of config namedtuples that contain necessary information
+    regarding the desired geometry and spacing of the mock data that will be produced.  Unless
+    interpolation is specified, the mock data must always be a subset (usually sparse) of the input
+    data.
+    """
 
     @staticmethod
     def cylindrical_norm(x1,x2):
@@ -234,7 +309,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     and further analysis.  Takes input cfg namedtuples to determine analysis'''
 
     plt.close('all')
-    input_data = DataFileMaker(cfg_data.path, use_pickle=True).data_frame
+    input_data = DataFrameMaker(cfg_data.path, use_pickle=True).data_frame
     input_data.query(' and '.join(cfg_data.conditions))
     hpg = HallProbeGenerator(input_data, z_steps = cfg_geom.z_steps,
             r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
@@ -248,6 +323,8 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
         hpg.bad_calibration(measure = False, position = False, rotation = True)
 
     hall_measure_data = hpg.get_toy()
+    print hall_measure_data.head()
+    raw_input()
     #hall_measure_data = pkl.load(open('../scripts/interp_test.p','rb'))
 
     ff = FieldFitter(hall_measure_data, cfg_geom)
@@ -269,7 +346,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
 
 if __name__=="__main__":
     pi = np.pi
-    data_maker1=DataFileMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
+    data_maker1=DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
     #r_steps = [25,225,425,625,800]
     r_steps = [25,225,425,625,800]
     phi_steps = [(i/8.0)*np.pi for i in range(-7,9)]
