@@ -62,7 +62,7 @@ from plotly.widgets import GraphWidget
 from offline import init_notebook_mode, iplot, plot
 
 
-def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
+def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None):
     """Generate 2D plots, x vs y.
 
     Generate a 2D plot for a given DF and two columns. An optional selection string is applied to
@@ -78,12 +78,13 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
             :func:`pandas.DataFrame.query`.
         mode (str, optional): A string indicating which plotting package and method should be used.
             Default is 'mpl'. Valid values: ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
-        info (str, optional): Extra information to add to the title.
+        info (str, optional): Extra information to add to the legend.
         savename (str, optional): If not `None`, the plot will be saved to the indicated path and
             file name.
+        ax (matplotlib.axis, optional): Use existing mpl axis object.
 
     Returns:
-        Nothing.
+        axis object if 'mpl', else `None`.
     """
 
     _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
@@ -94,14 +95,13 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
     if mode not in _modes:
         raise ValueError(mode+' not in '+_modes)
 
-    ax = df.plot(x, y, kind='line')
+    leg_label = y+' '+info if info else y
+    ax = df.plot(x, y, ax=ax, kind='line', label=leg_label, legend=True, linewidth=2)
     ax.grid(True)
     plt.ylabel(y)
-    plt.title(' '.join(filter(lambda x: x, [info, x, 'v', y, conditions])))
-    if mode == 'mpl':
-        plt.legend()
+    plt.title(' '.join(filter(lambda x: x, [x, 'v', y, conditions])))
 
-    elif 'plotly' in mode:
+    if 'plotly' in mode:
         fig = ax.get_figure()
         py_fig = tls.mpl_to_plotly(fig)
         py_fig['layout']['showlegend'] = True
@@ -114,9 +114,14 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None):
 
     if savename:
         plt.savefig(savename)
+    if mode == 'mpl':
+        return ax
+    else:
+        return None
 
 
-def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, df_fit=None):
+def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, df_fit=None,
+                ptype='3D'):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -138,6 +143,10 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         info (str, optional): Extra information to add to the title.
         save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The
             file name is automated, based on the input args.
+        df_fit (bool, optional): If the input df contains columns with the suffix '_fit', plot a
+            scatter plot using the normal columns, and overlay a wireframe plot using the '_fit'
+            columns.  Also generate a heatmap showing the residual difference between the two plots.
+        ptype (str, optional): Choose between '3d' and 'heat'.  Default is '3d'.
 
     Returns:
         Name of saved image/plot, or None.
@@ -212,25 +221,42 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
 
     # Start plotting
     if mode == 'mpl':
-        fig = plt.figure().gca(projection='3d')
+        if ptype.lower() == '3d':
+            fig = plt.figure().gca(projection='3d')
+        else:
+            fig = plt.figure()
 
         if df_fit:
             fig.plot(Xi.ravel(), Yi.ravel(), Z.ravel(), 'ko', markersize=2)
             fig.plot_wireframe(Xi, Yi, Z_fit, color='green')
-        else:
+        elif ptype.lower() == '3d':
             fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
                              linewidth=0, antialiased=False)
+        elif ptype.lower() == 'heat':
+            plt.pcolormesh(Xi, Yi, Z, cmap=plt.get_cmap('viridis'))
+        else:
+            raise KeyError(ptype+' is an invalid type!, must be "heat" or "3D"')
 
         plt.xlabel(x+' (mm)', fontsize=18)
         plt.ylabel(y+' (mm)', fontsize=18)
-        fig.set_zlabel(z+' (T)', fontsize=18)
-        fig.ticklabel_format(style='sci', axis='z')
-        fig.zaxis.labelpad = 20
-        fig.xaxis.labelpad = 20
-        fig.yaxis.labelpad = 20
-        fig.zaxis.set_tick_params(direction='out', pad=10)
-        plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title), fontsize=20)
-        fig.view_init(elev=35., azim=30)
+        if ptype.lower() == '3d':
+            fig.set_zlabel(z+' (T)', fontsize=18)
+            fig.ticklabel_format(style='sci', axis='z')
+            fig.zaxis.labelpad = 20
+            fig.zaxis.set_tick_params(direction='out', pad=10)
+            fig.xaxis.labelpad = 20
+            fig.yaxis.labelpad = 20
+        else:
+            cb = plt.colorbar()
+            cb.set_label(z+' (T)', fontsize=18)
+        if info is not None:
+            plt.title('{0} {1} vs {2} and {3} for DS\n{4}'.format(info, z, x, y, conditions_title),
+                      fontsize=20)
+        else:
+            plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
+                      fontsize=20)
+        if ptype.lower() == '3d':
+            fig.view_init(elev=35., azim=30)
         if save_dir:
             plt.savefig(save_dir+'/'+save_name+'.png')
 
@@ -262,44 +288,69 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     elif 'plotly' in mode:
         axis_title_size = 18
         axis_tick_size = 14
-        layout = go.Layout(
-            title='{0} vs {1} and {2} for DS<br>{3}'.format(z, x, y, conditions_title),
-            titlefont=dict(size=30),
-            autosize=False,
-            width=800,
-            height=650,
-            scene=dict(
+        if info is not None:
+            title = '{0} {1} vs {2} and {3} for DS<br>{4}'.format(info, z, x, y, conditions_title)
+        else:
+            title = '{0} vs {1} and {2} for DS<br>{3}'.format(z, x, y, conditions_title)
+
+        if ptype == 'heat':
+            layout = go.Layout(
+                title=title,
+                # ticksuffix is a workaround to add a bit of padding
+                width=800,
+                height=650,
+                autosize=False,
                 xaxis=dict(
                     title='{} (mm)'.format(x),
                     titlefont=dict(size=axis_title_size, family='Arial Black'),
                     tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
                 ),
                 yaxis=dict(
                     title='{} (mm)'.format(y),
                     titlefont=dict(size=axis_title_size, family='Arial Black'),
                     tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
                 ),
-                zaxis=dict(
-                    title='{} (T)'.format(z),
-                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                    tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
+            )
+
+        elif ptype == '3d':
+            layout = go.Layout(
+                title=title,
+                titlefont=dict(size=30),
+                autosize=False,
+                width=800,
+                height=650,
+                scene=dict(
+                    xaxis=dict(
+                        title='{} (mm)'.format(x),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                    ),
+                    yaxis=dict(
+                        title='{} (mm)'.format(y),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                    ),
+                    zaxis=dict(
+                        title='{} (T)'.format(z),
+                        titlefont=dict(size=axis_title_size, family='Arial Black'),
+                        tickfont=dict(size=axis_tick_size),
+                        gridcolor='rgb(255, 255, 255)',
+                        zerolinecolor='rgb(255, 255, 255)',
+                        showbackground=True,
+                        backgroundcolor='rgb(230, 230,230)',
+                    ),
                 ),
-            ),
-            showlegend=True,
-            legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
-        )
+                showlegend=True,
+                legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
+            )
         if df_fit:
             scat = go.Scatter3d(
                 x=Xi.ravel(), y=Yi.ravel(), z=Z.ravel(), mode='markers',
@@ -348,11 +399,22 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             lines.append(tracez)
 
         else:
-            surface = go.Surface(
-                x=Xi, y=Yi, z=Z,
-                colorbar=go.ColorBar(title='Tesla', titleside='right'),
-                colorscale='Viridis')
-            lines = [surface]
+            if ptype == '3d':
+                surface = go.Surface(
+                    x=Xi, y=Yi, z=Z,
+                    colorbar=go.ColorBar(title='Tesla', titleside='right'),
+                    colorscale='Viridis')
+                lines = [surface]
+            elif ptype == 'heat':
+                heat = go.Heatmap(x=X, y=Y, z=Z,
+                                  colorbar=go.ColorBar(
+                                      title='{0} (T)'.format(z),
+                                      titleside='top',
+                                      titlefont=dict(size=18),
+                                      tickfont=dict(size=20),
+                                  ),
+                                  colorscale='Viridis', showscale=True)
+                lines = [heat]
 
         fig = go.Figure(data=lines, layout=layout)
 
@@ -471,7 +533,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
             xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
             df_xray.query(xray_query, inplace=True)
 
-            h, edges = np.histogramdd(np.asarray([df_xray[x], df_xray[y], df_xray[z]]).T,
+            h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
                                       bins=(100, 25, 25))
             centers = [(e[1:]+e[:-1])/2.0 for e in edges]
             hadj = np.rot90(h).flatten()/h.max()
@@ -692,8 +754,9 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
             if self.docolor:
                 g.restyle({'x': [self.x], 'y': [self.y], 'z': [self.z],
                            'marker': dict(size=5, color=self.color,
-                                          opacity=0.7, colorscale='Viridis', cmin=0, cmax=100,
+                                          opacity=1, colorscale='Viridis', cmin=0, cmax=100,
                                           showscale=True,
+                                          line=dict(color='black', width=1),
                                           colorbar=dict(title='Momentum (MeV)', xanchor='left'))
                            },
                           indices=[0])
@@ -703,8 +766,9 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                 if self.docolor:
                     g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2],
                                'marker': dict(size=5, color=self.color2,
-                                              opacity=0.7, colorscale='Viridis', cmin=0, cmax=100,
+                                              opacity=1, colorscale='Viridis', cmin=0, cmax=100,
                                               showscale=True,
+                                              line=dict(color='black', width=1),
                                               colorbar=dict(title='Momentum (MeV)',
                                                             xanchor='left')),
                                },
@@ -733,29 +797,41 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
         sids = np.sort(df_group1.sid.unique())
 
     scats = []
+    if color:
+        mdict = dict(size=5, color=df_group1[df_group1.sid == sids[0]].p, opacity=1,
+                     colorscale='Viridis', cmin=0, cmax=100,
+                     showscale=True,
+                     line=dict(color='black', width=1),
+                     colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+    else:
+        mdict = dict(size=5, color='red', opacity=0.7)
+
     init_scat = go.Scatter3d(
         x=df_group1[df_group1.sid == sids[0]][x],
         y=df_group1[df_group1.sid == sids[0]][y],
         z=df_group1[df_group1.sid == sids[0]][z],
         mode='markers',
-        # text=df_group1[df_group1.sid == sids[0]]['p'],
         # marker=dict(size=5, color='red', opacity=0.7),
-        marker=dict(size=5, color=df_group1[df_group1.sid == sids[0]].p, opacity=0.4,
-                    colorscale='Viridis', cmin=0, cmax=100,
-                    showscale=True,
-                    colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+        marker=mdict,
         name=g1_name,
     )
     scats.append(init_scat)
 
     if group2:
+        if color:
+            mdict2 = dict(size=5, color=df_group2[df_group2.sid == sids[0]].p, opacity=1,
+                          colorscale='Viridis', cmin=0, cmax=100,
+                          showscale=True,
+                          line=dict(color='black', width=1),
+                          colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+        else:
+            mdict2 = dict(size=5, color='blue', opacity=0.7)
         init_scat2 = go.Scatter3d(
             x=df_group2[df_group2.sid == sids[0]][x],
             y=df_group2[df_group2.sid == sids[0]][y],
             z=df_group2[df_group2.sid == sids[0]][z],
             mode='markers',
-            marker=dict(size=5, color=df_group2[df_group2.sid == sids[0]].p, opacity=0.4,
-                        colorscale='Viridis', cmin=0, cmax=100,),
+            marker=mdict2,
             name=g2_name)
         scats.append(init_scat2)
 

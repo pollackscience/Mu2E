@@ -141,7 +141,7 @@ class DataFrameMaker(object):
 
         elif 'GA04' in self.field_map_version:
             self.data_frame = pd.read_csv(
-                self.file_name+'.4', header=None, names=header_names, delim_whitespace=True,
+                self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
                 skiprows=8)
 
         elif 'GA05' in self.field_map_version:
@@ -293,8 +293,8 @@ if __name__ == "__main__":
     # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA01')
-    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0',
-                                use_pickle=False, field_map_version='GA02')
+    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA04/Mu2e_DS_GA04',
+                                use_pickle=False, field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
