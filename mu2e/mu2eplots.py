@@ -60,6 +60,7 @@ import ipywidgets as widgets
 from IPython.display import display
 from plotly.widgets import GraphWidget
 from offline import init_notebook_mode, iplot, plot
+from mu2e import mu2e_ext_path
 
 
 def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None):
@@ -437,7 +438,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     return save_name
 
 
-def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
+def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
                       df_xray=None, x_range=None, y_range=None, z_range=None, title=None):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
@@ -452,8 +453,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
         z (str): Name of the third variable.
         mode (str, optional): A string indicating which plotting package and method should be used.
             Default is 'mpl'. Valid values: ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
-        save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The
-            file name is automated, based on the input args.
+        save_name (str, optional): If not `None`, the plot will be saved to
+            `mu2e_ext_path+ptrap/save_name.html` (or `.jpeg`)
         color: (str, optional): Name of fourth varible, represented by color of marker.
         df_xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of
             the material that is typically included during particle simulation.
@@ -465,13 +466,9 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
         Growing necessity for many input args, should implement `kwargs` in future.
     """
     _modes = ['plotly', 'plotly_html', 'plotly_html_img', 'plotly_nb']
-    save_name = None
 
     if mode not in _modes:
         raise ValueError(mode+' not in '+_modes)
-
-    if save_dir:
-        pass
 
     if mode == 'mpl':
         pass
@@ -611,14 +608,14 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_dir=None, color=None,
             init_notebook_mode()
             iplot(fig)
         elif mode == 'plotly_html_img':
-            if save_dir:
-                plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg',
+            if save_name:
+                plot(fig, filename=mu2e_ext_path+'ptrap/'+save_name+'.html', image='jpeg',
                      image_filename=save_name)
             else:
                 plot(fig)
         elif mode == 'plotly_html':
-            if save_dir:
-                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=False)
+            if save_name:
+                plot(fig, filename=mu2e_ext_path+'ptrap/'+save_name+'.html', auto_open=False)
             else:
                 plot(fig)
         elif mode == 'plotly':
@@ -802,7 +799,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                      colorscale='Viridis', cmin=0, cmax=100,
                      showscale=True,
                      line=dict(color='black', width=1),
-                     colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+                     colorbar=dict(title='Momentum (MeV)', xanchor='left'))
     else:
         mdict = dict(size=5, color='red', opacity=0.7)
 
@@ -823,7 +820,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                           colorscale='Viridis', cmin=0, cmax=100,
                           showscale=True,
                           line=dict(color='black', width=1),
-                          colorbar=dict(title='Momentum (MeV)', xanchor='left')),
+                          colorbar=dict(title='Momentum (MeV)', xanchor='left'))
         else:
             mdict2 = dict(size=5, color='blue', opacity=0.7)
         init_scat2 = go.Scatter3d(

@@ -91,17 +91,51 @@ class HallProbeGenerator(object):
     This class takes an input DF, and a set of config namedtuples that contain necessary information
     regarding the desired geometry and spacing of the mock data that will be produced.  Unless
     interpolation is specified, the mock data must always be a subset (usually sparse) of the input
-    data.
+    data. Additional methods may be used to manipulate the output data in order to represent
+    different measurement scenarios (like introducing measurement error).
+
+    Args:
+        input_data (:class:`pandas.DataFrame`): The input magnetic field datal properly formatted
+            via :mod:`mu2e.dataframeprod`.
+        z_steps (int or List[numbers], optional): If an int, will select `z_steps` number of evenly
+            spaced z values for sampling. If a list of ints, will select those specific z values.
+        x_steps (int or List[numbers], optional): If an int, will select `2*x_steps` number of
+            evenly.  spaced x values for sampling, symmetrically about 0. If a list of ints, will
+            select those specific x values. This arg is overridden if 'r_steps' is not None.
+        y_steps (int or List[numbers], optional): If an int, will select `2*y_steps` number of
+            evenly spaced y values for sampling, symmetrically about 0. If a list of ints, will
+            select those specific y values. This arg is overridden if 'r_steps' is not None.
+        r_steps (int or List[numbers], optional): If an int, will select `r_steps` number of evenly
+            spaced r values for sampling. If a list of ints, will select those specific r values.
+            This arg is overrides `x_steps` and `y_steps`.
+        phi_steps (List[numbers], optional): Will select specified `phi` values, along with their
+            `pi-val` counterparts. Pairs with `r_steps`.
+
+    Attributes:
+        cylindrical_norm (func): Calculate norm (distance) in cylindrical coordinates.
+        full_field (:class:`pandas.DataFrame`): Input data, before selection.
+        sparse_field (:class:`pandas.DataFrame`): Output data, after selection is applied. This is
+            the primary object that is produced by the `hallprober` class.
+        r_steps (int or List[numbers]): The input arg `r_steps`.
+        phi_steps (List[numbers]): The input arg `phi_steps`.
+        z_steps (int or List[numbers]): The input arg `z_steps`.
+
+    Notes:
+        Some clean-up and rewrites should be done in the future, may lead to slight changes in call
+        signature. Interpolation methods will be expanded shortly.
+
     """
 
     @staticmethod
-    def cylindrical_norm(x1,x2):
+    def cylindrical_norm(x1, x2):
+        """Define a distance metric in cylindrical coordinates."""
         return np.sqrt(
-            (x1[0,:]*np.cos(x1[1,:])-x2[0,:]*np.cos(x2[1,:]))**2 +
-            (x1[0,:]*np.sin(x1[1,:])-x2[0,:]*np.sin(x2[1,:]))**2 +
-            (x1[2,:]-x2[2,:])**2)
+            (x1[0, :]*np.cos(x1[1, :])-x2[0, :]*np.cos(x2[1, :]))**2 +
+            (x1[0, :]*np.sin(x1[1, :])-x2[0, :]*np.sin(x2[1, :]))**2 +
+            (x1[2, :]-x2[2, :])**2)
 
-    def __init__(self, input_data, z_steps = 15, x_steps = 10, y_steps = 10,r_steps=None,phi_steps=(np.pi/2,)):
+    def __init__(self, input_data, z_steps=15, x_steps=10,
+                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,)):
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
