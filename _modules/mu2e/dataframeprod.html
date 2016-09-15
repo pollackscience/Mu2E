@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../formula.html">Mathematical Formalism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hallprobing.html">Hall Probe Measurements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
 </ul>
@@ -277,7 +278,7 @@
 
         <span class="k">elif</span> <span class="s">&#39;GA04&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_map_version</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="o">+</span><span class="s">&#39;.4&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">header_names</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">header_names</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
                 <span class="n">skiprows</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="s">&#39;GA05&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_map_version</span><span class="p">:</span>
@@ -429,8 +430,8 @@
     <span class="c"># data_maker = DataFrameMaker(&#39;../datafiles/FieldMapData_1760_v5/Mu2e_DSMap&#39;,use_pickle = False)</span>
     <span class="c"># data_maker = DataFrameMaker(&#39;../datafiles/FieldMapsGA01/Mu2e_DS_GA0&#39;,use_pickle = False,</span>
     <span class="c">#                            field_map_version=&#39;GA01&#39;)</span>
-    <span class="n">data_maker</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="n">mu2e_ext_path</span><span class="o">+</span><span class="s">&#39;datafiles/FieldMapsGA02/Mu2e_DS_GA0&#39;</span><span class="p">,</span>
-                                <span class="n">use_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">field_map_version</span><span class="o">=</span><span class="s">&#39;GA02&#39;</span><span class="p">)</span>
+    <span class="n">data_maker</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="n">mu2e_ext_path</span><span class="o">+</span><span class="s">&#39;datafiles/FieldMapsGA04/Mu2e_DS_GA04&#39;</span><span class="p">,</span>
+                                <span class="n">use_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">field_map_version</span><span class="o">=</span><span class="s">&#39;GA04&#39;</span><span class="p">)</span>
     <span class="c"># data_maker = DataFrameMaker(&#39;../datafiles/FieldMapsGA04/Mu2e_DS_GA0&#39;,use_pickle = False,</span>
     <span class="c">#                            field_map_version=&#39;GA04&#39;)</span>
     <span class="c"># data_maker = DataFrameMaker(&#39;../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0&#39;,</span>

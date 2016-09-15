@@ -34,7 +34,7 @@
   
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/>
         <link rel="next" title="Plotting" href="plotting.html"/>
-        <link rel="prev" title="Prepping Data" href="dataframeprod.html"/> 
+        <link rel="prev" title="Hall Probe Measurements" href="hallprobing.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="field_view.html">The Mu2E Magnetic Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="formula.html">Mathematical Formalism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hallprobing.html">Hall Probe Measurements</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Fitting Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-mu2e.fieldfitter">The <cite>fieldfitter</cite> Module</a></li>
 </ul>
@@ -150,7 +151,7 @@ the fit, or used in a standalone plugin to generate field values based on the fi
 <p>Module for fitting magnetic field data with a parametric expression.</p>
 <p>This is the main workhorse module for fitting the magnetic field data.  It is assumed that the data
 has passed through the <a class="reference internal" href="dataframeprod.html#mu2e.dataframeprod.DataFrameMaker" title="mu2e.dataframeprod.DataFrameMaker"><code class="xref py py-class docutils literal"><span class="pre">mu2e.dataframeprod.DataFrameMaker</span></code></a>, and thus in the expected format.
-In most cases the data has also passed through the <code class="xref py py-mod docutils literal"><span class="pre">mu2e.hallprober</span></code> module, to imitate the act
+In most cases the data has also passed through the <a class="reference internal" href="hallprobing.html#module-mu2e.hallprober" title="mu2e.hallprober"><code class="xref py py-mod docutils literal"><span class="pre">mu2e.hallprober</span></code></a> module, to imitate the act
 of surveying one of the Mu2E solenoids with a series of hall probes.  The
 <a class="reference internal" href="#mu2e.fieldfitter.FieldFitter" title="mu2e.fieldfitter.FieldFitter"><code class="xref py py-class docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter</span></code></a> preps the data, flattens it into 1D, and uses the <code class="xref py py-mod docutils literal"><span class="pre">lmfit</span></code>
 package extensively for parameter-handling, fitting, optimization, etc.</p>
@@ -331,7 +332,7 @@ comparison of results.</p>
         <a href="plotting.html" class="btn btn-neutral float-right" title="Plotting" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="dataframeprod.html" class="btn btn-neutral" title="Prepping Data" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hallprobing.html" class="btn btn-neutral" title="Hall Probe Measurements" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
