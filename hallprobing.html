@@ -186,7 +186,8 @@ for more typical use cases:</p>
 
 <span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="k">print</span> <span class="n">hpg</span><span class="o">.</span><span class="n">get_toy</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 <span class="n">Out</span><span class="p">[</span><span class="mi">13</span><span class="p">]:</span>
-<span class="o">...</span>                  <span class="n">X</span>    <span class="n">Y</span>       <span class="n">Z</span>        <span class="n">Bx</span>   <span class="n">By</span>        <span class="n">Bz</span>      <span class="n">R</span>       <span class="n">Phi</span>  <span class="n">Bphi</span>          <span class="o">...</span>      <span class="mi">833646</span> <span class="o">-</span><span class="mf">800.0</span>  <span class="mf">0.0</span>  <span class="mf">4221.0</span>  <span class="mf">0.039380</span>  <span class="mf">0.0</span>  <span class="mf">1.976202</span>  <span class="mf">800.0</span>  <span class="mf">3.141593</span>  <span class="o">-</span><span class="mf">0.0</span>
+<span class="o">...</span>                  <span class="n">X</span>    <span class="n">Y</span>       <span class="n">Z</span>        <span class="n">Bx</span>   <span class="n">By</span>        <span class="n">Bz</span>      <span class="n">R</span>       <span class="n">Phi</span>  <span class="n">Bphi</span>
+<span class="o">...</span>      <span class="mi">833646</span> <span class="o">-</span><span class="mf">800.0</span>  <span class="mf">0.0</span>  <span class="mf">4221.0</span>  <span class="mf">0.039380</span>  <span class="mf">0.0</span>  <span class="mf">1.976202</span>  <span class="mf">800.0</span>  <span class="mf">3.141593</span>  <span class="o">-</span><span class="mf">0.0</span>
 <span class="o">...</span>      <span class="mi">833650</span> <span class="o">-</span><span class="mf">800.0</span>  <span class="mf">0.0</span>  <span class="mf">4321.0</span> <span class="o">-</span><span class="mf">0.015489</span>  <span class="mf">0.0</span>  <span class="mf">1.985269</span>  <span class="mf">800.0</span>  <span class="mf">3.141593</span>   <span class="mf">0.0</span>
 <span class="o">...</span>      <span class="mi">833654</span> <span class="o">-</span><span class="mf">800.0</span>  <span class="mf">0.0</span>  <span class="mf">4421.0</span> <span class="o">-</span><span class="mf">0.068838</span>  <span class="mf">0.0</span>  <span class="mf">1.975510</span>  <span class="mf">800.0</span>  <span class="mf">3.141593</span>   <span class="mf">0.0</span>
 <span class="o">...</span>      <span class="mi">833658</span> <span class="o">-</span><span class="mf">800.0</span>  <span class="mf">0.0</span>  <span class="mf">4521.0</span> <span class="o">-</span><span class="mf">0.122017</span>  <span class="mf">0.0</span>  <span class="mf">1.944508</span>  <span class="mf">800.0</span>  <span class="mf">3.141593</span>   <span class="mf">0.0</span>
@@ -291,10 +292,68 @@ the primary object that is produced by the <cite>hallprober</cite> class.</p>
 <p class="rubric">Notes</p>
 <p>Some clean-up and rewrites should be done in the future, may lead to slight changes in call
 signature. Interpolation methods will be expanded shortly.</p>
+<dl class="method">
+<dt id="mu2e.hallprober.HallProbeGenerator.apply_selection">
+<code class="descname">apply_selection</code><span class="sig-paren">(</span><em>coord</em>, <em>steps</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#HallProbeGenerator.apply_selection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.hallprober.HallProbeGenerator.apply_selection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Apply selections to different coordinate values in order to create a sparse dataframe</dt>
+<dd>from the input data.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord</strong> (<em>str</em>) &#8211; Label of the dataframe column that will be queried.  Typically a positional
+coordinate (&#8216;X&#8217;, &#8216;Y&#8217;, &#8216;Z&#8217;, &#8216;R&#8217;, &#8216;Phi&#8217;).</li>
+<li><strong>steps</strong> (<em>int or List[numbers]</em>) &#8211; If int, <code class="xref py py-func docutils literal"><span class="pre">mu2e.hallprober.takespread()</span></code> will be called
+in order to select evenly spaced values. If a list, those values will be taken
+(along with their respective negative or inverses, if applicable)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing. Generates <cite>spare_field</cite> class member.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.hallprober.HallProbeGenerator.bad_calibration">
+<code class="descname">bad_calibration</code><span class="sig-paren">(</span><em>measure=False</em>, <em>position=False</em>, <em>rotation=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#HallProbeGenerator.bad_calibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.hallprober.HallProbeGenerator.bad_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Manipulate the <cite>sparse_field</cite> member values, in order to mimic imperfect measurement</dt>
+<dd>scenarios. By default, no manipulations are performed.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>measure</strong> (<em>bool, optional</em>) &#8211; Apply a hard-coded measurement error.</li>
+<li><strong>position</strong> (<em>bool, optional</em>) &#8211; Apply a hard-coded positional error.</li>
+<li><strong>rotation</strong> (<em>bool, optional</em>) &#8211; Apply a hard-coded rotational error.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing, modifies <cite>sparse_field</cite> class member.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt>
 <em class="property">static </em><code class="descname">cylindrical_norm</code><span class="sig-paren">(</span><em>x1</em>, <em>x2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#HallProbeGenerator.cylindrical_norm"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Define a distance metric in cylindrical coordinates.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mu2e.hallprober.HallProbeGenerator.get_toy">
+<code class="descname">get_toy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#HallProbeGenerator.get_toy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.hallprober.HallProbeGenerator.get_toy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <cite>sparse_field</cite>. Deprecated.</p>
 </dd></dl>
 
 <dl class="method">

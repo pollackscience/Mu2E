@@ -180,7 +180,7 @@
 
 <span class="sd">        In [13]: print hpg.get_toy().head()</span>
 <span class="sd">        Out[13]:</span>
-<span class="sd">        ...                  X    Y       Z        Bx   By        Bz      R       Phi  Bphi  \</span>
+<span class="sd">        ...                  X    Y       Z        Bx   By        Bz      R       Phi  Bphi</span>
 <span class="sd">        ...      833646 -800.0  0.0  4221.0  0.039380  0.0  1.976202  800.0  3.141593  -0.0</span>
 <span class="sd">        ...      833650 -800.0  0.0  4321.0 -0.015489  0.0  1.985269  800.0  3.141593   0.0</span>
 <span class="sd">        ...      833654 -800.0  0.0  4421.0 -0.068838  0.0  1.975510  800.0  3.141593   0.0</span>
@@ -212,6 +212,7 @@
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -221,6 +222,7 @@
 <span class="kn">from</span> <span class="nn">mu2e.fieldfitter</span> <span class="k">import</span> <span class="n">FieldFitter</span>
 <span class="kn">from</span> <span class="nn">mu2e.mu2eplots</span> <span class="k">import</span> <span class="n">mu2e_plot3d</span>
 
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s">&#39;always&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HallProbeGenerator"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.HallProbeGenerator">[docs]</a><span class="k">class</span> <span class="nc">HallProbeGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Class for generating toy outputs for mimicing the Mu2E FMS hall probe measurements.</span>
@@ -308,7 +310,20 @@
             <span class="n">spread</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">length</span> <span class="o">/</span> <span class="n">num</span><span class="p">))])</span>
         <span class="k">return</span> <span class="n">spread</span></div>
 
-    <span class="k">def</span> <span class="nf">apply_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+<div class="viewcode-block" id="HallProbeGenerator.apply_selection"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.HallProbeGenerator.apply_selection">[docs]</a>    <span class="k">def</span> <span class="nf">apply_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply selections to different coordinate values in order to create a sparse dataframe</span>
+<span class="sd">            from the input data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            coord (str): Label of the dataframe column that will be queried.  Typically a positional</span>
+<span class="sd">                coordinate (&#39;X&#39;, &#39;Y&#39;, &#39;Z&#39;, &#39;R&#39;, &#39;Phi&#39;).</span>
+<span class="sd">            steps (int or List[numbers]): If int, :func:`mu2e.hallprober.takespread` will be called</span>
+<span class="sd">                in order to select evenly spaced values. If a list, those values will be taken</span>
+<span class="sd">                (along with their respective negative or inverses, if applicable)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Nothing. Generates `spare_field` class member.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">coord</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;R&#39;</span><span class="p">]:</span>
@@ -350,19 +365,36 @@
             <span class="nb">print</span> <span class="s">&#39;Warning!: specified vals:&#39;</span>
             <span class="nb">print</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">coord_vals</span><span class="p">)</span>
             <span class="nb">print</span> <span class="s">&#39;remaining vals:&#39;</span>
-            <span class="nb">print</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+            <span class="nb">print</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">get_toy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span>
+<div class="viewcode-block" id="HallProbeGenerator.get_toy"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.HallProbeGenerator.get_toy">[docs]</a>    <span class="k">def</span> <span class="nf">get_toy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return `sparse_field`. Deprecated.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">((</span><span class="s">&quot;`get_toy()` is deprecated, please use the `sparse_field` class member&quot;</span><span class="p">),</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span></div>
 
-    <span class="k">def</span> <span class="nf">bad_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">measure</span> <span class="o">=</span> <span class="k">False</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
-        <span class="c">#measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]</span>
-        <span class="n">measure_sf</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">1</span><span class="o">-</span><span class="mf">2.58342250e-05</span><span class="p">,</span>  <span class="mi">1</span><span class="o">-</span><span class="mf">5.00578244e-05</span><span class="p">,</span>   <span class="mi">1</span><span class="o">+</span><span class="mf">4.87132812e-05</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="mf">7.79452585e-05</span><span class="p">,</span>   <span class="mi">1</span><span class="o">+</span><span class="mf">1.85119047e-05</span><span class="p">]</span> <span class="c">#uniform(-0.0001, 0.0001)</span>
-        <span class="c">#pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]</span>
-        <span class="n">pos_offset</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">0.9557545</span><span class="p">,</span>  <span class="mf">0.7018995</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8877238</span><span class="p">,</span>  <span class="mf">0.3336723</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4361852</span><span class="p">]</span> <span class="c"># uniform(-1, 1)</span>
-        <span class="c">#rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]</span>
-        <span class="c">#rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]</span>
-        <span class="n">rotation_angle</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">6.58857659e-05</span><span class="p">,</span>   <span class="o">-</span><span class="mf">9.64816467e-05</span><span class="p">,</span>   <span class="mf">8.92011209e-05</span><span class="p">,</span> <span class="mf">4.42270175e-05</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.09926476e-05</span><span class="p">]</span>
+<div class="viewcode-block" id="HallProbeGenerator.bad_calibration"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.HallProbeGenerator.bad_calibration">[docs]</a>    <span class="k">def</span> <span class="nf">bad_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Manipulate the `sparse_field` member values, in order to mimic imperfect measurement</span>
+<span class="sd">            scenarios. By default, no manipulations are performed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            measure (bool, optional): Apply a hard-coded measurement error.</span>
+<span class="sd">            position (bool, optional): Apply a hard-coded positional error.</span>
+<span class="sd">            rotation (bool, optional): Apply a hard-coded rotational error.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Nothing, modifies `sparse_field` class member.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]</span>
+        <span class="n">measure_sf</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">-</span><span class="mf">2.58342250e-05</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mf">5.00578244e-05</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="mf">4.87132812e-05</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="mf">7.79452585e-05</span><span class="p">,</span>
+                      <span class="mi">1</span><span class="o">+</span><span class="mf">1.85119047e-05</span><span class="p">]</span>  <span class="c"># uniform(-0.0001, 0.0001)</span>
+        <span class="c"># pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]</span>
+        <span class="n">pos_offset</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.9557545</span><span class="p">,</span> <span class="mf">0.7018995</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8877238</span><span class="p">,</span> <span class="mf">0.3336723</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4361852</span><span class="p">]</span>  <span class="c"># uniform(-1, 1)</span>
+        <span class="c"># rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]</span>
+        <span class="c"># rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]</span>
+        <span class="n">rotation_angle</span> <span class="o">=</span> <span class="p">[</span><span class="mf">6.58857659e-05</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.64816467e-05</span><span class="p">,</span> <span class="mf">8.92011209e-05</span><span class="p">,</span> <span class="mf">4.42270175e-05</span><span class="p">,</span>
+                          <span class="o">-</span><span class="mf">7.09926476e-05</span><span class="p">]</span>
+
         <span class="k">for</span> <span class="n">phi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_steps</span><span class="p">:</span>
             <span class="n">probes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">Phi</span><span class="p">,</span><span class="n">phi</span><span class="p">)]</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">measure</span><span class="p">:</span>
@@ -387,7 +419,7 @@
                     <span class="n">tmp_Bz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">R</span><span class="o">==</span><span class="n">probe</span><span class="p">]</span><span class="o">.</span><span class="n">Bz</span>
                     <span class="n">tmp_Br</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">R</span><span class="o">==</span><span class="n">probe</span><span class="p">]</span><span class="o">.</span><span class="n">Br</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">ix</span><span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">R</span><span class="p">)</span><span class="o">==</span><span class="n">probe</span><span class="p">),</span> <span class="s">&#39;Bz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_Br</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="n">tmp_Bz</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">ix</span><span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">R</span><span class="p">)</span><span class="o">==</span><span class="n">probe</span><span class="p">),</span> <span class="s">&#39;Br&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_Br</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">tmp_Bz</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">ix</span><span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_field</span><span class="o">.</span><span class="n">R</span><span class="p">)</span><span class="o">==</span><span class="n">probe</span><span class="p">),</span> <span class="s">&#39;Br&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_Br</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">tmp_Bz</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="HallProbeGenerator.interpolate_points"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.HallProbeGenerator.interpolate_points">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Method for obtaining required selection through interpolation.  Work in progress&#39;&#39;&#39;</span>
