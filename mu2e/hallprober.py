@@ -43,7 +43,7 @@ Example:
 
         In [13]: print hpg.get_toy().head()
         Out[13]:
-        ...                  X    Y       Z        Bx   By        Bz      R       Phi  Bphi  \
+        ...                  X    Y       Z        Bx   By        Bz      R       Phi  Bphi
         ...      833646 -800.0  0.0  4221.0  0.039380  0.0  1.976202  800.0  3.141593  -0.0
         ...      833650 -800.0  0.0  4321.0 -0.015489  0.0  1.985269  800.0  3.141593   0.0
         ...      833654 -800.0  0.0  4421.0 -0.068838  0.0  1.975510  800.0  3.141593   0.0
@@ -75,6 +75,7 @@ import time
 import shutil
 import math
 import collections
+import warnings
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -84,6 +85,7 @@ from mu2e.dataframeprod import DataFrameMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 
+warnings.simplefilter('always', DeprecationWarning)
 
 class HallProbeGenerator(object):
     """Class for generating toy outputs for mimicing the Mu2E FMS hall probe measurements.
@@ -172,6 +174,19 @@ class HallProbeGenerator(object):
         return spread
 
     def apply_selection(self, coord, steps):
+        """Apply selections to different coordinate values in order to create a sparse dataframe
+            from the input data.
+
+        Args:
+            coord (str): Label of the dataframe column that will be queried.  Typically a positional
+                coordinate ('X', 'Y', 'Z', 'R', 'Phi').
+            steps (int or List[numbers]): If int, :func:`mu2e.hallprober.takespread` will be called
+                in order to select evenly spaced values. If a list, those values will be taken
+                (along with their respective negative or inverses, if applicable)
+
+        Returns:
+            Nothing. Generates `spare_field` class member.
+        """
 
         if isinstance(steps, int):
             if coord in ['Z', 'R']:
@@ -216,16 +231,33 @@ class HallProbeGenerator(object):
             print np.sort(self.sparse_field[coord].unique())
 
     def get_toy(self):
+        """Return `sparse_field`. Deprecated."""
+        warnings.warn(("`get_toy()` is deprecated, please use the `sparse_field` class member"),
+                      DeprecationWarning)
         return self.sparse_field
 
-    def bad_calibration(self,measure = False, position=False, rotation=False):
-        #measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
-        measure_sf = [ 1-2.58342250e-05,  1-5.00578244e-05,   1+4.87132812e-05, 1+7.79452585e-05,   1+1.85119047e-05] #uniform(-0.0001, 0.0001)
-        #pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
-        pos_offset = [ 0.9557545,  0.7018995, -0.8877238,  0.3336723, -0.4361852] # uniform(-1, 1)
-        #rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
-        #rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
-        rotation_angle = [  6.58857659e-05,   -9.64816467e-05,   8.92011209e-05, 4.42270175e-05,  -7.09926476e-05]
+    def bad_calibration(self, measure=False, position=False, rotation=False):
+        """Manipulate the `sparse_field` member values, in order to mimic imperfect measurement
+            scenarios. By default, no manipulations are performed.
+
+        Args:
+            measure (bool, optional): Apply a hard-coded measurement error.
+            position (bool, optional): Apply a hard-coded positional error.
+            rotation (bool, optional): Apply a hard-coded rotational error.
+
+        Returns:
+            Nothing, modifies `sparse_field` class member.
+        """
+        # measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
+        measure_sf = [1-2.58342250e-05, 1-5.00578244e-05, 1+4.87132812e-05, 1+7.79452585e-05,
+                      1+1.85119047e-05]  # uniform(-0.0001, 0.0001)
+        # pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+        pos_offset = [0.9557545, 0.7018995, -0.8877238, 0.3336723, -0.4361852]  # uniform(-1, 1)
+        # rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
+        # rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
+        rotation_angle = [6.58857659e-05, -9.64816467e-05, 8.92011209e-05, 4.42270175e-05,
+                          -7.09926476e-05]
+
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
             if measure:
