@@ -23,6 +23,7 @@ Contents:
    field_view
    formula
    dataframeprod
+   hallprobing
    fitting
    plotting
 
