@@ -87,6 +87,7 @@ from mu2e.mu2eplots import mu2e_plot3d
 
 warnings.simplefilter('always', DeprecationWarning)
 
+
 class HallProbeGenerator(object):
     """Class for generating toy outputs for mimicing the Mu2E FMS hall probe measurements.
 
@@ -174,8 +175,9 @@ class HallProbeGenerator(object):
         return spread
 
     def apply_selection(self, coord, steps):
-        """Apply selections to different coordinate values in order to create a sparse dataframe
-            from the input data.
+        """
+        Apply selections to different coordinate values in order to create a sparse dataframe from
+        the input data.
 
         Args:
             coord (str): Label of the dataframe column that will be queried.  Typically a positional
@@ -237,8 +239,9 @@ class HallProbeGenerator(object):
         return self.sparse_field
 
     def bad_calibration(self, measure=False, position=False, rotation=False):
-        """Manipulate the `sparse_field` member values, in order to mimic imperfect measurement
-            scenarios. By default, no manipulations are performed.
+        """
+        Manipulate the `sparse_field` member values, in order to mimic imperfect measurement
+        scenarios. By default, no manipulations are performed.
 
         Args:
             measure (bool, optional): Apply a hard-coded measurement error.
@@ -259,33 +262,44 @@ class HallProbeGenerator(object):
                           -7.09926476e-05]
 
         for phi in self.phi_steps:
-            probes = self.sparse_field[np.isclose(self.sparse_field.Phi,phi)].R.unique()
+            probes = self.sparse_field[np.isclose(self.sparse_field.Phi, phi)].R.unique()
             if measure:
-                if len(probes)>len(measure_sf): raise IndexError('need more measure_sf, too many probes')
-                for i,probe in enumerate(probes):
-                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bz'] *= measure_sf[i]
-                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Br'] *= measure_sf[i]
-                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bphi'] *= measure_sf[i]
+                if len(probes) > len(measure_sf):
+                    raise IndexError('need more measure_sf, too many probes')
+                for i, probe in enumerate(probes):
+                    self.sparse_field.ix[
+                        (abs(self.sparse_field.R) == probe), 'Bz'] *= measure_sf[i]
+                    self.sparse_field.ix[
+                        (abs(self.sparse_field.R) == probe), 'Br'] *= measure_sf[i]
+                    self.sparse_field.ix[
+                        (abs(self.sparse_field.R) == probe), 'Bphi'] *= measure_sf[i]
 
             if position:
-                if len(probes)>len(pos_offset): raise IndexError('need more pos_offset, too many probes')
-                for i,probe in enumerate(probes):
-                    if probe==0:
-                        self.sparse_field.ix[abs(self.sparse_field.R)==probe, 'R'] += pos_offset[i]
+                if len(probes) > len(pos_offset):
+                    raise IndexError('need more pos_offset, too many probes')
+                for i, probe in enumerate(probes):
+                    if probe == 0:
+                        self.sparse_field.ix[
+                            abs(self.sparse_field.R) == probe, 'R'] += pos_offset[i]
                     else:
-                        self.sparse_field.ix[abs(self.sparse_field.R)==probe, 'R'] += pos_offset[i]
-                        self.sparse_field.ix[abs(self.sparse_field.R)==-probe, 'R'] -= pos_offset[i]
+                        self.sparse_field.ix[
+                            abs(self.sparse_field.R) == probe, 'R'] += pos_offset[i]
+                        self.sparse_field.ix[
+                            abs(self.sparse_field.R) == -probe, 'R'] -= pos_offset[i]
 
             if rotation:
-                if len(probes)>len(rotation_angle): raise IndexError('need more rotation_angle, too many probes')
-                for i,probe in enumerate(probes):
-                    tmp_Bz = self.sparse_field[self.sparse_field.R==probe].Bz
-                    tmp_Br = self.sparse_field[self.sparse_field.R==probe].Br
-                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Bz'] = tmp_Br*np.sin(rotation_angle[i])+tmp_Bz*np.cos(rotation_angle[i])
-                    self.sparse_field.ix[(abs(self.sparse_field.R)==probe), 'Br'] = tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i])
+                if len(probes) > len(rotation_angle):
+                    raise IndexError('need more rotation_angle, too many probes')
+                for i, probe in enumerate(probes):
+                    tmp_Bz = self.sparse_field[self.sparse_field.R == probe].Bz
+                    tmp_Br = self.sparse_field[self.sparse_field.R == probe].Br
+                    self.sparse_field.ix[(abs(self.sparse_field.R) == probe), 'Bz'] = (
+                        tmp_Br*np.sin(rotation_angle[i])+tmp_Bz*np.cos(rotation_angle[i]))
+                    self.sparse_field.ix[(abs(self.sparse_field.R) == probe), 'Br'] = (
+                        tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i]))
 
-    def interpolate_points(self, version = 1):
-        '''Method for obtaining required selection through interpolation.  Work in progress'''
+    def interpolate_points(self, version=1):
+        """Method for obtaining required selection through interpolation.  Work in progress."""
 
         if version == 1:
             field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
@@ -298,18 +312,22 @@ class HallProbeGenerator(object):
             print len(field_subset.Bz)
 
             print 'interpolating bz'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,function='quintic', norm=self.cylindrical_norm)
+            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,
+                      function='quintic', norm=self.cylindrical_norm)
             bz = rbf(rr, pp, zz)
             print 'interpolating br'
-            #rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,function='quintic', norm=self.cylindrical_norm)
-            #br = rbf(rr, pp, zz)
+            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,
+                      function='quintic', norm=self.cylindrical_norm)
+            br = rbf(rr, pp, zz)
             br = bz
             print 'interpolating bphi'
-            #rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,function='quintic', norm=self.cylindrical_norm)
-            #bphi = rbf(rr, pp, zz)
+            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,
+                      function='quintic', norm=self.cylindrical_norm)
+            bphi = rbf(rr, pp, zz)
             bphi = bz
 
-            self.sparse_field = pd.DataFrame({'R':rr,'Phi':pp,'Z':zz,'Br':br,'Bphi':bphi,'Bz':bz})
+            self.sparse_field = pd.DataFrame({'R': rr, 'Phi': pp, 'Z': zz,
+                                              'Br': br, 'Bphi': bphi, 'Bz': bz})
 
         elif version == 2:
             row_list = []
@@ -318,23 +336,28 @@ class HallProbeGenerator(object):
                     for z in self.z_steps:
                         x = r*math.cos(p)
                         y = r*math.sin(p)
-                        field_subset = self.full_field.query('{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
-                            x-100, x+100, y-100, y+100, z-100, z+100))
+                        field_subset = self.full_field.query(
+                            '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
+                                x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        #print 'interpolating bz'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,function='linear', norm=self.cylindrical_norm)
+                        print 'interpolating bz'
+                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                                  field_subset.Bz, function='linear', norm=self.cylindrical_norm)
                         bz = rbf(r, p, z)
-                        #print 'interpolating br'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,function='quintic', norm=self.cylindrical_norm)
+                        print 'interpolating br'
+                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                                  field_subset.Br, function='quintic', norm=self.cylindrical_norm)
                         br = rbf(r, p, z)
-                        #print 'interpolating bphi'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,function='quintic', norm=self.cylindrical_norm)
+                        print 'interpolating bphi'
+                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                                  field_subset.Bphi, function='quintic', norm=self.cylindrical_norm)
                         bphi = rbf(r, p, z)
                         row_list.append([r, p, z, br, bphi, bz])
 
             row_list = np.asarray(row_list)
-            self.sparse_field = pd.DataFrame({'R':row_list[:,0],'Phi':row_list[:,1],'Z':row_list[:,2],
-                'Br':row_list[:,3], 'Bphi':row_list[:,4], 'Bz':row_list[:,5]})
+            self.sparse_field = pd.DataFrame({
+                'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
+                'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
         del rbf
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
@@ -346,10 +369,11 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
 
     geom = cfg_geom.geom
     plot_type = cfg_plot.plot_type
-    if geom == 'cyl': steps = cfg_geom.phi_steps
-    if geom == 'cart': raise NotImplementedError('geom = cart not implemented for plotter')
+    if geom == 'cyl':
+        steps = cfg_geom.phi_steps
+    if geom == 'cart':
+        raise NotImplementedError('geom = cart not implemented for plotter')
     conditions = cfg_data.conditions
-    #zlims = cfg_plot.zlims
 
     ABC_geom = {'cyl':[['R','Z','Bz'],['R','Z','Br'],['R','Z','Bphi']],
                 'cart':[['Y','Z','Bx'],['Y','Z','By'],['Y','Z','Bz'],
