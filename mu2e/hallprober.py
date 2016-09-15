@@ -142,20 +142,29 @@ class HallProbeGenerator(object):
         self.phi_steps = phi_steps
         self.z_steps = z_steps
 
-        self.apply_selection('Z',z_steps)
+        self.apply_selection('Z', z_steps)
         if r_steps:
-            self.apply_selection('R',r_steps)
-            self.apply_selection('Phi',phi_steps)
+            self.apply_selection('R', r_steps)
+            self.apply_selection('Phi', phi_steps)
             self.phi_steps = phi_steps
         else:
-            self.apply_selection('X',x_steps)
-            self.apply_selection('Y',y_steps)
-        for mag in ['Bz','Br','Bphi','Bx','By','Bz']:
+            self.apply_selection('X', x_steps)
+            self.apply_selection('Y', y_steps)
+        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
             self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
 
-        #self.interpolate_points()
+        # self.interpolate_points()
 
     def takespread(self, sequence, num):
+        """Return an evenly-spaced sequence of length `num` from the input sequence.
+
+        Args:
+            sequence (collections.Sequence): A list-like object of numeric values.
+            num (int): Number of desired values to be selected.
+
+        Returns:
+            spread (List[numbers]):
+        """
         length = float(len(sequence))
         spread = []
         for i in range(num):
@@ -164,37 +173,40 @@ class HallProbeGenerator(object):
 
     def apply_selection(self, coord, steps):
 
-        if isinstance(steps,int):
-            if coord in ['Z','R']:
+        if isinstance(steps, int):
+            if coord in ['Z', 'R']:
                 coord_vals = np.sort(self.full_field[coord].unique())
                 coord_vals = self.takespread(coord_vals, steps)
-                #coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
 
             else:
                 coord_vals = np.sort(self.full_field[coord].abs().unique())[:steps]
-                coord_vals = np.concatenate((coord_vals,-coord_vals[np.where(coord_vals>0)]))
+                coord_vals = np.concatenate((coord_vals, -coord_vals[np.where(coord_vals > 0)]))
 
-        elif isinstance(steps, collections.Sequence) and type(steps)!=str:
-            if coord =='Phi':
-                coord_vals=[]
+        elif isinstance(steps, collections.Sequence) and type(steps) != str:
+            if coord == 'Phi':
+                coord_vals = []
                 for step in steps:
                     coord_vals.append(step)
-                    if step!=0: coord_vals.append(step-np.pi)
-                    else: coord_vals.append(step+np.pi)
-            elif coord =='R':
+                    if step != 0:
+                        coord_vals.append(step-np.pi)
+                    else:
+                        coord_vals.append(step+np.pi)
+            elif coord == 'R':
                 if isinstance(steps[0], collections.Sequence):
                     coord_vals = np.sort(np.unique([val for sublist in steps for val in sublist]))
                 else:
                     coord_vals = steps
-            elif coord in ['Z','X','Y']:
+            elif coord in ['Z', 'X', 'Y']:
                 coord_vals = steps
-        elif steps=='all':
+        elif steps == 'all':
                 coord_vals = np.sort(self.full_field[coord].unique())
         else:
             raise TypeError(coord+" steps must be scalar or list of values!")
 
-        if coord=='R' or coord=='Phi':
-            self.sparse_field = self.sparse_field.query('|'.join(['(-1e-6<'+coord+'-'+str(i)+'<1e-6)' for i in coord_vals]))
+        if coord == 'R' or coord == 'Phi':
+            self.sparse_field = self.sparse_field.query(
+                '|'.join(['(-1e-6<'+coord+'-'+str(i)+'<1e-6)' for i in coord_vals])
+            )
         else:
             self.sparse_field = self.sparse_field[self.sparse_field[coord].isin(coord_vals)]
         if len(self.sparse_field[coord].unique()) != len(coord_vals):
