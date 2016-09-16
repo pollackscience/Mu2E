@@ -9,7 +9,7 @@ of surveying one of the Mu2E solenoids with a series of hall probes.  The
 package extensively for parameter-handling, fitting, optimization, etc.
 
 Example:
-    Incomplete excerpt, see :func:`mu2e.fieldfitter.field_map_analysis` and `scripts/hallprobesim`
+    Incomplete excerpt, see :func:`mu2e.hallprober.field_map_analysis` and `scripts/hallprobesim`
     for more typical use cases:
 
     .. code-block:: python
@@ -32,7 +32,7 @@ Example:
         In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting
 
         In [15]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
-        ...      # defined in :class:`mu2e.fieldfitter`
+        ...      # defined in :class:`mu2e.hallprober`
 
 *2016 Brian Pollack, Northwestern University*
 

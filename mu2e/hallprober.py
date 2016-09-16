@@ -364,8 +364,50 @@ class HallProbeGenerator(object):
 
 
 def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
-    '''Make a series of fit plots, given a dataframe and some information
-        on the kind of plots you want. must specify phi steps or xy_steps'''
+    """Make a series of comparison plots with the fit output and hallprobe input.
+
+    This function takes input DFs and `namedtuple` config files, and generates a comprehensive
+    set of comparison plots in 3D.  The plots are typically of the form 'B-component vs two
+    positional variables', where the input hall probe measurements are displayed as a scatter plot,
+    and the resulting fit is displayed as wireframe plot.  Additionally, heatmaps are produced to
+    display the absolute residuals between the data and fit.  The heatmaps are produced separately
+    in 'mpl' mode, or are integrated into the main plot in 'plotly' mode.
+
+    Example:
+        Incomplete excerpt, see `scripts/hallprobesim` for more typical use cases:
+
+        .. code-block:: python
+
+        # assuming config files already defined...
+
+        In [12]: ff = FieldFitter(sparse_field, cfg_geom)
+
+        In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+        ...      # This will take some time, especially for many data points and free params
+
+        In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting
+
+        In [15]: cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
+
+        In [16]: cfg_plot_plotly = cfg_plot('plotly',[-10,10],'html', None)
+        ...      # make plotly plots, set limits, save loc, etc.
+
+        In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+
+
+    Args:
+       df (:class:`pandas.DataFrame`): DF that contains both the input data and the fit data.
+       cfg_data (namedtuple): Data config file.
+       cfg_geom (namedtuple): Geometry config file.
+       cfg_plot (namedtuple): Plotting config file.
+       name (str): Name of output save directory.
+
+    Returns:
+       Nothing.
+
+    Todo:
+        * Move this function to more logical module.
+    """
 
     geom = cfg_geom.geom
     plot_type = cfg_plot.plot_type
@@ -375,13 +417,11 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
         raise NotImplementedError('geom = cart not implemented for plotter')
     conditions = cfg_data.conditions
 
-    ABC_geom = {'cyl':[['R','Z','Bz'],['R','Z','Br'],['R','Z','Bphi']],
-                'cart':[['Y','Z','Bx'],['Y','Z','By'],['Y','Z','Bz'],
-                       ['X','Z','Bx'],['X','Z','By'],['X','Z','Bz']]}
-
+    ABC_geom = {'cyl': [['R', 'Z', 'Bz'], ['R', 'Z', 'Br'], ['R', 'Z', 'Bphi']],
+                'cart': [['Y', 'Z', 'Bx'], ['Y', 'Z', 'By'], ['Y', 'Z', 'Bz'],
+                         ['X', 'Z', 'Bx'], ['X', 'Z', 'By'], ['X', 'Z', 'Bz']]}
 
     if cfg_plot.save_loc == 'local':
-        #save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+'/../plots/'+name
         save_dir = mu2e.mu2e_ext_path+'plots/'+name
     elif cfg_plot.save_loc == 'html':
         save_dir = '/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/'+name
@@ -389,11 +429,11 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     for step in steps:
         for ABC in ABC_geom[geom]:
             conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
-            save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions = conditions_str,
-                    df_fit = True, mode = plot_type, save_dir = save_dir)
+            save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions=conditions_str,
+                                    df_fit=True, mode=plot_type, save_dir=save_dir)
 
-# If we are saving the plotly_html, we also want to download stills and transfer them to
-# the appropriate save location.
+            # If we are saving the plotly_html, we also want to download stills
+            # and transfer them to the appropriate save location.
             if plot_type == 'plotly_html_img':
 
                 init_loc = '/Users/brianpollack/Downloads/'+save_name+'.jpeg'
@@ -406,38 +446,50 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     if plot_type == 'mpl':
         plt.show()
 
+
 def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plot, profile=False):
-    '''Universal function to perform all types of hall probe measurements, plots,
-    and further analysis.  Takes input cfg namedtuples to determine analysis'''
+    """Universal function to perform all types of hall probe measurements, plots, and further
+    analysis.
+
+    Args:
+        name (str): Name of output directory.
+        cfg_data (namedtuple): Data config file.
+        cfg_geom (namedtuple): Geometry config file.
+        cfg_params (namedtuple): Fit parameter config file.
+        cfg_pickle (namedtuple): Pickling config file.
+        cfg_plot (namedtuple): Plotting config file.
+        profile (bool, optional): If True, return data before fitting for the purposes of continuing
+            on to profiling methods.
+
+    Returns:
+        If `profile==False`, returns a DF of the hall probe data, and the FieldFitter object. If
+        `profile==True`, returns field components and position values.
+    """
 
     plt.close('all')
     input_data = DataFrameMaker(cfg_data.path, use_pickle=True).data_frame
     input_data.query(' and '.join(cfg_data.conditions))
-    hpg = HallProbeGenerator(input_data, z_steps = cfg_geom.z_steps,
-            r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
-            x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+    hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
+                             r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
+                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps)
 
     if cfg_geom.bad_calibration[0]:
-        hpg.bad_calibration(measure = True, position = False, rotation = False)
+        hpg.bad_calibration(measure=True, position=False, rotation=False)
     if cfg_geom.bad_calibration[1]:
-        hpg.bad_calibration(measure = False, position = True, rotation=False)
+        hpg.bad_calibration(measure=False, position=True, rotation=False)
     if cfg_geom.bad_calibration[2]:
-        hpg.bad_calibration(measure = False, position = False, rotation = True)
+        hpg.bad_calibration(measure=False, position=False, rotation=True)
 
     hall_measure_data = hpg.get_toy()
-    print hall_measure_data.head()
-    raw_input()
-    #hall_measure_data = pkl.load(open('../scripts/interp_test.p','rb'))
+    # print hall_measure_data.head()
+    # raw_input()
 
     ff = FieldFitter(hall_measure_data, cfg_geom)
     if profile:
-        ZZ,RR,PP,Bz,Br,Bphi = ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile = profile)
-        return ZZ,RR,PP,Bz,Br,Bphi
+        ZZ, RR, PP, Bz, Br, Bphi = ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile=profile)
+        return ZZ, RR, PP, Bz, Br, Bphi
     else:
-        ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile = profile)
-
-    #plot_maker = Plotter.from_hall_study({'_'.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)
-    #plot_maker.extra_suffix=suffix
+        ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile=profile)
 
     ff.merge_data_fit_res()
 
@@ -446,13 +498,11 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     return hall_measure_data, ff
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     pi = np.pi
-    data_maker1=DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap',use_pickle = True)
-    #r_steps = [25,225,425,625,800]
-    r_steps = [25,225,425,625,800]
-    phi_steps = [(i/8.0)*np.pi for i in range(-7,9)]
-    z_steps = range(5021,13021,50)
+    data_maker1 = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSmap', use_pickle=True)
+    r_steps = [25, 225, 425, 625, 800]
+    phi_steps = [(i/8.0)*np.pi for i in range(-7, 9)]
+    z_steps = range(5021, 13021, 50)
     hpg = HallProbeGenerator(data_maker1.data_frame,
-            z_steps = z_steps, r_steps = r_steps, phi_steps = phi_steps)
-    #hall_toy = hpg.get_toy()
+                             z_steps=z_steps, r_steps=r_steps, phi_steps=phi_steps)
