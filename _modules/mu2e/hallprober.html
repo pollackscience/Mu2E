@@ -515,21 +515,21 @@
 
 <span class="sd">        .. code-block:: python</span>
 
-<span class="sd">        # assuming config files already defined...</span>
+<span class="sd">            # assuming config files already defined...</span>
 
-<span class="sd">        In [12]: ff = FieldFitter(sparse_field, cfg_geom)</span>
+<span class="sd">            In [12]: ff = FieldFitter(sparse_field, cfg_geom)</span>
 
-<span class="sd">        In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)</span>
-<span class="sd">        ...      # This will take some time, especially for many data points and free params</span>
+<span class="sd">            In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)</span>
+<span class="sd">            ...      # This will take some time, especially for many data points and free params</span>
 
-<span class="sd">        In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting</span>
+<span class="sd">            In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting</span>
 
-<span class="sd">        In [15]: cfg_plot = namedtuple(&#39;cfg_plot&#39;, &#39;plot_type zlims save_loc sub_dir&#39;)</span>
+<span class="sd">            In [15]: cfg_plot = namedtuple(&#39;cfg_plot&#39;, &#39;plot_type zlims save_loc sub_dir&#39;)</span>
 
-<span class="sd">        In [16]: cfg_plot_plotly = cfg_plot(&#39;plotly&#39;,[-10,10],&#39;html&#39;, None)</span>
-<span class="sd">        ...      # make plotly plots, set limits, save loc, etc.</span>
+<span class="sd">            In [16]: cfg_plot_plotly = cfg_plot(&#39;plotly&#39;,[-10,10],&#39;html&#39;, None)</span>
+<span class="sd">            ...      # make plotly plots, set limits, save loc, etc.</span>
 
-<span class="sd">        In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)</span>
+<span class="sd">            In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)</span>
 
 
 <span class="sd">    Args:</span>

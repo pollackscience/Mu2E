@@ -425,18 +425,23 @@ display the absolute residuals between the data and fit.  The heatmaps are produ
 in &#8216;mpl&#8217; mode, or are integrated into the main plot in &#8216;plotly&#8217; mode.</p>
 <p class="rubric">Example</p>
 <p>Incomplete excerpt, see <cite>scripts/hallprobesim</cite> for more typical use cases:</p>
-<div class="highlight-python"><div class="highlight"><pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># assuming config files already defined...</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">ff</span> <span class="o">=</span> <span class="n">FieldFitter</span><span class="p">(</span><span class="n">sparse_field</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">13</span><span class="p">]:</span> <span class="n">ff</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">)</span>
+<span class="o">...</span>      <span class="c"># This will take some time, especially for many data points and free params</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">ff</span><span class="o">.</span><span class="n">merge_data_fit_res</span><span class="p">()</span> <span class="c"># merge the results in for easy plotting</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="n">cfg_plot</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;cfg_plot&#39;</span><span class="p">,</span> <span class="s">&#39;plot_type zlims save_loc sub_dir&#39;</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">16</span><span class="p">]:</span> <span class="n">cfg_plot_plotly</span> <span class="o">=</span> <span class="n">cfg_plot</span><span class="p">(</span><span class="s">&#39;plotly&#39;</span><span class="p">,[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span><span class="s">&#39;html&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+<span class="o">...</span>      <span class="c"># make plotly plots, set limits, save loc, etc.</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">17</span><span class="p">]:</span> <span class="n">make_fit_plots</span><span class="p">(</span><span class="n">ff</span><span class="o">.</span><span class="n">input_data</span><span class="p">,</span> <span class="n">cfg_data</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">,</span> <span class="n">cfg_plot</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
-<p># assuming config files already defined...</p>
-<p>In [12]: ff = FieldFitter(sparse_field, cfg_geom)</p>
-<p>In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
-...      # This will take some time, especially for many data points and free params</p>
-<p>In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting</p>
-<p>In [15]: cfg_plot = namedtuple(&#8216;cfg_plot&#8217;, &#8216;plot_type zlims save_loc sub_dir&#8217;)</p>
-<p>In [16]: cfg_plot_plotly = cfg_plot(&#8216;plotly&#8217;,[-10,10],&#8217;html&#8217;, None)
-...      # make plotly plots, set limits, save loc, etc.</p>
-<p>In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
