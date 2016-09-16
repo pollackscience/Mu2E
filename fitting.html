@@ -156,7 +156,7 @@ of surveying one of the Mu2E solenoids with a series of hall probes.  The
 <a class="reference internal" href="#mu2e.fieldfitter.FieldFitter" title="mu2e.fieldfitter.FieldFitter"><code class="xref py py-class docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter</span></code></a> preps the data, flattens it into 1D, and uses the <code class="xref py py-mod docutils literal"><span class="pre">lmfit</span></code>
 package extensively for parameter-handling, fitting, optimization, etc.</p>
 <p class="rubric">Example</p>
-<p>Incomplete excerpt, see <code class="xref py py-func docutils literal"><span class="pre">mu2e.fieldfitter.field_map_analysis()</span></code> and <cite>scripts/hallprobesim</cite>
+<p>Incomplete excerpt, see <a class="reference internal" href="hallprobing.html#mu2e.hallprober.field_map_analysis" title="mu2e.hallprober.field_map_analysis"><code class="xref py py-func docutils literal"><span class="pre">mu2e.hallprober.field_map_analysis()</span></code></a> and <cite>scripts/hallprobesim</cite>
 for more typical use cases:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># assuming config files already defined...</span>
 
@@ -176,7 +176,7 @@ for more typical use cases:</p>
 <span class="n">In</span> <span class="p">[</span><span class="mi">14</span><span class="p">]:</span> <span class="n">ff</span><span class="o">.</span><span class="n">merge_data_fit_res</span><span class="p">()</span> <span class="c"># merge the results in for easy plotting</span>
 
 <span class="n">In</span> <span class="p">[</span><span class="mi">15</span><span class="p">]:</span> <span class="n">make_fit_plots</span><span class="p">(</span><span class="n">ff</span><span class="o">.</span><span class="n">input_data</span><span class="p">,</span> <span class="n">cfg_data</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">,</span> <span class="n">cfg_plot</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-<span class="o">...</span>      <span class="c"># defined in :class:`mu2e.fieldfitter`</span>
+<span class="o">...</span>      <span class="c"># defined in :class:`mu2e.hallprober`</span>
 </pre></div>
 </div>
 <p><em>2016 Brian Pollack, Northwestern University</em></p>

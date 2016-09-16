@@ -501,8 +501,50 @@
 
 
 <div class="viewcode-block" id="make_fit_plots"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.make_fit_plots">[docs]</a><span class="k">def</span> <span class="nf">make_fit_plots</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cfg_data</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">,</span> <span class="n">cfg_plot</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Make a series of fit plots, given a dataframe and some information</span>
-<span class="sd">        on the kind of plots you want. must specify phi steps or xy_steps&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;Make a series of comparison plots with the fit output and hallprobe input.</span>
+
+<span class="sd">    This function takes input DFs and `namedtuple` config files, and generates a comprehensive</span>
+<span class="sd">    set of comparison plots in 3D.  The plots are typically of the form &#39;B-component vs two</span>
+<span class="sd">    positional variables&#39;, where the input hall probe measurements are displayed as a scatter plot,</span>
+<span class="sd">    and the resulting fit is displayed as wireframe plot.  Additionally, heatmaps are produced to</span>
+<span class="sd">    display the absolute residuals between the data and fit.  The heatmaps are produced separately</span>
+<span class="sd">    in &#39;mpl&#39; mode, or are integrated into the main plot in &#39;plotly&#39; mode.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        Incomplete excerpt, see `scripts/hallprobesim` for more typical use cases:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">        # assuming config files already defined...</span>
+
+<span class="sd">        In [12]: ff = FieldFitter(sparse_field, cfg_geom)</span>
+
+<span class="sd">        In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)</span>
+<span class="sd">        ...      # This will take some time, especially for many data points and free params</span>
+
+<span class="sd">        In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting</span>
+
+<span class="sd">        In [15]: cfg_plot = namedtuple(&#39;cfg_plot&#39;, &#39;plot_type zlims save_loc sub_dir&#39;)</span>
+
+<span class="sd">        In [16]: cfg_plot_plotly = cfg_plot(&#39;plotly&#39;,[-10,10],&#39;html&#39;, None)</span>
+<span class="sd">        ...      # make plotly plots, set limits, save loc, etc.</span>
+
+<span class="sd">        In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)</span>
+
+
+<span class="sd">    Args:</span>
+<span class="sd">       df (:class:`pandas.DataFrame`): DF that contains both the input data and the fit data.</span>
+<span class="sd">       cfg_data (namedtuple): Data config file.</span>
+<span class="sd">       cfg_geom (namedtuple): Geometry config file.</span>
+<span class="sd">       cfg_plot (namedtuple): Plotting config file.</span>
+<span class="sd">       name (str): Name of output save directory.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">       Nothing.</span>
+
+<span class="sd">    Todo:</span>
+<span class="sd">        * Move this function to more logical module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">geom</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span>
     <span class="n">plot_type</span> <span class="o">=</span> <span class="n">cfg_plot</span><span class="o">.</span><span class="n">plot_type</span>
@@ -512,13 +554,11 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;geom = cart not implemented for plotter&#39;</span><span class="p">)</span>
     <span class="n">conditions</span> <span class="o">=</span> <span class="n">cfg_data</span><span class="o">.</span><span class="n">conditions</span>
 
-    <span class="n">ABC_geom</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;cyl&#39;</span><span class="p">:[[</span><span class="s">&#39;R&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bz&#39;</span><span class="p">],[</span><span class="s">&#39;R&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Br&#39;</span><span class="p">],[</span><span class="s">&#39;R&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bphi&#39;</span><span class="p">]],</span>
-                <span class="s">&#39;cart&#39;</span><span class="p">:[[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bx&#39;</span><span class="p">],[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;By&#39;</span><span class="p">],[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bz&#39;</span><span class="p">],</span>
-                       <span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bx&#39;</span><span class="p">],[</span><span class="s">&#39;X&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;By&#39;</span><span class="p">],[</span><span class="s">&#39;X&#39;</span><span class="p">,</span><span class="s">&#39;Z&#39;</span><span class="p">,</span><span class="s">&#39;Bz&#39;</span><span class="p">]]}</span>
-
+    <span class="n">ABC_geom</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;cyl&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Br&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bphi&#39;</span><span class="p">]],</span>
+                <span class="s">&#39;cart&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bx&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;By&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">],</span>
+                         <span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bx&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;By&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="s">&#39;Bz&#39;</span><span class="p">]]}</span>
 
     <span class="k">if</span> <span class="n">cfg_plot</span><span class="o">.</span><span class="n">save_loc</span> <span class="o">==</span> <span class="s">&#39;local&#39;</span><span class="p">:</span>
-        <span class="c">#save_dir = os.path.abspath(os.path.dirname(mu2e.__file__))+&#39;/../plots/&#39;+name</span>
         <span class="n">save_dir</span> <span class="o">=</span> <span class="n">mu2e</span><span class="o">.</span><span class="n">mu2e_ext_path</span><span class="o">+</span><span class="s">&#39;plots/&#39;</span><span class="o">+</span><span class="n">name</span>
     <span class="k">elif</span> <span class="n">cfg_plot</span><span class="o">.</span><span class="n">save_loc</span> <span class="o">==</span> <span class="s">&#39;html&#39;</span><span class="p">:</span>
         <span class="n">save_dir</span> <span class="o">=</span> <span class="s">&#39;/Users/brianpollack/Documents/PersonalWebPage/mu2e_plots/&#39;</span><span class="o">+</span><span class="n">name</span>
@@ -526,11 +566,11 @@
     <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">ABC</span> <span class="ow">in</span> <span class="n">ABC_geom</span><span class="p">[</span><span class="n">geom</span><span class="p">]:</span>
             <span class="n">conditions_str</span> <span class="o">=</span> <span class="s">&#39; and &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conditions</span><span class="o">+</span><span class="p">(</span><span class="s">&#39;Phi=={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">),))</span>
-            <span class="n">save_name</span> <span class="o">=</span> <span class="n">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conditions</span> <span class="o">=</span> <span class="n">conditions_str</span><span class="p">,</span>
-                    <span class="n">df_fit</span> <span class="o">=</span> <span class="k">True</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">save_dir</span> <span class="o">=</span> <span class="n">save_dir</span><span class="p">)</span>
+            <span class="n">save_name</span> <span class="o">=</span> <span class="n">mu2e_plot3d</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ABC</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conditions_str</span><span class="p">,</span>
+                                    <span class="n">df_fit</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">plot_type</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="n">save_dir</span><span class="p">)</span>
 
-<span class="c"># If we are saving the plotly_html, we also want to download stills and transfer them to</span>
-<span class="c"># the appropriate save location.</span>
+            <span class="c"># If we are saving the plotly_html, we also want to download stills</span>
+            <span class="c"># and transfer them to the appropriate save location.</span>
             <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s">&#39;plotly_html_img&#39;</span><span class="p">:</span>
 
                 <span class="n">init_loc</span> <span class="o">=</span> <span class="s">&#39;/Users/brianpollack/Downloads/&#39;</span><span class="o">+</span><span class="n">save_name</span><span class="o">+</span><span class="s">&#39;.jpeg&#39;</span>
@@ -543,38 +583,50 @@
     <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s">&#39;mpl&#39;</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
+
 <div class="viewcode-block" id="field_map_analysis"><a class="viewcode-back" href="../../hallprobing.html#mu2e.hallprober.field_map_analysis">[docs]</a><span class="k">def</span> <span class="nf">field_map_analysis</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cfg_data</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">,</span> <span class="n">cfg_plot</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Universal function to perform all types of hall probe measurements, plots,</span>
-<span class="sd">    and further analysis.  Takes input cfg namedtuples to determine analysis&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;Universal function to perform all types of hall probe measurements, plots, and further</span>
+<span class="sd">    analysis.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): Name of output directory.</span>
+<span class="sd">        cfg_data (namedtuple): Data config file.</span>
+<span class="sd">        cfg_geom (namedtuple): Geometry config file.</span>
+<span class="sd">        cfg_params (namedtuple): Fit parameter config file.</span>
+<span class="sd">        cfg_pickle (namedtuple): Pickling config file.</span>
+<span class="sd">        cfg_plot (namedtuple): Plotting config file.</span>
+<span class="sd">        profile (bool, optional): If True, return data before fitting for the purposes of continuing</span>
+<span class="sd">            on to profiling methods.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        If `profile==False`, returns a DF of the hall probe data, and the FieldFitter object. If</span>
+<span class="sd">        `profile==True`, returns field components and position values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s">&#39;all&#39;</span><span class="p">)</span>
     <span class="n">input_data</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="n">cfg_data</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">use_pickle</span><span class="o">=</span><span class="k">True</span><span class="p">)</span><span class="o">.</span><span class="n">data_frame</span>
     <span class="n">input_data</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s">&#39; and &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg_data</span><span class="o">.</span><span class="n">conditions</span><span class="p">))</span>
-    <span class="n">hpg</span> <span class="o">=</span> <span class="n">HallProbeGenerator</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">z_steps</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">z_steps</span><span class="p">,</span>
-            <span class="n">r_steps</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">r_steps</span><span class="p">,</span> <span class="n">phi_steps</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">phi_steps</span><span class="p">,</span>
-            <span class="n">x_steps</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">xy_steps</span><span class="p">,</span> <span class="n">y_steps</span> <span class="o">=</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">xy_steps</span><span class="p">)</span>
+    <span class="n">hpg</span> <span class="o">=</span> <span class="n">HallProbeGenerator</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">z_steps</span><span class="o">=</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">z_steps</span><span class="p">,</span>
+                             <span class="n">r_steps</span><span class="o">=</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">r_steps</span><span class="p">,</span> <span class="n">phi_steps</span><span class="o">=</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">phi_steps</span><span class="p">,</span>
+                             <span class="n">x_steps</span><span class="o">=</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">xy_steps</span><span class="p">,</span> <span class="n">y_steps</span><span class="o">=</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">xy_steps</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span> <span class="o">=</span> <span class="k">True</span><span class="p">,</span> <span class="n">position</span> <span class="o">=</span> <span class="k">False</span><span class="p">,</span> <span class="n">rotation</span> <span class="o">=</span> <span class="k">False</span><span class="p">)</span>
+        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span> <span class="o">=</span> <span class="k">False</span><span class="p">,</span> <span class="n">position</span> <span class="o">=</span> <span class="k">True</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
+        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cfg_geom</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
-        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span> <span class="o">=</span> <span class="k">False</span><span class="p">,</span> <span class="n">position</span> <span class="o">=</span> <span class="k">False</span><span class="p">,</span> <span class="n">rotation</span> <span class="o">=</span> <span class="k">True</span><span class="p">)</span>
+        <span class="n">hpg</span><span class="o">.</span><span class="n">bad_calibration</span><span class="p">(</span><span class="n">measure</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
 
     <span class="n">hall_measure_data</span> <span class="o">=</span> <span class="n">hpg</span><span class="o">.</span><span class="n">get_toy</span><span class="p">()</span>
-    <span class="nb">print</span> <span class="n">hall_measure_data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-    <span class="n">raw_input</span><span class="p">()</span>
-    <span class="c">#hall_measure_data = pkl.load(open(&#39;../scripts/interp_test.p&#39;,&#39;rb&#39;))</span>
+    <span class="c"># print hall_measure_data.head()</span>
+    <span class="c"># raw_input()</span>
 
     <span class="n">ff</span> <span class="o">=</span> <span class="n">FieldFitter</span><span class="p">(</span><span class="n">hall_measure_data</span><span class="p">,</span> <span class="n">cfg_geom</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
-        <span class="n">ZZ</span><span class="p">,</span><span class="n">RR</span><span class="p">,</span><span class="n">PP</span><span class="p">,</span><span class="n">Bz</span><span class="p">,</span><span class="n">Br</span><span class="p">,</span><span class="n">Bphi</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">profile</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ZZ</span><span class="p">,</span><span class="n">RR</span><span class="p">,</span><span class="n">PP</span><span class="p">,</span><span class="n">Bz</span><span class="p">,</span><span class="n">Br</span><span class="p">,</span><span class="n">Bphi</span>
+        <span class="n">ZZ</span><span class="p">,</span> <span class="n">RR</span><span class="p">,</span> <span class="n">PP</span><span class="p">,</span> <span class="n">Bz</span><span class="p">,</span> <span class="n">Br</span><span class="p">,</span> <span class="n">Bphi</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ZZ</span><span class="p">,</span> <span class="n">RR</span><span class="p">,</span> <span class="n">PP</span><span class="p">,</span> <span class="n">Bz</span><span class="p">,</span> <span class="n">Br</span><span class="p">,</span> <span class="n">Bphi</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ff</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">profile</span><span class="p">)</span>
-
-    <span class="c">#plot_maker = Plotter.from_hall_study({&#39;_&#39;.join([cfg_data.magnet,cfg_data.datatype]):hall_measure_data},fit_result = ff.result, use_html_dir = cfg_plot.html_loc)</span>
-    <span class="c">#plot_maker.extra_suffix=suffix</span>
+        <span class="n">ff</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cfg_geom</span><span class="o">.</span><span class="n">geom</span><span class="p">,</span> <span class="n">cfg_params</span><span class="p">,</span> <span class="n">cfg_pickle</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
 
     <span class="n">ff</span><span class="o">.</span><span class="n">merge_data_fit_res</span><span class="p">()</span>
 
@@ -583,16 +635,14 @@
     <span class="k">return</span> <span class="n">hall_measure_data</span><span class="p">,</span> <span class="n">ff</span></div>
 
 
-<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">data_maker1</span><span class="o">=</span><span class="n">DataFrameMaker</span><span class="p">(</span><span class="s">&#39;../datafiles/FieldMapData_1760_v5/Mu2e_DSmap&#39;</span><span class="p">,</span><span class="n">use_pickle</span> <span class="o">=</span> <span class="k">True</span><span class="p">)</span>
-    <span class="c">#r_steps = [25,225,425,625,800]</span>
-    <span class="n">r_steps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span><span class="mi">225</span><span class="p">,</span><span class="mi">425</span><span class="p">,</span><span class="mi">625</span><span class="p">,</span><span class="mi">800</span><span class="p">]</span>
-    <span class="n">phi_steps</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="o">/</span><span class="mf">8.0</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">)]</span>
-    <span class="n">z_steps</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5021</span><span class="p">,</span><span class="mi">13021</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">data_maker1</span> <span class="o">=</span> <span class="n">DataFrameMaker</span><span class="p">(</span><span class="s">&#39;../datafiles/FieldMapData_1760_v5/Mu2e_DSmap&#39;</span><span class="p">,</span> <span class="n">use_pickle</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+    <span class="n">r_steps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">425</span><span class="p">,</span> <span class="mi">625</span><span class="p">,</span> <span class="mi">800</span><span class="p">]</span>
+    <span class="n">phi_steps</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="o">/</span><span class="mf">8.0</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]</span>
+    <span class="n">z_steps</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5021</span><span class="p">,</span> <span class="mi">13021</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
     <span class="n">hpg</span> <span class="o">=</span> <span class="n">HallProbeGenerator</span><span class="p">(</span><span class="n">data_maker1</span><span class="o">.</span><span class="n">data_frame</span><span class="p">,</span>
-            <span class="n">z_steps</span> <span class="o">=</span> <span class="n">z_steps</span><span class="p">,</span> <span class="n">r_steps</span> <span class="o">=</span> <span class="n">r_steps</span><span class="p">,</span> <span class="n">phi_steps</span> <span class="o">=</span> <span class="n">phi_steps</span><span class="p">)</span>
-    <span class="c">#hall_toy = hpg.get_toy()</span>
+                             <span class="n">z_steps</span><span class="o">=</span><span class="n">z_steps</span><span class="p">,</span> <span class="n">r_steps</span><span class="o">=</span><span class="n">r_steps</span><span class="p">,</span> <span class="n">phi_steps</span><span class="o">=</span><span class="n">phi_steps</span><span class="p">)</span>
 </pre></div>
 
            </div>

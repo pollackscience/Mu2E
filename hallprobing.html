@@ -387,15 +387,80 @@ scenarios. By default, no manipulations are performed.</p>
 <dl class="function">
 <dt id="mu2e.hallprober.field_map_analysis">
 <code class="descclassname">mu2e.hallprober.</code><code class="descname">field_map_analysis</code><span class="sig-paren">(</span><em>name</em>, <em>cfg_data</em>, <em>cfg_geom</em>, <em>cfg_params</em>, <em>cfg_pickle</em>, <em>cfg_plot</em>, <em>profile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#field_map_analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.hallprober.field_map_analysis" title="Permalink to this definition">¶</a></dt>
-<dd><p>Universal function to perform all types of hall probe measurements, plots,
-and further analysis.  Takes input cfg namedtuples to determine analysis</p>
+<dd><p>Universal function to perform all types of hall probe measurements, plots, and further
+analysis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; Name of output directory.</li>
+<li><strong>cfg_data</strong> (<em>namedtuple</em>) &#8211; Data config file.</li>
+<li><strong>cfg_geom</strong> (<em>namedtuple</em>) &#8211; Geometry config file.</li>
+<li><strong>cfg_params</strong> (<em>namedtuple</em>) &#8211; Fit parameter config file.</li>
+<li><strong>cfg_pickle</strong> (<em>namedtuple</em>) &#8211; Pickling config file.</li>
+<li><strong>cfg_plot</strong> (<em>namedtuple</em>) &#8211; Plotting config file.</li>
+<li><strong>profile</strong> (<em>bool, optional</em>) &#8211; If True, return data before fitting for the purposes of continuing
+on to profiling methods.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">If <cite>profile==False</cite>, returns a DF of the hall probe data, and the FieldFitter object. If
+<cite>profile==True</cite>, returns field components and position values.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="mu2e.hallprober.make_fit_plots">
 <code class="descclassname">mu2e.hallprober.</code><code class="descname">make_fit_plots</code><span class="sig-paren">(</span><em>df</em>, <em>cfg_data</em>, <em>cfg_geom</em>, <em>cfg_plot</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/hallprober.html#make_fit_plots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.hallprober.make_fit_plots" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a series of fit plots, given a dataframe and some information
-on the kind of plots you want. must specify phi steps or xy_steps</p>
+<dd><p>Make a series of comparison plots with the fit output and hallprobe input.</p>
+<p>This function takes input DFs and <cite>namedtuple</cite> config files, and generates a comprehensive
+set of comparison plots in 3D.  The plots are typically of the form &#8216;B-component vs two
+positional variables&#8217;, where the input hall probe measurements are displayed as a scatter plot,
+and the resulting fit is displayed as wireframe plot.  Additionally, heatmaps are produced to
+display the absolute residuals between the data and fit.  The heatmaps are produced separately
+in &#8216;mpl&#8217; mode, or are integrated into the main plot in &#8216;plotly&#8217; mode.</p>
+<p class="rubric">Example</p>
+<p>Incomplete excerpt, see <cite>scripts/hallprobesim</cite> for more typical use cases:</p>
+<div class="highlight-python"><div class="highlight"><pre>
+</pre></div>
+</div>
+<p># assuming config files already defined...</p>
+<p>In [12]: ff = FieldFitter(sparse_field, cfg_geom)</p>
+<p>In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+...      # This will take some time, especially for many data points and free params</p>
+<p>In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting</p>
+<p>In [15]: cfg_plot = namedtuple(&#8216;cfg_plot&#8217;, &#8216;plot_type zlims save_loc sub_dir&#8217;)</p>
+<p>In [16]: cfg_plot_plotly = cfg_plot(&#8216;plotly&#8217;,[-10,10],&#8217;html&#8217;, None)
+...      # make plotly plots, set limits, save loc, etc.</p>
+<p>In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code>) &#8211; DF that contains both the input data and the fit data.</li>
+<li><strong>cfg_data</strong> (<em>namedtuple</em>) &#8211; Data config file.</li>
+<li><strong>cfg_geom</strong> (<em>namedtuple</em>) &#8211; Geometry config file.</li>
+<li><strong>cfg_plot</strong> (<em>namedtuple</em>) &#8211; Plotting config file.</li>
+<li><strong>name</strong> (<em>str</em>) &#8211; Name of output save directory.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<ul class="last simple">
+<li>Move this function to more logical module.</li>
+</ul>
+</div>
 </dd></dl>
 
 </div>
