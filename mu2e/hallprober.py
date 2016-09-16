@@ -378,21 +378,21 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
 
         .. code-block:: python
 
-        # assuming config files already defined...
+            # assuming config files already defined...
 
-        In [12]: ff = FieldFitter(sparse_field, cfg_geom)
+            In [12]: ff = FieldFitter(sparse_field, cfg_geom)
 
-        In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
-        ...      # This will take some time, especially for many data points and free params
+            In [13]: ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+            ...      # This will take some time, especially for many data points and free params
 
-        In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting
+            In [14]: ff.merge_data_fit_res() # merge the results in for easy plotting
 
-        In [15]: cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
+            In [15]: cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
 
-        In [16]: cfg_plot_plotly = cfg_plot('plotly',[-10,10],'html', None)
-        ...      # make plotly plots, set limits, save loc, etc.
+            In [16]: cfg_plot_plotly = cfg_plot('plotly',[-10,10],'html', None)
+            ...      # make plotly plots, set limits, save loc, etc.
 
-        In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+            In [17]: make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
 
     Args:
