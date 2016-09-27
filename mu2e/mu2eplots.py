@@ -527,7 +527,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
         # Set the xray image if available
         if isinstance(df_xray, pd.DataFrame):
             print 'binning...'
-            xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
+            xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
             df_xray.query(xray_query, inplace=True)
 
             h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
@@ -536,10 +536,11 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
             hadj = np.rot90(h).flatten()/h.max()
             cx, cy, cz = np.meshgrid(*centers)
             df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
+            df_binned = df_binned.query('h>0')
             df_binned['cats'] = pd.cut(df_binned.h, 200)
             print 'binned'
             groups = np.sort(df_binned.cats.unique())
-            for i, group in enumerate(groups[1:]):
+            for i, group in enumerate(groups[0:]):
                 df_tmp = df_binned[df_binned.cats == group]
                 if i == 0:
                     sl = True
@@ -551,6 +552,15 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
                         marker=dict(sizemode='diameter', size=4,
                                     color='black', opacity=0.03*(i+1), symbol='square'),
                         name='X-ray', showlegend=sl, legendgroup='xray'))
+
+            df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
+            if len(df_newmat) > 0:
+                scat_plots.append(
+                    go.Scatter3d(
+                        x=df_newmat.x, y=df_newmat.y, z=df_newmat.z, mode='markers',
+                        marker=dict(sizemode='diameter', size=6,
+                                    color='red', opacity=0.4, symbol='square'),
+                        name='X-ray', showlegend=False, legendgroup='xray'))
 
         if color:
             scat_plots.append(
@@ -836,15 +846,16 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
     df_xray.query(xray_query, inplace=True)
     print 'binning...'
     h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
-                              bins=(200, 20, 20))
+                              bins=(100, 25, 25))
     centers = [(e[1:]+e[:-1])/2.0 for e in edges]
     hadj = np.rot90(h).flatten()/h.max()
     cx, cy, cz = np.meshgrid(*centers)
     df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
+    df_binned = df_binned.query('h>0')
     df_binned['cats'] = pd.cut(df_binned.h, 200)
     print 'binned'
     groups = np.sort(df_binned.cats.unique())
-    for i, group in enumerate(groups[1:]):
+    for i, group in enumerate(groups[0:]):
         df_tmp = df_binned[df_binned.cats == group]
         if i == 0:
             sl = True
@@ -855,6 +866,15 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                 x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
                 marker=dict(size=4, color='black', opacity=0.03*(i+1), symbol='square'),
                 name='X-ray', showlegend=sl, legendgroup='xray'))
+
+    df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
+    if len(df_newmat) > 0:
+        scats.append(
+            go.Scatter3d(
+                x=df_newmat.x, y=df_newmat.y, z=df_newmat.z, mode='markers',
+                marker=dict(sizemode='diameter', size=6,
+                            color='red', opacity=0.4, symbol='square'),
+                name='X-ray', showlegend=False, legendgroup='xray'))
 
     p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
     p_slider.description = 'Time Shift'
