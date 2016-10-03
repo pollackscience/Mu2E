@@ -12,12 +12,12 @@ def interp_phi(df, x, y, z, df_alt=None, plot=True):
         x-25, x+25, y-25, y+25, z-25, z+25))
     df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
 
-    if df_alt is None:
-        df_true = df_trimmed.query('X=={0} and Y=={1} and Z=={2}'.format(
-            x, y, z))
-    else:
-        df_true = df_alt.query('{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
-            x-1e-9, x+1e-9, y-1e-9, y+1e-9, z-1e-9, z+1e-9))
+    # if df_alt is None:
+    #     df_true = df_trimmed.query('X=={0} and Y=={1} and Z=={2}'.format(
+    #         x, y, z))
+    # else:
+    #     df_true = df_alt.query('{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
+    #         x-1e-9, x+1e-9, y-1e-9, y+1e-9, z-1e-9, z+1e-9))
 
     df_trimmed = df_trimmed.query('X!={0} and Y!={1} and Z!={2}'.format(
         x, y, z))
@@ -30,7 +30,7 @@ def interp_phi(df, x, y, z, df_alt=None, plot=True):
     y_rel = (y - df_trimmed.ix[0].Y) / (df_trimmed.ix[2].Y-df_trimmed.ix[0].Y)
     z_rel = (z - df_trimmed.ix[0].Z) / (df_trimmed.ix[1].Z-df_trimmed.ix[0].Z)
 
-    print x_rel
+    # print x_rel
     bx_interp = ((1-y_rel)*(1-z_rel)*(x_rel*df_trimmed.ix[7].Bx + (1-x_rel)*df_trimmed.ix[3].Bx) +
                  y_rel * (1-z_rel) * (x_rel*df_trimmed.ix[5].Bx + (1-x_rel)*df_trimmed.ix[1].Bx) +
                  (1-y_rel) * z_rel * (x_rel*df_trimmed.ix[6].Bx + (1-x_rel)*df_trimmed.ix[2].Bx) +
@@ -46,12 +46,12 @@ def interp_phi(df, x, y, z, df_alt=None, plot=True):
                  (1-x_rel) * y_rel * (z_rel*df_trimmed.ix[5].Bz + (1-z_rel)*df_trimmed.ix[4].Bz) +
                  x_rel * y_rel * (z_rel*df_trimmed.ix[1].Bz + (1-z_rel)*df_trimmed.ix[0].Bz))
 
-    bx_err = (df_true.Bx.values[0]-bx_interp)/df_true.Bx.values[0]
-    by_err = (df_true.By.values[0]-by_interp)/df_true.By.values[0]
-    bz_err = (df_true.Bz.values[0]-bz_interp)/df_true.Bz.values[0]
-    print 'Bx', df_true.Bx.values[0], bx_interp, bx_err
-    print 'By', df_true.By.values[0], by_interp, by_err
-    print 'Bz', df_true.Bz.values[0], bz_interp, bz_err
+    # bx_err = (df_true.Bx.values[0]-bx_interp)
+    # by_err = (df_true.By.values[0]-by_interp)
+    # bz_err = (df_true.Bz.values[0]-bz_interp)
+    # print 'Bx', df_true.Bx.values[0], bx_interp, bx_err
+    # print 'By', df_true.By.values[0], by_interp, by_err
+    # print 'Bz', df_true.Bz.values[0], bz_interp, bz_err
 
     if plot:
         init_notebook_mode()
@@ -100,4 +100,4 @@ def interp_phi(df, x, y, z, df_alt=None, plot=True):
         fig = go.Figure(data=data, layout=layout)
         iplot(fig)
 
-    return df_trimmed
+    return df_trimmed, [bx_interp, by_interp, bz_interp]
