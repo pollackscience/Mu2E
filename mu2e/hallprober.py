@@ -79,6 +79,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from scipy.interpolate import Rbf
 import mu2e
 from mu2e.dataframeprod import DataFrameMaker
@@ -113,6 +114,8 @@ class HallProbeGenerator(object):
             This arg is overrides `x_steps` and `y_steps`.
         phi_steps (List[numbers], optional): Will select specified `phi` values, along with their
             `pi-val` counterparts. Pairs with `r_steps`.
+        interpolate (bool, optional): If true, perform the interpolation procedure instead of
+            selecting values directly from the input field map.
 
     Attributes:
         cylindrical_norm (func): Calculate norm (distance) in cylindrical coordinates.
@@ -138,25 +141,30 @@ class HallProbeGenerator(object):
             (x1[2, :]-x2[2, :])**2)
 
     def __init__(self, input_data, z_steps=15, x_steps=10,
-                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,)):
+                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,), interpolate=False):
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
         self.phi_steps = phi_steps
         self.z_steps = z_steps
 
-        self.apply_selection('Z', z_steps)
-        if r_steps:
-            self.apply_selection('R', r_steps)
-            self.apply_selection('Phi', phi_steps)
-            self.phi_steps = phi_steps
+        if interpolate:
+            self.interpolate_points()
         else:
-            self.apply_selection('X', x_steps)
-            self.apply_selection('Y', y_steps)
-        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
-            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
+            self.apply_selection('Z', z_steps)
+            if r_steps:
+                self.apply_selection('R', r_steps)
+                self.apply_selection('Phi', phi_steps)
+                self.phi_steps = phi_steps
+            else:
+                self.apply_selection('X', x_steps)
+                self.apply_selection('Y', y_steps)
 
-        # self.interpolate_points()
+        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
+            try:
+                self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
+            except:
+                pass
 
     def takespread(self, sequence, num):
         """Return an evenly-spaced sequence of length `num` from the input sequence.
@@ -298,7 +306,7 @@ class HallProbeGenerator(object):
                     self.sparse_field.ix[(abs(self.sparse_field.R) == probe), 'Br'] = (
                         tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i]))
 
-    def interpolate_points(self, version=1):
+    def interpolate_points(self, version=2):
         """Method for obtaining required selection through interpolation.  Work in progress."""
 
         if version == 1:
@@ -331,26 +339,31 @@ class HallProbeGenerator(object):
 
         elif version == 2:
             row_list = []
-            for r in self.r_steps:
-                for p in self.phi_steps:
-                    for z in self.z_steps:
+            all_phis = []
+            for phi in self.phi_steps:
+                all_phis.append(phi)
+                if phi == 0:
+                    all_phis.append(np.pi)
+                else:
+                    all_phis.append(phi-np.pi)
+            print 'interpolating data points'
+            for r in tqdm(self.r_steps[0], desc='R (mm)', leave=False):
+                for p in tqdm(all_phis, desc='Phi (rads)', leave=False):
+                    for z in tqdm(self.z_steps, desc='Z (mm)', leave=False):
                         x = r*math.cos(p)
                         y = r*math.sin(p)
                         field_subset = self.full_field.query(
                             '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
                                 x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        print 'interpolating bz'
                         rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
                                   field_subset.Bz, function='linear', norm=self.cylindrical_norm)
                         bz = rbf(r, p, z)
-                        print 'interpolating br'
                         rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Br, function='quintic', norm=self.cylindrical_norm)
+                                  field_subset.Br, function='linear', norm=self.cylindrical_norm)
                         br = rbf(r, p, z)
-                        print 'interpolating bphi'
                         rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Bphi, function='quintic', norm=self.cylindrical_norm)
+                                  field_subset.Bphi, function='linear', norm=self.cylindrical_norm)
                         bphi = rbf(r, p, z)
                         row_list.append([r, p, z, br, bphi, bz])
 
@@ -361,6 +374,7 @@ class HallProbeGenerator(object):
 
         del rbf
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
+        print 'interpolation complete'
 
 
 def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
@@ -471,7 +485,8 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     input_data.query(' and '.join(cfg_data.conditions))
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
-                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps)
+                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps,
+                             interpolate=cfg_geom.interpolate)
 
     if cfg_geom.bad_calibration[0]:
         hpg.bad_calibration(measure=True, position=False, rotation=False)
@@ -480,7 +495,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     if cfg_geom.bad_calibration[2]:
         hpg.bad_calibration(measure=False, position=False, rotation=True)
 
-    hall_measure_data = hpg.get_toy()
+    hall_measure_data = hpg.sparse_field
     # print hall_measure_data.head()
     # raw_input()
 

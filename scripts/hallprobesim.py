@@ -8,11 +8,12 @@ from mu2e import mu2e_ext_path
 ############################
 # defining the cfg structs #
 ############################
-cfg_data = namedtuple('cfg_data', 'datatype magnet path conditions')
-cfg_geom = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps xy_steps bad_calibration')
+cfg_data   = namedtuple('cfg_data', 'datatype magnet path conditions')
+cfg_geom   = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps xy_steps bad_calibration '
+                        'interpolate')
 cfg_params = namedtuple('cfg_params', 'ns ms cns cms Reff func_version')
 cfg_pickle = namedtuple('cfg_pickle', 'use_pickle save_pickle load_name save_name recreate')
-cfg_plot = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
+cfg_plot   = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
 
 #################
 # the data cfgs #
@@ -129,6 +130,7 @@ phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444, 3*np.pi/4, 2.6
 
 z_steps_DS = range(5021, 13021, 50)
 z_steps_DS_long = range(4221, 13921, 100)
+z_steps_DS_interp = range(9000, 10000, 100)
 z_steps_DS_less = range(9021, 11021, 50)
 z_steps_DS_20cm = range(5021, 13021, 200)
 z_steps_DS_30cm = range(5021, 13021, 300)
@@ -140,85 +142,148 @@ z_steps_DS_fullsim2 = range(4221, 13921, 25)
 z_steps_PS = range(-7879, -4004, 50)
 
 # for interp
-phi_steps_interp = phi_steps = [(i/8.0)*np.pi for i in range(0, 9)]
-# r_set_interp = [25,225,425,625,800]
-r_set_interp = [25, 225, 425, 625]
-r_steps_interp = [r_set_interp]*8
+phi_steps_interp = [(i/8.0)*np.pi for i in range(0, 8)]
+r_steps_interp = [[25, 225, 425, 625, 800]]*8
+# r_set_interp = [25, 225, 425, 625]
 
 # DS
 cfg_geom_cyl_600mm              = cfg_geom('cyl', z_steps_DS_less, r_steps_600mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_700mm              = cfg_geom('cyl', z_steps_DS, r_steps_700mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_825mm_v1           = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v1, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_825mm_v2           = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v2, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm              = cfg_geom('cyl', z_steps_DS, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_long         = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
+cfg_geom_cyl_800mm_interp       = cfg_geom('cyl', z_steps_DS_interp, r_steps_interp,
+                                           phi_steps_interp, xy_steps=None, bad_calibration=[False,
+                                                                                             False,
+                                                                                             False],
+                                           interpolate=True)
+
 cfg_geom_cyl_800mm_slice        = cfg_geom('cyl', z_steps_DS, r_steps_800mm[0:1], phi_steps_8[0:1],
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_600mm_slice        = cfg_geom('cyl', z_steps_DS_less, r_steps_600mm[0:1],
-                                           phi_steps_8[0:1], xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           phi_steps_8[0:1], xy_steps=None, bad_calibration=[False,
+                                                                                             False,
+                                                                                             False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_20cm         = cfg_geom('cyl', z_steps_DS_20cm, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_30cm         = cfg_geom('cyl', z_steps_DS_30cm, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_40cm         = cfg_geom('cyl', z_steps_DS_40cm, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_50cm         = cfg_geom('cyl', z_steps_DS_50cm, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_fullsim            = cfg_geom('cyl', z_steps_DS_fullsim, r_steps_fullsim, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_fullsim_trunc      = cfg_geom('cyl', z_steps_DS_fullsim, r_steps_fullsim_trunc,
-                                           phi_steps_8, xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           phi_steps_8, xy_steps=None, bad_calibration=[False,
+                                                                                        False,
+                                                                                        False],
+                                           interpolate=False)
+
 cfg_geom_cyl_fullsim_trunc_test = cfg_geom('cyl', z_steps_DS_fullsim, r_steps_fullsim_trunc,
-                                           phi_steps_8[:1], xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           phi_steps_8[:1], xy_steps=None, bad_calibration=[False,
+                                                                                            False,
+                                                                                            False],
+                                           interpolate=False)
+
 cfg_geom_cyl_fullsim2           = cfg_geom('cyl', z_steps_DS_fullsim2, r_steps_fullsim, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_fullsim800         = cfg_geom('cyl', z_steps_DS_fullsim2, r_steps_fullsim_trunc,
-                                           phi_steps_8, xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           phi_steps_8, xy_steps=None, bad_calibration=[False,
+                                                                                        False,
+                                                                                        False],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_measure_v1     = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v1, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[True, False, False])
+                                           xy_steps=None, bad_calibration=[True, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_position_v1    = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v1, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, True, False])
+                                           xy_steps=None, bad_calibration=[False, True, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_rotation_v1    = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v1, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, True])
+                                           xy_steps=None, bad_calibration=[False, False, True],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_rotation2_v1   = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v1, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, True])
+                                           xy_steps=None, bad_calibration=[False, False, True],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_measure_v2     = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v2, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[True, False, False])
+                                           xy_steps=None, bad_calibration=[True, False, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_position_v2    = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v2, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, True, False])
+                                           xy_steps=None, bad_calibration=[False, True, False],
+                                           interpolate=False)
+
 cfg_geom_cyl_bad_rotation_v2    = cfg_geom('cyl', z_steps_DS, r_steps_825mm_v2, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, True])
+                                           xy_steps=None, bad_calibration=[False, False, True],
+                                           interpolate=False)
 
 # PS
 cfg_geom_cyl_150mm              = cfg_geom('cyl', z_steps_PS, r_steps_150mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, False])
-cfg_geom_cyl_bad_measure_req    = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[True, False, False])
-cfg_geom_cyl_bad_position_req   = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, True, False])
-cfg_geom_cyl_bad_rotation_req   = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[False, False, True])
-cfg_geom_cyl_bad_all_req        = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
-                                           xy_steps=None, bad_calibration=[True, True, True])
+                                           xy_steps=None, bad_calibration=[False, False, False],
+                                           interpolate=False)
 
-cfg_geom_cyl_800mm_interp       = cfg_geom('cyl', z_steps_DS, r_steps_interp, phi_steps_interp,
-                                           xy_steps=None, bad_calibration=[False, False, False])
+cfg_geom_cyl_bad_measure_req    = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
+                                           xy_steps=None, bad_calibration=[True, False, False],
+                                           interpolate=False)
+
+cfg_geom_cyl_bad_position_req   = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
+                                           xy_steps=None, bad_calibration=[False, True, False],
+                                           interpolate=False)
+
+cfg_geom_cyl_bad_rotation_req   = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
+                                           xy_steps=None, bad_calibration=[False, False, True],
+                                           interpolate=False)
+
+cfg_geom_cyl_bad_all_req        = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
+                                           xy_steps=None, bad_calibration=[True, True, True],
+                                           interpolate=False)
+
 cfg_geom_cyl_800mm_interp_slice = cfg_geom('cyl', z_steps_DS, r_steps_interp[0:1],
                                            phi_steps_interp[0:1], xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           bad_calibration=[False, False, False], interpolate=False)
 
 cfg_geom_cyl_offset             = cfg_geom('cyl', z_steps_DS, [pi2r_offset], [0], xy_steps=None,
-                                           bad_calibration=[False, False, False])
+                                           bad_calibration=[False, False, False], interpolate=False)
 
 
 ###################
@@ -364,6 +429,10 @@ cfg_pickle_Mau_interp              = cfg_pickle(use_pickle=False, save_pickle=Tr
 cfg_pickle_GA02_800mm              = cfg_pickle(use_pickle=True, save_pickle=True,
                                                 load_name='GA02_800mm', save_name='GA02_800mm',
                                                 recreate=True)
+
+cfg_pickle_Mau_800mm_interp        = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                load_name='Mau10_800mm_interp',
+                                                save_name='Mau10_800mm_interp', recreate=False)
 
 #################
 # the plot cfgs #
@@ -514,6 +583,10 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
     #                              cfg_pickle_Mau_800mm_long, cfg_plot_plotly_html)
 
+    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_interp', cfg_data_DS_Mau10_long,
+                                 cfg_geom_cyl_800mm_interp, cfg_params_Mau_DS_800mm_long,
+                                 cfg_pickle_Mau_800mm_interp, cfg_plot_mpl)
+
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_fullsim800', cfg_data_DS_Mau10_long,
     #                              cfg_geom_cyl_fullsim800, cfg_params_Mau_DS_800mm_long,
     #                              cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
@@ -522,9 +595,9 @@ if __name__ == "__main__":
     #                              cfg_params_Mau_DS_800mm_long, cfg_pickle_GA02_800mm,
     #                              cfg_plot_plotly)
 
-    hmd, ff = field_map_analysis('halltoy_GA05_800mm', cfg_data_DS_GA05, cfg_geom_cyl_800mm_long,
-                                 cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
-                                 cfg_plot_plotly_html)
+    # hmd, ff = field_map_analysis('halltoy_GA05_800mm', cfg_data_DS_GA05, cfg_geom_cyl_800mm_long,
+    #                              cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
+    #                              cfg_plot_plotly_html)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long,
     #                              cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long,
