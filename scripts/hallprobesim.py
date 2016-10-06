@@ -130,7 +130,7 @@ phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444, 3*np.pi/4, 2.6
 
 z_steps_DS = range(5021, 13021, 50)
 z_steps_DS_long = range(4221, 13921, 100)
-z_steps_DS_interp = range(9000, 10000, 100)
+z_steps_DS_interp = range(4200, 14000, 100)
 z_steps_DS_less = range(9021, 11021, 50)
 z_steps_DS_20cm = range(5021, 13021, 200)
 z_steps_DS_30cm = range(5021, 13021, 300)
@@ -430,7 +430,7 @@ cfg_pickle_GA02_800mm              = cfg_pickle(use_pickle=True, save_pickle=Tru
                                                 load_name='GA02_800mm', save_name='GA02_800mm',
                                                 recreate=True)
 
-cfg_pickle_Mau_800mm_interp        = cfg_pickle(use_pickle=False, save_pickle=True,
+cfg_pickle_Mau_800mm_interp        = cfg_pickle(use_pickle=True, save_pickle=True,
                                                 load_name='Mau10_800mm_interp',
                                                 save_name='Mau10_800mm_interp', recreate=False)
 

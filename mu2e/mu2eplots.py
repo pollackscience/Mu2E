@@ -175,7 +175,6 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             phi = None
 
         df = df.query(conditions_nophi)
-        print df
 
         # Make radii negative for negative phi values (for plotting purposes)
         if phi is not None:
@@ -198,7 +197,6 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         raise ValueError(mode+' not in '+_modes)
 
     # Format the coordinates
-    print df
     piv = df.pivot(x, y, z)
     X = piv.index.values
     Y = piv.columns.values

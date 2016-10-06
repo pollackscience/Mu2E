@@ -76,6 +76,7 @@ import shutil
 import math
 import collections
 import warnings
+import cPickle as pkl
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -85,6 +86,7 @@ import mu2e
 from mu2e.dataframeprod import DataFrameMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
+from mu2e import mu2e_ext_path
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -308,8 +310,11 @@ class HallProbeGenerator(object):
 
     def interpolate_points(self, version=2):
         """Method for obtaining required selection through interpolation.  Work in progress."""
+        if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
+            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
+            return
 
-        if version == 1:
+        elif version == 1:
             field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
                 self.r_steps[-1]+50, self.z_steps[0]-50, self.z_steps[-1]+50))
 
@@ -356,15 +361,30 @@ class HallProbeGenerator(object):
                             '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
                                 x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Bz, function='linear', norm=self.cylindrical_norm)
-                        bz = rbf(r, p, z)
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Br, function='linear', norm=self.cylindrical_norm)
-                        br = rbf(r, p, z)
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Bphi, function='linear', norm=self.cylindrical_norm)
-                        bphi = rbf(r, p, z)
+                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                        #           field_subset.Bz, function='linear', norm=self.cylindrical_norm)
+                        # bz = rbf(r, p, z)
+                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                        #           field_subset.Br, function='linear', norm=self.cylindrical_norm)
+                        # br = rbf(r, p, z)
+                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
+                        #       field_subset.Bphi, function='linear', norm=self.cylindrical_norm)
+                        # bphi = rbf(r, p, z)
+                        # row_list.append([r, p, z, br, bphi, bz])
+
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bz, function='linear')
+                        bz = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bx, function='linear')
+                        bx = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.By, function='linear')
+                        by = rbf(x, y, z)
+
+                        br = bx*math.cos(p)+by*math.sin(p)
+                        bphi = -bx*math.sin(p)+by*math.cos(p)
+
                         row_list.append([r, p, z, br, bphi, bz])
 
             row_list = np.asarray(row_list)
@@ -374,6 +394,8 @@ class HallProbeGenerator(object):
 
         del rbf
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
+        pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
+
         print 'interpolation complete'
 
 
