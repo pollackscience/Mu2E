@@ -87,6 +87,8 @@ from mu2e.dataframeprod import DataFrameMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
+import imp
+interp_studies = imp.load_source('interp_studies', '/Users/brianpollack/Coding/Mu2E/scripts/interp_studies.py')
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -310,8 +312,11 @@ class HallProbeGenerator(object):
 
     def interpolate_points(self, version=2):
         """Method for obtaining required selection through interpolation.  Work in progress."""
-        if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
-            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
+        # if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
+        #    self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
+        #    return
+        if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
+            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
             return
 
         elif version == 1:
@@ -372,15 +377,20 @@ class HallProbeGenerator(object):
                         # bphi = rbf(r, p, z)
                         # row_list.append([r, p, z, br, bphi, bz])
 
-                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                                  field_subset.Bz, function='linear')
-                        bz = rbf(x, y, z)
-                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                                  field_subset.Bx, function='linear')
-                        bx = rbf(x, y, z)
-                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                                  field_subset.By, function='linear')
-                        by = rbf(x, y, z)
+                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                        #           field_subset.Bz, function='linear')
+                        # bz = rbf(x, y, z)
+                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                        #           field_subset.Bx, function='linear')
+                        # bx = rbf(x, y, z)
+                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                        #           field_subset.By, function='linear')
+                        # by = rbf(x, y, z)
+
+                        _, b_lacey = interp_studies.interp_phi(field_subset, x, y, z, plot=False)
+                        bx = b_lacey[0]
+                        by = b_lacey[1]
+                        bz = b_lacey[2]
 
                         br = bx*math.cos(p)+by*math.sin(p)
                         bphi = -bx*math.sin(p)+by*math.cos(p)
@@ -392,9 +402,10 @@ class HallProbeGenerator(object):
                 'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
                 'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
-        del rbf
+        # del rbf
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
-        pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        # pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
 
         print 'interpolation complete'
 

@@ -40,20 +40,20 @@ def interp_phi(df, x, y, z, df_alt=None, plot=True):
     z_rel = (z - df_trimmed.ix[0].Z) / (df_trimmed.ix[1].Z-df_trimmed.ix[0].Z)
 
     # print x_rel
-    bx_interp = ((1-y_rel)*(1-z_rel)*(x_rel*df_trimmed.ix[7].Bx + (1-x_rel)*df_trimmed.ix[3].Bx) +
-                 y_rel * (1-z_rel) * (x_rel*df_trimmed.ix[5].Bx + (1-x_rel)*df_trimmed.ix[1].Bx) +
-                 (1-y_rel) * z_rel * (x_rel*df_trimmed.ix[6].Bx + (1-x_rel)*df_trimmed.ix[2].Bx) +
-                 y_rel * z_rel * (x_rel*df_trimmed.ix[4].Bx + (1-x_rel)*df_trimmed.ix[0].Bx))
+    bx_interp = ((y_rel)*(z_rel)*(x_rel*df_trimmed.ix[7].Bx + (1-x_rel)*df_trimmed.ix[3].Bx) +
+                 (1-y_rel) * (z_rel) * (x_rel*df_trimmed.ix[5].Bx + (1-x_rel)*df_trimmed.ix[1].Bx) +
+                 (y_rel) * (1-z_rel) * (x_rel*df_trimmed.ix[6].Bx + (1-x_rel)*df_trimmed.ix[2].Bx) +
+                 (1-y_rel) * (1-z_rel)*(x_rel*df_trimmed.ix[4].Bx + (1-x_rel)*df_trimmed.ix[0].Bx))
 
-    by_interp = ((1-x_rel)*(1-z_rel)*(y_rel*df_trimmed.ix[7].By + (1-y_rel)*df_trimmed.ix[5].By) +
-                 x_rel * (1-z_rel) * (y_rel*df_trimmed.ix[3].By + (1-y_rel)*df_trimmed.ix[1].By) +
-                 (1-x_rel) * z_rel * (y_rel*df_trimmed.ix[6].By + (1-y_rel)*df_trimmed.ix[4].By) +
-                 x_rel * z_rel * (y_rel*df_trimmed.ix[2].By + (1-y_rel)*df_trimmed.ix[0].By))
+    by_interp = ((x_rel)*(z_rel)*(y_rel*df_trimmed.ix[7].By + (1-y_rel)*df_trimmed.ix[5].By) +
+                 (1-x_rel) * (z_rel) * (y_rel*df_trimmed.ix[3].By + (1-y_rel)*df_trimmed.ix[1].By) +
+                 (x_rel) * (1-z_rel) * (y_rel*df_trimmed.ix[6].By + (1-y_rel)*df_trimmed.ix[4].By) +
+                 (1-x_rel) * (1-z_rel)*(y_rel*df_trimmed.ix[2].By + (1-y_rel)*df_trimmed.ix[0].By))
 
-    bz_interp = ((1-x_rel)*(1-y_rel)*(z_rel*df_trimmed.ix[7].Bz + (1-z_rel)*df_trimmed.ix[6].Bz) +
-                 x_rel * (1-y_rel) * (z_rel*df_trimmed.ix[3].Bz + (1-z_rel)*df_trimmed.ix[2].Bz) +
-                 (1-x_rel) * y_rel * (z_rel*df_trimmed.ix[5].Bz + (1-z_rel)*df_trimmed.ix[4].Bz) +
-                 x_rel * y_rel * (z_rel*df_trimmed.ix[1].Bz + (1-z_rel)*df_trimmed.ix[0].Bz))
+    bz_interp = ((x_rel)*(y_rel)*(z_rel*df_trimmed.ix[7].Bz + (1-z_rel)*df_trimmed.ix[6].Bz) +
+                 (1-x_rel) * (y_rel) * (z_rel*df_trimmed.ix[3].Bz + (1-z_rel)*df_trimmed.ix[2].Bz) +
+                 (x_rel) * (1-y_rel) * (z_rel*df_trimmed.ix[5].Bz + (1-z_rel)*df_trimmed.ix[4].Bz) +
+                 (1-x_rel) * (1-y_rel)*(z_rel*df_trimmed.ix[1].Bz + (1-z_rel)*df_trimmed.ix[0].Bz))
 
     # bx_interp = ((1-y_rel)*(1-z_rel)*(x_rel*df_trimmed.ix[7].Bx + (1-x_rel)*df_trimmed.ix[3].Bx) +
     #              y_rel * (1-z_rel) * (x_rel*df_trimmed.ix[5].Bx + (1-x_rel)*df_trimmed.ix[1].Bx) +
