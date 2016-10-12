@@ -312,12 +312,12 @@ class HallProbeGenerator(object):
 
     def interpolate_points(self, version=2):
         """Method for obtaining required selection through interpolation.  Work in progress."""
-        # if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
-        #    self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
-        #    return
-        if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
-            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
+        if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
+            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
             return
+        #if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
+        #    self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
+        #    return
 
         elif version == 1:
             field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
