@@ -88,7 +88,8 @@ from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
 import imp
-interp_studies = imp.load_source('interp_studies', '/Users/brianpollack/Coding/Mu2E/scripts/interp_studies.py')
+interp_studies = imp.load_source('interp_studies',
+                                 '/Users/brianpollack/Coding/Mu2E/scripts/interp_studies.py')
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -152,8 +153,8 @@ class HallProbeGenerator(object):
         self.phi_steps = phi_steps
         self.z_steps = z_steps
 
-        if interpolate:
-            self.interpolate_points()
+        if interpolate is not False:
+            self.interpolate_points(interpolate)
         else:
             self.apply_selection('Z', z_steps)
             if r_steps:
@@ -310,42 +311,55 @@ class HallProbeGenerator(object):
                     self.sparse_field.ix[(abs(self.sparse_field.R) == probe), 'Br'] = (
                         tmp_Br*np.cos(rotation_angle[i])-tmp_Bz*np.sin(rotation_angle[i]))
 
-    def interpolate_points(self, version=2):
+    def interpolate_points(self, version=1):
         """Method for obtaining required selection through interpolation.  Work in progress."""
-        if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
-            self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
-            return
-        #if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
-        #    self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
-        #    return
+        if version == 'load1':
+            if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
+                self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
+                return
+        elif version == 'load2':
+            if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
+                self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
+                return
 
         elif version == 1:
-            field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
-                self.r_steps[-1]+50, self.z_steps[0]-50, self.z_steps[-1]+50))
+            row_list = []
+            all_phis = []
+            for phi in self.phi_steps:
+                all_phis.append(phi)
+                if phi == 0:
+                    all_phis.append(np.pi)
+                else:
+                    all_phis.append(phi-np.pi)
+            print 'interpolating data points'
+            for r in tqdm(self.r_steps[0], desc='R (mm)', leave=False):
+                for p in tqdm(all_phis, desc='Phi (rads)', leave=False):
+                    for z in tqdm(self.z_steps, desc='Z (mm)', leave=False):
+                        x = r*math.cos(p)
+                        y = r*math.sin(p)
+                        field_subset = self.full_field.query(
+                            '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
+                                x-100, x+100, y-100, y+100, z-100, z+100))
 
-            rr, pp, zz = np.meshgrid(self.r_steps, self.phi_steps, self.z_steps)
-            rr = rr.flatten()
-            pp = pp.flatten()
-            zz = zz.flatten()
-            print len(field_subset.Bz)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bz, function='linear')
+                        bz = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bx, function='linear')
+                        bx = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.By, function='linear')
+                        by = rbf(x, y, z)
 
-            print 'interpolating bz'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,
-                      function='quintic', norm=self.cylindrical_norm)
-            bz = rbf(rr, pp, zz)
-            print 'interpolating br'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,
-                      function='quintic', norm=self.cylindrical_norm)
-            br = rbf(rr, pp, zz)
-            br = bz
-            print 'interpolating bphi'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,
-                      function='quintic', norm=self.cylindrical_norm)
-            bphi = rbf(rr, pp, zz)
-            bphi = bz
+                        br = bx*math.cos(p)+by*math.sin(p)
+                        bphi = -bx*math.sin(p)+by*math.cos(p)
 
-            self.sparse_field = pd.DataFrame({'R': rr, 'Phi': pp, 'Z': zz,
-                                              'Br': br, 'Bphi': bphi, 'Bz': bz})
+                        row_list.append([r, p, z, br, bphi, bz])
+
+            row_list = np.asarray(row_list)
+            self.sparse_field = pd.DataFrame({
+                'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
+                'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
         elif version == 2:
             row_list = []
@@ -366,27 +380,6 @@ class HallProbeGenerator(object):
                             '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
                                 x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                        #           field_subset.Bz, function='linear', norm=self.cylindrical_norm)
-                        # bz = rbf(r, p, z)
-                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                        #           field_subset.Br, function='linear', norm=self.cylindrical_norm)
-                        # br = rbf(r, p, z)
-                        # rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                        #       field_subset.Bphi, function='linear', norm=self.cylindrical_norm)
-                        # bphi = rbf(r, p, z)
-                        # row_list.append([r, p, z, br, bphi, bz])
-
-                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                        #           field_subset.Bz, function='linear')
-                        # bz = rbf(x, y, z)
-                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                        #           field_subset.Bx, function='linear')
-                        # bx = rbf(x, y, z)
-                        # rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
-                        #           field_subset.By, function='linear')
-                        # by = rbf(x, y, z)
-
                         _, b_lacey = interp_studies.interp_phi(field_subset, x, y, z, plot=False)
                         bx = b_lacey[0]
                         by = b_lacey[1]
@@ -402,10 +395,11 @@ class HallProbeGenerator(object):
                 'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
                 'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
-        # del rbf
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
-        # pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
-        pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        if version == 1:
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        elif version == 2:
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
 
         print 'interpolation complete'
 
