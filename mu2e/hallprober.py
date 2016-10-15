@@ -76,14 +76,20 @@ import shutil
 import math
 import collections
 import warnings
+import cPickle as pkl
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from scipy.interpolate import Rbf
 import mu2e
 from mu2e.dataframeprod import DataFrameMaker
 from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
+from mu2e import mu2e_ext_path
+import imp
+interp_studies = imp.load_source('interp_studies',
+                                 '/Users/brianpollack/Coding/Mu2E/scripts/interp_studies.py')
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -113,6 +119,8 @@ class HallProbeGenerator(object):
             This arg is overrides `x_steps` and `y_steps`.
         phi_steps (List[numbers], optional): Will select specified `phi` values, along with their
             `pi-val` counterparts. Pairs with `r_steps`.
+        interpolate (bool, optional): If true, perform the interpolation procedure instead of
+            selecting values directly from the input field map.
 
     Attributes:
         cylindrical_norm (func): Calculate norm (distance) in cylindrical coordinates.
@@ -138,25 +146,30 @@ class HallProbeGenerator(object):
             (x1[2, :]-x2[2, :])**2)
 
     def __init__(self, input_data, z_steps=15, x_steps=10,
-                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,)):
+                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,), interpolate=False):
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
         self.phi_steps = phi_steps
         self.z_steps = z_steps
 
-        self.apply_selection('Z', z_steps)
-        if r_steps:
-            self.apply_selection('R', r_steps)
-            self.apply_selection('Phi', phi_steps)
-            self.phi_steps = phi_steps
+        if interpolate is not False:
+            self.interpolate_points(interpolate)
         else:
-            self.apply_selection('X', x_steps)
-            self.apply_selection('Y', y_steps)
-        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
-            self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
+            self.apply_selection('Z', z_steps)
+            if r_steps:
+                self.apply_selection('R', r_steps)
+                self.apply_selection('Phi', phi_steps)
+                self.phi_steps = phi_steps
+            else:
+                self.apply_selection('X', x_steps)
+                self.apply_selection('Y', y_steps)
 
-        # self.interpolate_points()
+        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
+            try:
+                self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
+            except:
+                pass
 
     def takespread(self, sequence, num):
         """Return an evenly-spaced sequence of length `num` from the input sequence.
@@ -300,58 +313,47 @@ class HallProbeGenerator(object):
 
     def interpolate_points(self, version=1):
         """Method for obtaining required selection through interpolation.  Work in progress."""
+        if version == 'load1':
+            if os.path.isfile(mu2e_ext_path+'tmp_rbf.p'):
+                self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_rbf.p', "rb"))
+                return
+        elif version == 'load2':
+            if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
+                self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
+                return
 
-        if version == 1:
-            field_subset = self.full_field.query('R<={0} and {1}<=Z<={2}'.format(
-                self.r_steps[-1]+50, self.z_steps[0]-50, self.z_steps[-1]+50))
-
-            rr, pp, zz = np.meshgrid(self.r_steps, self.phi_steps, self.z_steps)
-            rr = rr.flatten()
-            pp = pp.flatten()
-            zz = zz.flatten()
-            print len(field_subset.Bz)
-
-            print 'interpolating bz'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bz,
-                      function='quintic', norm=self.cylindrical_norm)
-            bz = rbf(rr, pp, zz)
-            print 'interpolating br'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Br,
-                      function='quintic', norm=self.cylindrical_norm)
-            br = rbf(rr, pp, zz)
-            br = bz
-            print 'interpolating bphi'
-            rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z, field_subset.Bphi,
-                      function='quintic', norm=self.cylindrical_norm)
-            bphi = rbf(rr, pp, zz)
-            bphi = bz
-
-            self.sparse_field = pd.DataFrame({'R': rr, 'Phi': pp, 'Z': zz,
-                                              'Br': br, 'Bphi': bphi, 'Bz': bz})
-
-        elif version == 2:
+        elif version == 1:
             row_list = []
-            for r in self.r_steps:
-                for p in self.phi_steps:
-                    for z in self.z_steps:
+            all_phis = []
+            for phi in self.phi_steps:
+                all_phis.append(phi)
+                if phi == 0:
+                    all_phis.append(np.pi)
+                else:
+                    all_phis.append(phi-np.pi)
+            print 'interpolating data points'
+            for r in tqdm(self.r_steps[0], desc='R (mm)', leave=False):
+                for p in tqdm(all_phis, desc='Phi (rads)', leave=False):
+                    for z in tqdm(self.z_steps, desc='Z (mm)', leave=False):
                         x = r*math.cos(p)
                         y = r*math.sin(p)
                         field_subset = self.full_field.query(
                             '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
                                 x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        print 'interpolating bz'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Bz, function='linear', norm=self.cylindrical_norm)
-                        bz = rbf(r, p, z)
-                        print 'interpolating br'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Br, function='quintic', norm=self.cylindrical_norm)
-                        br = rbf(r, p, z)
-                        print 'interpolating bphi'
-                        rbf = Rbf(field_subset.R, field_subset.Phi, field_subset.Z,
-                                  field_subset.Bphi, function='quintic', norm=self.cylindrical_norm)
-                        bphi = rbf(r, p, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bz, function='linear')
+                        bz = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.Bx, function='linear')
+                        bx = rbf(x, y, z)
+                        rbf = Rbf(field_subset.X, field_subset.Y, field_subset.Z,
+                                  field_subset.By, function='linear')
+                        by = rbf(x, y, z)
+
+                        br = bx*math.cos(p)+by*math.sin(p)
+                        bphi = -bx*math.sin(p)+by*math.cos(p)
+
                         row_list.append([r, p, z, br, bphi, bz])
 
             row_list = np.asarray(row_list)
@@ -359,8 +361,47 @@ class HallProbeGenerator(object):
                 'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
                 'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
-        del rbf
+        elif version == 2:
+            row_list = []
+            all_phis = []
+            for phi in self.phi_steps:
+                all_phis.append(phi)
+                if phi == 0:
+                    all_phis.append(np.pi)
+                else:
+                    all_phis.append(phi-np.pi)
+            print 'interpolating data points'
+            for r in tqdm(self.r_steps[0], desc='R (mm)', leave=False):
+                for p in tqdm(all_phis, desc='Phi (rads)', leave=False):
+                    for z in tqdm(self.z_steps, desc='Z (mm)', leave=False):
+                        x = r*math.cos(p)
+                        y = r*math.sin(p)
+                        field_subset = self.full_field.query(
+                            '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
+                                x-100, x+100, y-100, y+100, z-100, z+100))
+
+                        _, b_lacey = interp_studies.interp_phi(field_subset, x, y, z, plot=False)
+                        bx = b_lacey[0]
+                        by = b_lacey[1]
+                        bz = b_lacey[2]
+
+                        br = bx*math.cos(p)+by*math.sin(p)
+                        bphi = -bx*math.sin(p)+by*math.cos(p)
+
+                        row_list.append([r, p, z, br, bphi, bz])
+
+            row_list = np.asarray(row_list)
+            self.sparse_field = pd.DataFrame({
+                'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
+                'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
+
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
+        if version == 1:
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        elif version == 2:
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
+
+        print 'interpolation complete'
 
 
 def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
@@ -471,7 +512,8 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     input_data.query(' and '.join(cfg_data.conditions))
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
-                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps)
+                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps,
+                             interpolate=cfg_geom.interpolate)
 
     if cfg_geom.bad_calibration[0]:
         hpg.bad_calibration(measure=True, position=False, rotation=False)
@@ -480,7 +522,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     if cfg_geom.bad_calibration[2]:
         hpg.bad_calibration(measure=False, position=False, rotation=True)
 
-    hall_measure_data = hpg.get_toy()
+    hall_measure_data = hpg.sparse_field
     # print hall_measure_data.head()
     # raw_input()
 

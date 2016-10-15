@@ -51,7 +51,6 @@ import re
 import cPickle as pkl
 import numpy as np
 import pandas as pd
-from root_pandas import read_root
 import mu2e.src.RowTransformations as rt
 
 
@@ -241,6 +240,7 @@ class DataFrameMaker(object):
 
 
 def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
+    from root_pandas import read_root
     '''
     Quick converter for virtual detector ROOT files from the Mu2E Art Framework.
 

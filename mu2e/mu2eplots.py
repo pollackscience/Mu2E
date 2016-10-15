@@ -266,7 +266,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             ax2 = fig2.add_subplot(111)
             max_val = np.max(data_fit_diff)
             min_val = np.min(data_fit_diff)
-            if (max(abs(max_val), abs(min_val))) > 5:
+            abs_max_val = max(abs(max_val), abs(min_val))
+            if (abs_max_val) > 5:
                 heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, vmin=-5, vmax=5,
                                       cmap=plt.get_cmap('viridis'))
                 cb = plt.colorbar(heat, aspect=7)
@@ -275,7 +276,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 cb_ticks[-1] = '> 5'
                 cb_ticks = cb.ax.set_yticklabels(cb_ticks)
             else:
-                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'))
+                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'),
+                                      vmin=-abs_max_val, vmax=abs_max_val)
                 cb = plt.colorbar(heat, aspect=7)
             plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
                       fontsize=20)

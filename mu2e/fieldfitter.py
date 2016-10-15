@@ -147,6 +147,7 @@ class FieldFitter:
             input_data_phi.ix[np.isclose(input_data_phi.Phi, nphi), 'R'] *= -1
 
             # convert B field components into 2D arrays
+            # print input_data_phi
             piv_bz = input_data_phi.pivot('Z', 'R', 'Bz')
             piv_br = input_data_phi.pivot('Z', 'R', 'Br')
             piv_bphi = input_data_phi.pivot('Z', 'R', 'Bphi')
@@ -164,6 +165,7 @@ class FieldFitter:
             # formatting for correct phi ordering
             if phi == 0:
                 use_phis = use_phis[::-1]
+            print phi, use_phis
             PP_slice = np.full_like(RR_slice, use_phis[0])
             PP_slice[:, int(PP_slice.shape[1]/2):] = use_phis[1]
             PP.append(PP_slice)
@@ -276,7 +278,7 @@ class FieldFitter:
             mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        weights=np.concatenate([mag, mag, mag]).ravel(),
-                                       r=RR, z=ZZ, phi=PP, cfg_params=self.params,
+                                       r=RR, z=ZZ, phi=PP, params=self.params,
                                        method='leastsq', fit_kws={'maxfev': 2000})
 
         self.params = self.result.params
