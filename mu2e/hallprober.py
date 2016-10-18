@@ -251,7 +251,7 @@ class HallProbeGenerator(object):
                       DeprecationWarning)
         return self.sparse_field
 
-    def bad_calibration(self, measure=False, position=False, rotation=False):
+    def bad_calibration(self, measure=False, position=False, rotation=False, seed=None):
         """
         Manipulate the `sparse_field` member values, in order to mimic imperfect measurement
         scenarios. By default, no manipulations are performed.
@@ -260,23 +260,33 @@ class HallProbeGenerator(object):
             measure (bool, optional): Apply a hard-coded measurement error.
             position (bool, optional): Apply a hard-coded positional error.
             rotation (bool, optional): Apply a hard-coded rotational error.
+            seed (int, optional): Input a seed value to generate a replicable set of error
+                values.
 
         Returns:
             Nothing, modifies `sparse_field` class member.
         """
-        # measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
-        measure_sf = [1-2.58342250e-05, 1-5.00578244e-05, 1+4.87132812e-05, 1+7.79452585e-05,
-                      1+1.85119047e-05]  # uniform(-0.0001, 0.0001)
-        # pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
-        pos_offset = [0.9557545, 0.7018995, -0.8877238, 0.3336723, -0.4361852]  # uniform(-1, 1)
-        # rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
-        # rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
-        rotation_angle = [6.58857659e-05, -9.64816467e-05, 8.92011209e-05, 4.42270175e-05,
-                          -7.09926476e-05]
+        if seed is None:
+            # measure_sf = [1-2.03e-4, 1+1.48e-4, 1-0.81e-4, 1-1.46e-4, 1-0.47e-4]
+            measure_sf = [1-2.58342250e-05, 1-5.00578244e-05, 1+4.87132812e-05, 1+7.79452585e-05,
+                          1+1.85119047e-05]  # uniform(-0.0001, 0.0001)
+            # pos_offset = [-1.5, 0.23, -0.62, 0.12, -0.18]
+            pos_offset = [0.9557545, 0.7018995, -0.8877238, 0.3336723, -0.4361852]  # uniform(-1, 1)
+            # rotation_angle = [ 0.00047985,  0.00011275,  0.00055975, -0.00112114,  0.00051197]
+            # rotation_angle = [ 0.0005,  0.0004,  0.0005, 0.0003,  0.0004]
+            rotation_angle = [6.58857659e-05, -9.64816467e-05, 8.92011209e-05, 4.42270175e-05,
+                              -7.09926476e-05]
+        else:
+            np.random.seed(seed)
+            measure_sf = np.random.uniform(-1e-4, 1e-4, 5)
+            pos_offset = np.random.normal(0, 1, 5)
+            rotation_angle = np.random.normal(0, 1e-4, 5)
 
         for phi in self.phi_steps:
             probes = self.sparse_field[np.isclose(self.sparse_field.Phi, phi)].R.unique()
             if measure:
+                print 'using measure sfs:',
+                print measure_sf
                 if len(probes) > len(measure_sf):
                     raise IndexError('need more measure_sf, too many probes')
                 for i, probe in enumerate(probes):
@@ -288,6 +298,8 @@ class HallProbeGenerator(object):
                         (abs(self.sparse_field.R) == probe), 'Bphi'] *= measure_sf[i]
 
             if position:
+                print 'using pos offsets:',
+                print pos_offset
                 if len(probes) > len(pos_offset):
                     raise IndexError('need more pos_offset, too many probes')
                 for i, probe in enumerate(probes):
@@ -301,6 +313,8 @@ class HallProbeGenerator(object):
                             abs(self.sparse_field.R) == -probe, 'R'] -= pos_offset[i]
 
             if rotation:
+                print 'using rot angles:',
+                print rotation_angle
                 if len(probes) > len(rotation_angle):
                     raise IndexError('need more rotation_angle, too many probes')
                 for i, probe in enumerate(probes):
@@ -535,7 +549,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
 
     ff.merge_data_fit_res()
 
-    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+    # make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
     return hall_measure_data, ff
 
