@@ -40,13 +40,16 @@ brianleepollack@gmail.com
 """
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 from time import time
 import numpy as np
-import cPickle as pkl
+import six.moves.cPickle as pkl
 import pandas as pd
 from lmfit import Model, Parameters, report_fit
 from mu2e import mu2e_ext_path
-import tools.fit_funcs as ff
+import mu2e.tools.fit_funcs as ff
+from six.moves import range
 
 
 class FieldFitter:
@@ -165,7 +168,7 @@ class FieldFitter:
             # formatting for correct phi ordering
             if phi == 0:
                 use_phis = use_phis[::-1]
-            print phi, use_phis
+            print(phi, use_phis)
             PP_slice = np.full_like(RR_slice, use_phis[0])
             PP_slice[:, int(PP_slice.shape[1]/2):] = use_phis[1]
             PP.append(PP_slice)
@@ -200,7 +203,8 @@ class FieldFitter:
 
         # Load pre-defined starting valyes for parameters, or make a new set
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
-            self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p', "rb"))
+            self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p', "rb"),
+                                   encoding='latin1')
         else:
             self.params = Parameters()
 
@@ -257,10 +261,10 @@ class FieldFitter:
                         self.params['F_{0}_{1}'.format(n, m)].vary = False
 
         if not cfg_pickle.recreate:
-            print 'fitting with n={0}, m={1}'.format(ns, ms)
+            print('fitting with n={0}, m={1}'.format(ns, ms))
         else:
-            print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(
-                ns, ms, cfg_pickle.load_name)
+            print('recreating fit with n={0}, m={1}, pickle_file={2}'.format(
+                ns, ms, cfg_pickle.load_name))
         start_time = time()
         if cfg_pickle.recreate:
             for param in self.params:
@@ -283,7 +287,7 @@ class FieldFitter:
 
         self.params = self.result.params
         end_time = time()
-        print("Elapsed time was %g seconds" % (end_time - start_time))
+        print(("Elapsed time was %g seconds" % (end_time - start_time)))
         report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
@@ -380,7 +384,7 @@ class FieldFitter:
                     self.params['C_{0}_{1}'.format(cn, cm)].vary = True
 
         if not recreate:
-            print 'fitting external with cn={0}, cm={1}'.format(cns, cms)
+            print('fitting external with cn={0}, cm={1}'.format(cns, cms))
         start_time = time()
         if recreate:
             for param in self.params:
@@ -399,7 +403,7 @@ class FieldFitter:
         self.params = self.result.params
         end_time = time()
         if not recreate:
-            print("Elapsed time was %g seconds" % (end_time - start_time))
+            print(("Elapsed time was %g seconds" % (end_time - start_time)))
             report_fit(self.result, show_correl=False)
         if not self.no_save and not recreate:
             self.pickle_results(pickle_name)

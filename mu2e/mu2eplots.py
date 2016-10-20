@@ -47,6 +47,8 @@ Todo:
 brianleepollack@gmail.com
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
 import numpy as np
@@ -59,8 +61,10 @@ from mpldatacursor import datacursor
 import ipywidgets as widgets
 from IPython.display import display
 from plotly.widgets import GraphWidget
-from offline import init_notebook_mode, iplot, plot
+from .offline import init_notebook_mode, iplot, plot
 from mu2e import mu2e_ext_path
+from six.moves import range
+from six.moves import zip
 
 
 def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None):
@@ -100,7 +104,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
     ax = df.plot(x, y, ax=ax, kind='line', label=leg_label, legend=True, linewidth=2)
     ax.grid(True)
     plt.ylabel(y)
-    plt.title(' '.join(filter(lambda x: x, [x, 'v', y, conditions])))
+    plt.title(' '.join([x for x in [x, 'v', y, conditions] if x]))
 
     if 'plotly' in mode:
         fig = ax.get_figure()
@@ -528,7 +532,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
 
         # Set the xray image if available
         if isinstance(df_xray, pd.DataFrame):
-            print 'binning...'
+            print('binning...')
             xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
             df_xray.query(xray_query, inplace=True)
 
@@ -540,7 +544,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
             df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
             df_binned = df_binned.query('h>0')
             df_binned['cats'] = pd.cut(df_binned.h, 200)
-            print 'binned'
+            print('binned')
             groups = np.sort(df_binned.cats.unique())
             for i, group in enumerate(groups[0:]):
                 df_tmp = df_binned[df_binned.cats == group]
@@ -591,7 +595,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
             #   * Each category is plotted, with an opacity based on the occupancy
             #   * The result is a lego-style plot of the xray hits
 
-            print 'binning...'
+            print('binning...')
             h, edges = np.histogramdd(np.asarray([df[x], df[y], df[z]]).T, bins=(200, 20, 20))
             centers = [(e[1:]+e[:-1])/2.0 for e in edges]
             hadj = np.rot90(h).flatten()/h.max()
@@ -599,7 +603,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
             df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
 
             df_binned['cats'] = pd.cut(df_binned.h, 200)
-            print 'binned'
+            print('binned')
             groups = np.sort(df_binned.cats.unique())
             for i, group in enumerate(groups[1:]):
                 df_tmp = df_binned[df_binned.cats == group]
@@ -846,7 +850,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
 
     xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
     df_xray.query(xray_query, inplace=True)
-    print 'binning...'
+    print('binning...')
     h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
                               bins=(100, 25, 25))
     centers = [(e[1:]+e[:-1])/2.0 for e in edges]
@@ -855,7 +859,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
     df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
     df_binned = df_binned.query('h>0')
     df_binned['cats'] = pd.cut(df_binned.h, 200)
-    print 'binned'
+    print('binned')
     groups = np.sort(df_binned.cats.unique())
     for i, group in enumerate(groups[0:]):
         df_tmp = df_binned[df_binned.cats == group]

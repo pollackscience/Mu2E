@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import odespy
 
@@ -70,15 +72,15 @@ class ElectronSwimmer:
     def solve(self,verbose=True,timer=False):
         '''Run the ode solver and output the (state,time) tuple'''
         if verbose:
-            print 'swimming electron with {0} MeV, starting at {1} mm, for {2} s'.format(self.init_mom, self.init_pos, self.time_steps[-1])
+            print('swimming electron with {0} MeV, starting at {1} mm, for {2} s'.format(self.init_mom, self.init_pos, self.time_steps[-1]))
         X,t = self.solver.solve(self.time_steps,terminate)
         self.final_v =  np.asarray([X[-1,3],X[-1,4],X[-1,5]])
         self.final_E = gamma(self.final_v)*0.511
         if verbose:
-            print 'init energy:', self.init_E, 'MeV'
-            print 'final energy:', self.final_E, 'MeV'
+            print('init energy:', self.init_E, 'MeV')
+            print('final energy:', self.final_E, 'MeV')
             e_diff = self.final_E - self.init_E
-            print 'energy difference: {0} MeV ({1:.4}%)'.format(e_diff,(e_diff*100)/self.init_E)
+            print('energy difference: {0} MeV ({1:.4}%)'.format(e_diff,(e_diff*100)/self.init_E))
 
         return X,t
 

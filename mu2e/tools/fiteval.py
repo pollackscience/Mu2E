@@ -1,16 +1,20 @@
 #! /usr/bin/env python
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import mu2e
 import numpy as np
-import cPickle as pkl
+import six.moves.cPickle as pkl
 #from mu2e.tools.fit_funcs import *
 from scipy import special
 from mu2e.dataframeprod import DataFrameMaker
 from numba import jit
 from itertools import izip
 from mu2e import mu2e_ext_path
+import six
+from six.moves import range
 
 
 def pairwise(iterable):
@@ -47,8 +51,8 @@ def get_mag_field_function(param_name):
     Cs = np.zeros(ns)
     Ds = np.zeros(ns)
 
-    ABs = sorted({k:v for (k,v) in param_dict.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-    CDs = sorted({k:v for (k,v) in param_dict.iteritems() if ('C' in k or 'D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+    ABs = sorted({k:v for (k,v) in six.iteritems(param_dict) if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    CDs = sorted({k:v for (k,v) in six.iteritems(param_dict) if ('C' in k or 'D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
 
     for n,cd in enumerate(pairwise(CDs)):
         Cs[n] = param_dict[cd[0]]
@@ -114,8 +118,8 @@ def get_mag_field_function2(param_name):
     Bs = np.zeros((ns,ms))
     Ds = np.zeros(ns)
 
-    ABs = sorted({k:v for (k,v) in param_dict.iteritems() if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-    Ds = sorted({k:v for (k,v) in param_dict.iteritems() if ('D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+    ABs = sorted({k:v for (k,v) in six.iteritems(param_dict) if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+    Ds = sorted({k:v for (k,v) in six.iteritems(param_dict) if ('D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
 
     for n,d in enumerate(Ds):
         Ds[n] = param_dict[d]
@@ -170,10 +174,10 @@ def get_mag_field_function2(param_name):
 def quick_print(df, a,b,z, cart=False):
     if cart:
         df_tmp = df[(np.isclose(df.X,a)) & (np.isclose(df.Y,b)) & (df.Z==z)]
-        print df_tmp.Bx.values[0], df_tmp.By.values[0], df_tmp.Bz.values[0]
+        print(df_tmp.Bx.values[0], df_tmp.By.values[0], df_tmp.Bz.values[0])
     else:
         df_tmp = df[(np.isclose(df.R,a)) & (np.isclose(df.Phi,b)) & (df.Z==z)]
-        print df_tmp.Br.values[0], df_tmp.Bphi.values[0], df_tmp.Bz.values[0]
+        print(df_tmp.Br.values[0], df_tmp.Bphi.values[0], df_tmp.Bz.values[0])
 
 if __name__=='__main__':
     df = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=True).data_frame

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import shutil
 import math
@@ -8,7 +10,7 @@ import mu2e
 import numpy as np
 import pandas as pd
 from datafileprod import DataFileMaker
-import src.RowTransformations as rt
+from . import src.RowTransformations as rt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -26,11 +28,13 @@ import glob
 from PIL import Image as PIL_Image
 from images2gif import writeGif
 from sys import platform
+from six.moves import range
+from six.moves import zip
 if platform == 'darwin':
     import AppKit
 from plotly.offline import init_notebook_mode, iplot, plot
 import plotly.graph_objs as go
-from tools.new_iplot import new_iplot
+from .tools.new_iplot import new_iplot
 import plotly.plotly as py
 from mpldatacursor import datacursor
 import warnings
@@ -56,8 +60,8 @@ class Plotter:
         if type(data_frame_dict) != dict: raise TypeError('data_frame_dict must be dict')
         if len(data_frame_dict)==0: raise Exception('data_frame_dict must have at least one entry')
 
-        if main_suffix and main_suffix not in data_frame_dict.keys():
-            raise KeyError('main_suffix: '+main_suffix+'not in keys: '+data_frame_dict.keys())
+        if main_suffix and main_suffix not in list(data_frame_dict.keys()):
+            raise KeyError('main_suffix: '+main_suffix+'not in keys: '+list(data_frame_dict.keys()))
 
         if not main_suffix and len(data_frame_dict)>1:
             raise Exception('must specify main_suffix if len(dict)>1')
@@ -73,7 +77,7 @@ class Plotter:
 
         if len(data_frame_dict)==1:
             self.data_frame_dict = OrderedDict(data_frame_dict)
-            self.suffix = self.data_frame_dict.keys()[0]
+            self.suffix = list(self.data_frame_dict.keys())[0]
         else:
             self.suffix = main_suffix
             keys = sorted([key for key in data_frame_dict.keys() if key not in main_suffix])
@@ -81,7 +85,7 @@ class Plotter:
             self.data_frame_dict = OrderedDict()
             for key in keys:
                 self.data_frame_dict[key] = data_frame_dict[key]
-            self.suffix_extra = '-'.join(self.data_frame_dict.keys())
+            self.suffix_extra = '-'.join(list(self.data_frame_dict.keys()))
             self.init_save_dir(save_dir,extra=True)
 
         self.init_save_dir(save_dir)
@@ -96,10 +100,10 @@ class Plotter:
         self.use_html_dir = use_html_dir
 
     def set_df(self,df):
-        self.data_frame_dict[self.data_frame_dict.keys()[0]] = df
+        self.data_frame_dict[list(self.data_frame_dict.keys())[0]] = df
 
     def get_df(self):
-        return self.data_frame_dict[self.data_frame_dict.keys()[0]]
+        return self.data_frame_dict[list(self.data_frame_dict.keys())[0]]
 
 
 
@@ -112,7 +116,7 @@ class Plotter:
     def plot_wrapper(func):
         def inner(self,*args,**kwargs):
             self.plot_count+=1
-            print'Plot {0} is: {1}'.format(self.plot_count,args)
+            print('Plot {0} is: {1}'.format(self.plot_count,args))
             return func(self,*args,**kwargs)
         return inner
 
@@ -197,24 +201,24 @@ class Plotter:
         new_y = new_piv.columns.values
         new_xx,new_yy = np.meshgrid(new_x,new_y)
 
-        print 'interpolating', field
+        print('interpolating', field)
         interp_function = interpolate.interp2d(old_x,old_y,old_vals.T,kind=method)
         new_vals = interp_function(new_x,new_y)
         data_interp = np.array([new_xx, new_yy, new_vals]).reshape(3, -1).T
         interp_frame = pd.DataFrame(data_interp, columns=[x_ax,y_ax,field])
 
         C = [c for c in ['X','Y','Z'] if c not in [x_ax,y_ax]][0]
-        print 'making new',C
+        print('making new',C)
         #interp_frame[C] = old_frame[C].unique()[0]
         interp_frame.eval('{0}={1}'.format(C,old_frame[C].unique()[0]))
-        print 'making new Theta'
+        print('making new Theta')
         #interp_frame['Theta'] = interp_frame.apply(self.make_theta,axis=1)
         interp_frame['Phi'] = rt.apply_make_theta(interp_frame['X'].values, interp_frame['Y'].values)
-        print 'making new R'
+        print('making new R')
         #interp_frame['R'] = interp_frame.apply(self.make_r,axis=1)
         interp_frame['R'] = rt.apply_make_r(interp_frame['X'].values, interp_frame['Y'].values)
         interp_frame = interp_frame[['X','Y','Z','R','Phi',field]]
-        print 'interp made'
+        print('interp made')
         return interp_frame
 
 
@@ -222,7 +226,7 @@ class Plotter:
     def plot_A_v_B(self,A,B,*conditions):
         """Plot A vs B given some set of comma seperated boolean conditions"""
         data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
-        print data_frame.head()
+        print(data_frame.head())
 
         fig = plt.figure(self.plot_count)
         data_frame.eval('{0}err = 0.0001*{0}'.format(A))
@@ -233,7 +237,7 @@ class Plotter:
         plt.title('{0} vs {1} at {2}'.format(A,B,conditions))
         #plt.axis([-0.1, 3.24,0.22,0.26])
         plt.grid(True)
-        plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
+        plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix))
         return data_frame, fig
 
     @plot_wrapper
@@ -256,11 +260,11 @@ class Plotter:
             ax1.plot(data_frame_dict[key][B],data_frame_dict[key][A], linestyle=self.lines[i],marker='None', color = self.colors[key], linewidth=2,label=key)
             if i>0:
                 #ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],linestyle='None',marker=self.markers[i], color= self.colors[i], markersize = 7,label=key)
-                ax2.plot(data_frame_dict[key][B],data_frame_dict.values()[0][A]/data_frame_dict[key][A],linestyle=self.lines[i],marker='None', color= self.colors[key], linewidth=2,label=key)
+                ax2.plot(data_frame_dict[key][B],list(data_frame_dict.values())[0][A]/data_frame_dict[key][A],linestyle=self.lines[i],marker='None', color= self.colors[key], linewidth=2,label=key)
 
         ax2.set_xlabel(B)
         ax1.set_ylabel(A)
-        labels = data_frame_dict.keys()
+        labels = list(data_frame_dict.keys())
         labels = [re.sub('_','\_',i) for i in labels]
 
         if len(data_frame_dict)==2:
@@ -271,13 +275,13 @@ class Plotter:
         ylims = ax2.get_ylim()
         if ylims[0]>1: ylims[0] = 0.995
         if ylims[1]<1: ylims[1] = 1.005
-        print ylims
+        print(ylims)
         ax2.set_ylim(ylims[0],ylims[1])
         ax2.get_yaxis().get_major_formatter().set_useOffset(False)
         ax2.axhline(1,linewidth=2,color='r')
         ax1.legend(loc='best')
         plt.setp(ax2.get_yticklabels()[-1:], visible=False)
-        fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix_extra))
+        fig.savefig(self.save_dir_extra+'/{0}_v_{1}_at_{2}_{3}.png'.format(A,B,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix_extra))
         #return data_frame_dict, fig
         return ax2
 
@@ -285,7 +289,7 @@ class Plotter:
     def plot_A_v_B_and_fit(self,A,B,*conditions):
         """Plot A vs B given some set of comma seperated boolean conditions"""
         data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
-        print data_frame.head()
+        print(data_frame.head())
 
         fig = plt.figure(self.plot_count)
         data_frame.eval('{0}err = 0.0001*{0}'.format(A))
@@ -297,7 +301,7 @@ class Plotter:
         #plt.axis([-0.1, 3.24,0.22,0.26])
         plt.grid(True)
         lm = self.fit_linear_regression(data_frame,A,B,fig)
-        plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}_fit.png'.format(A,B,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
+        plt.savefig(self.save_dir+'/{0}_v_{1}_at_{2}_{3}_fit.png'.format(A,B,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix))
         return data_frame, fig, lm
 
     @plot_wrapper
@@ -309,7 +313,7 @@ class Plotter:
             data_frame = kwargs['data_frame']
         else:
             data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
-        print data_frame.head()
+        print(data_frame.head())
 
         if interp:
             data_frame_interp_grid = self.make_interp_grid(AB=[[B,data_frame[B].min(),data_frame[B].max()],[C,data_frame[C].min(),data_frame[C].max()]],
@@ -352,9 +356,9 @@ class Plotter:
             #plt.axis([-0.1, 3.24,0.22,0.26])
             #plt.grid(True)
             if interp:
-                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix),bbox_inches='tight')
             else:
-                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix),bbox_inches='tight')
 
             self.plot_count+=1
             fig = plt.figure(self.plot_count)
@@ -368,9 +372,9 @@ class Plotter:
             plt.title('{0} vs {1} and {2}, {3}'.format(A,B,C,conditions[0]))
             plt.grid(True)
             if interp:
-                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_interp_{4}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix),bbox_inches='tight')
             else:
-                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+                plt.savefig(self.save_dir+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix),bbox_inches='tight')
 
             return fig,data_frame
 
@@ -435,9 +439,9 @@ class Plotter:
         fig = go.Figure(data=data, layout=layout)
         plot_html = new_iplot(fig,show_link=False)
         if interp:
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),  self.suffix)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_interp_{4}.html'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),  self.suffix)
         else:
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix)
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_{4}.html'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix)
         with open(savename,'w') as html_file:
             html_file.write(plot_html)
 
@@ -581,7 +585,7 @@ class Plotter:
         Each data set will be plotted, and ratios will also be plotted for main/extras.
         """
 
-        labels = self.data_frame_dict.keys()
+        labels = list(self.data_frame_dict.keys())
         labels = [re.sub('_','\_',i) for i in labels]
 
         data_frame_dict = OrderedDict()
@@ -614,14 +618,14 @@ class Plotter:
             plt.ylabel(B)
             plt.title('{0}, {1} vs {2} and {3}, {4}'.format(key,A,B,C,conditions[0]))
             plt.grid(True)
-            plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),key),bbox_inches='tight')
+            plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_{4}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),key),bbox_inches='tight')
 
             if i>0:
                 self.plot_count+=1
 
 #
                 fig = plt.figure(self.plot_count).gca(projection='3d')
-                surf = fig.plot_surface(Xi, Yi, piv_dict.values()[0].values/Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                surf = fig.plot_surface(Xi, Yi, list(piv_dict.values())[0].values/Z, rstride=1, cstride=1, cmap=cm.coolwarm,
                                         linewidth=0, antialiased=False)
                 fig.zaxis.set_major_locator(LinearLocator(10))
                 fig.zaxis.set_major_formatter(FormatStrFormatter('%.03f'))
@@ -635,12 +639,12 @@ class Plotter:
                 ticks_width = (zlims[1]-zlims[0])/10.0
 
                 fig.set_zticks(np.arange(zlims[0],zlims[1],ticks_width))
-                plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
-                plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key),bbox_inches='tight')
+                plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(list(piv_dict.keys())[0],key,A,B,C,conditions[0]))
+                plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),list(piv_dict.keys())[0],key),bbox_inches='tight')
 #
                 self.plot_count+=1
                 fig = plt.figure(self.plot_count)
-                heat = plt.pcolormesh(Xi,Yi,piv_dict.values()[0].values/Z)
+                heat = plt.pcolormesh(Xi,Yi,list(piv_dict.values())[0].values/Z)
 
                 cb = plt.colorbar(heat, shrink=0.5, aspect=5)
                 cb.set_label(r'$\frac{\mathrm{'+labels[0]+r'}}{\mathrm{'+labels[i]+r'}}$',fontsize=20,labelpad=20)
@@ -649,9 +653,9 @@ class Plotter:
 
                 plt.xlabel(C)
                 plt.ylabel(B)
-                plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
+                plt.title('{0}/{1}, {2} vs {3} and {4}, {5}'.format(list(piv_dict.keys())[0],key,A,B,C,conditions[0]))
                 plt.grid(True)
-                plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_ratio_{4}_{5}.png'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key),bbox_inches='tight')
+                plt.savefig(self.save_dir_extra+'/{0}_v_{1}_and_{2}_at_{3}_heat_ratio_{4}_{5}.png'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),list(piv_dict.keys())[0],key),bbox_inches='tight')
 
 
         return surf,data_frame_dict
@@ -696,7 +700,7 @@ class Plotter:
                         )
 
 
-        labels = self.data_frame_dict.keys()
+        labels = list(self.data_frame_dict.keys())
         labels = [re.sub('_','\_',i) for i in labels]
 
         data_frame_dict = OrderedDict()
@@ -717,14 +721,14 @@ class Plotter:
             Z=piv_dict[key].values
 
             if i>0:
-                surface = go.Surface(x=Xi, y=Yi, z=piv_dict.values()[0].values/Z, colorbar = go.ColorBar(title='{0}/{1}'.format(piv_dict.keys()[0],key),titleside='right'), colorscale = 'Viridis')
+                surface = go.Surface(x=Xi, y=Yi, z=list(piv_dict.values())[0].values/Z, colorbar = go.ColorBar(title='{0}/{1}'.format(list(piv_dict.keys())[0],key),titleside='right'), colorscale = 'Viridis')
                 data = [surface]
 
-                layout['title']=('{0}/{1}, {2} vs {3} and {4}, {5}'.format(piv_dict.keys()[0],key,A,B,C,conditions[0]))
+                layout['title']=('{0}/{1}, {2} vs {3} and {4}, {5}'.format(list(piv_dict.keys())[0],key,A,B,C,conditions[0]))
                 #layout['scene']['zaxis']['title']='{0}/{1}'.format(piv_dict.keys()[0],key)
                 fig = go.Figure(data=data, layout=layout)
                 plot_html = new_iplot(fig,show_link=False)
-                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.html'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))),piv_dict.keys()[0],key)
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_{3}_cont_ratio_{4}_{5}.html'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),list(piv_dict.keys())[0],key)
                 with open(savename,'w') as html_file:
                     #html_file.write('<script type="text/javascript">'
                     #        +get_plotlyjs()
@@ -741,7 +745,7 @@ class Plotter:
         """
 
         data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
-        print data_frame.head()
+        print(data_frame.head())
         if not self.fit_result: raise Exception('no fit available')
         fig1 = plt.figure(self.plot_count)
 
@@ -786,7 +790,7 @@ class Plotter:
             ax1.view_init(elev=35., azim=15)
         plt.show()
         if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-        savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+        savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_fit.pdf'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
         plt.savefig(savename,transparent = True)
 
         self.plot_count+=1
@@ -818,7 +822,7 @@ class Plotter:
         ax3.set_ylabel(C)
         plt.show()
         if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-        savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+        savename = self.save_dir+'/{0}_v_{1}_and_{2}_{3}_residual.pdf'.format(A,B,C,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
         plt.savefig(savename,transparent = True)
         #outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
         #return fig1, outname
@@ -844,7 +848,7 @@ class Plotter:
                 data_frame_phi.Phi=data_frame_phi.Phi+np.pi
                 data_frame_phi.ix[data_frame_phi.Phi>np.pi, 'Phi']-=(2*np.pi)
 
-            print data_frame.head()
+            print(data_frame.head())
             if not self.fit_result: raise Exception('no fit available')
             fig1 = plt.figure(self.plot_count)
 
@@ -869,7 +873,7 @@ class Plotter:
                 best_fit = self.fit_result.best_fit
 
             l = int(len(best_fit)/3)
-            print l
+            print(l)
             if A=='Br':
                 bf = best_fit[:l]
             elif A=='Bz':
@@ -888,9 +892,9 @@ class Plotter:
             #plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             if self.use_html_dir:
-                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.png'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             else:
-                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.pdf'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             plt.savefig(savename,transparent = True)
 
             self.plot_count+=1
@@ -912,9 +916,9 @@ class Plotter:
             #plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
             if self.use_html_dir:
-                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.png'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+                savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.png'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             else:
-                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.pdf'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+                savename = self.save_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.pdf'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
 
             plt.savefig(savename,transparent = True)
             #outname = '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
@@ -933,7 +937,7 @@ class Plotter:
             self.plot_count+=1
 
             data_frame_ext = data_frame[data_frame.Y==y]
-            print data_frame_ext.head()
+            print(data_frame_ext.head())
             if not self.fit_result: raise Exception('no fit available')
             fig1 = plt.figure(self.plot_count)
 
@@ -975,7 +979,7 @@ class Plotter:
                 ax1.view_init(elev=35., azim=15)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_fit.pdf'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_fit.pdf'.format(A,B,C,y,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             plt.savefig(savename,transparent = True)
 
             self.plot_count+=1
@@ -995,7 +999,7 @@ class Plotter:
             ax3.set_ylabel(C)
             plt.show()
             if self.MultiScreen: plt.get_current_fig_manager().window.wm_geometry("-2600-600")
-            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_residual.pdf'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.save_dir+'/{0}_v_{1}_and_{2}_y={3}_{4}_residual.pdf'.format(A,B,C,y,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             plt.savefig(savename,transparent = True)
             #outname =    '{0}_v_{1}_and_{2}_{3}'.format(A,B,C,'_'.join(conditions))
 
@@ -1104,8 +1108,8 @@ class Plotter:
             fig = go.Figure(data=lines, layout=layout)
 
             plot_html = new_iplot(fig,show_link=False)
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
-            print 'plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
+            print('plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_fit.html'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f])))
             #py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
@@ -1121,8 +1125,8 @@ class Plotter:
 
             fig = go.Figure(data=[trace], layout = layout_heat)
             plot_html = new_iplot(fig,show_link=False)
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
-            print 'plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
+            print('plotting {0}_v_{1}_and_{2}_at_phi={3}_{4}_heat.html'.format(A,B,C,phi,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f])))
             #py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
@@ -1229,7 +1233,7 @@ class Plotter:
             fig = go.Figure(data=lines, layout=layout)
 
             plot_html = new_iplot(fig,show_link=False)
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_fit.html'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_fit.html'.format(A,B,C,y,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
@@ -1244,7 +1248,7 @@ class Plotter:
 
             fig = go.Figure(data=[trace], layout = layout_heat)
             plot_html = new_iplot(fig,show_link=False)
-            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_heat.html'.format(A,B,C,y,'_'.join(filter(None,conditions+(self.extra_suffix,))))
+            savename = self.html_dir+'/{0}_v_{1}_and_{2}_at_y={3}_{4}_heat.html'.format(A,B,C,y,'_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]))
             py.image.save_as(fig, savename[:-5]+'.png')
             with open(savename,'w') as html_file:
                 html_file.write(plot_html)
@@ -1287,7 +1291,7 @@ class Plotter:
     def plot_A_v_Theta(self,A,r,z_cond,interp_num=200,method='linear',do_fit = True):
         """Plot A vs Theta for a given Z and R. The values are interpolated """
 
-        print self.data_frame_dict[self.suffix].head()
+        print(self.data_frame_dict[self.suffix].head())
         data_frame = self.data_frame_dict[self.suffix].query(z_cond)
         if method!=None:
 
@@ -1364,9 +1368,9 @@ class Plotter:
     def plot_mag_field(self,step_size = 1,*conditions):
         data_frame = self.data_frame_dict[self.suffix].query(' and '.join(conditions))
         fig, ax = plt.subplots(1,1)
-        print 'len Y',len(np.unique(data_frame.Y.values))
-        print 'len X',len(np.unique(data_frame.X.values))
-        print data_frame.head()
+        print('len Y',len(np.unique(data_frame.Y.values)))
+        print('len X',len(np.unique(data_frame.X.values)))
+        print(data_frame.head())
         quiv = ax.quiver(data_frame.X[::step_size],data_frame.Y[::step_size],data_frame.Bx[::step_size],data_frame.By[::step_size],pivot='mid')
         plt.quiverkey(quiv, 1400, -1430, 0.5, '0.5 T', coordinates='data',clim=[-1.1,5])
         ax.set_xlabel('X (mm)')
@@ -1375,7 +1379,7 @@ class Plotter:
         plt.grid(True)
         circle2=plt.Circle((0,0),831.038507,color='b',fill=False)
         fig.gca().add_artist(circle2)
-        fig.savefig(self.save_dir+'/PsField_{0}_{1}.png'.format('_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix))
+        fig.savefig(self.save_dir+'/PsField_{0}_{1}.png'.format('_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix))
 
     @plot_wrapper
     def plot_mag_field2(self,A,B,density= 1,*conditions):
@@ -1398,7 +1402,7 @@ class Plotter:
         cb.set_label('Mag (T)')
 
         plt.title('Magnetic Field Lines in {0}-{1} plane for {2}'.format(A,B,conditions))
-        fig.savefig(self.save_dir+'/Field_Lines_{0}_{1}.png'.format('_'.join(filter(None,conditions+(self.extra_suffix,))),self.suffix),bbox_inches='tight')
+        fig.savefig(self.save_dir+'/Field_Lines_{0}_{1}.png'.format('_'.join([_f for _f in conditions+(self.extra_suffix,) if _f]),self.suffix),bbox_inches='tight')
 
     def fit_radial_plot(self, df, mag, savename,fig=None,p0=(0.0001,0.0,0.05)):
         """Given a data_frame, fit the theta vs B(r)(z) plot and plot the result"""
