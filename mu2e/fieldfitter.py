@@ -273,13 +273,13 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 5000})
+                                       method='leastsq', fit_kws={'maxfev': 10000})
         else:
             mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 2000})
+                                       method='leastsq', fit_kws={'maxfev': 5000})
 
         self.params = self.result.params
         end_time = time()

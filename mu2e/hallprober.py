@@ -252,6 +252,7 @@ class HallProbeGenerator(object):
         return self.sparse_field
 
     def bad_calibration(self, measure=False, position=False, rotation=False, seed=None):
+        print seed
         """
         Manipulate the `sparse_field` member values, in order to mimic imperfect measurement
         scenarios. By default, no manipulations are performed.
@@ -278,7 +279,7 @@ class HallProbeGenerator(object):
                               -7.09926476e-05]
         else:
             np.random.seed(seed)
-            measure_sf = np.random.uniform(-1e-4, 1e-4, 5)
+            measure_sf = np.random.uniform(-1e-4, 1e-4, 5)+1
             pos_offset = np.random.normal(0, 1, 5)
             rotation_angle = np.random.normal(0, 1e-4, 5)
 
@@ -529,12 +530,16 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
                              x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps,
                              interpolate=cfg_geom.interpolate)
 
+    seed = None
+    if len(cfg_geom.bad_calibration) == 4:
+        seed = cfg_geom.bad_calibration[3]
+
     if cfg_geom.bad_calibration[0]:
-        hpg.bad_calibration(measure=True, position=False, rotation=False)
+        hpg.bad_calibration(measure=True, position=False, rotation=False, seed=seed)
     if cfg_geom.bad_calibration[1]:
-        hpg.bad_calibration(measure=False, position=True, rotation=False)
+        hpg.bad_calibration(measure=False, position=True, rotation=False, seed=seed)
     if cfg_geom.bad_calibration[2]:
-        hpg.bad_calibration(measure=False, position=False, rotation=True)
+        hpg.bad_calibration(measure=False, position=False, rotation=True, seed=seed)
 
     hall_measure_data = hpg.sparse_field
     # print hall_measure_data.head()
@@ -549,7 +554,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
 
     ff.merge_data_fit_res()
 
-    # make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
     return hall_measure_data, ff
 

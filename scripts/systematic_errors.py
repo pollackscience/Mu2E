@@ -47,13 +47,13 @@ cfg_pickle_set_Mau_bad_m     = [cfg_pickle(use_pickle=True, save_pickle=True,
 cfg_plot_mpl = cfg_plot('mpl', [-2, 2], 'html', None)
 
 
-# for i in range(syst_set):
 df_set = []
-for i in range(1):
+# for i in range(1):
+for i in range(syst_set):
     _, ff = field_map_analysis('halltoy_Mau10_800mm_bad_m_full_{}'.format(i),
                                cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim_trunc,
                                cfg_params_Mau_DS_800mm_long, cfg_pickle_set_Mau_bad_m[i],
                                cfg_plot_mpl)
     df_set.append(ff.input_data)
 
-pkl.dump(df_set, open('df_set.p', 'wb'), protocol=pkl.HIGHEST_PROTOCOL)
+pkl.dump(df_set, open(mu2e_ext_path+'datafiles/df_set.p', 'wb'), protocol=pkl.HIGHEST_PROTOCOL)
