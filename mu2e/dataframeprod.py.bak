@@ -47,10 +47,8 @@ brianleepollack@gmail.com
 """
 
 
-from __future__ import absolute_import
-from __future__ import print_function
 import re
-import six.moves.cPickle as pkl
+import cPickle as pkl
 import numpy as np
 import pandas as pd
 import mu2e.src.RowTransformations as rt
@@ -110,7 +108,7 @@ class DataFrameMaker(object):
 
         # Load from pickle (all are identical in format).  Otherwise, load from csv
         if use_pickle:
-            self.data_frame = pkl.load(open(self.file_name+'.p', "rb"), encoding='latin1')
+            self.data_frame = pkl.load(open(self.file_name+'.p', "rb"))
 
         elif 'Mau9' in self.field_map_version:
             self.data_frame = pd.read_csv(
@@ -176,7 +174,7 @@ class DataFrameMaker(object):
 
         """
 
-        print('num of columns start', len(self.data_frame.index))
+        print 'num of columns start', len(self.data_frame.index)
 
         # Convert to mm for some hard-coded versions
         if (('GA' in self.field_map_version and '5' not in self.field_map_version) or
@@ -218,7 +216,7 @@ class DataFrameMaker(object):
         self.data_frame.sort_values(['X', 'Y', 'Z'], inplace=True)
         self.data_frame.reset_index(inplace=True, drop=True)
         self.data_frame = self.data_frame.round(9)
-        print('num of columns end', len(self.data_frame.index))
+        print 'num of columns end', len(self.data_frame.index)
 
     def make_dump(self, suffix=''):
         """Create a pickle file containing the data_frame, in the same dir as the input.
@@ -273,13 +271,13 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
                                df_ntpart.evt.astype(int).astype(str)).astype(int)
 
     if make_pickle:
-        print('loading into hdf5')
+        print 'loading into hdf5'
         # pkl.dump((df_nttvd, df_ntpart), open(input_name + '.p', "wb"), pkl.HIGHEST_PROTOCOL)
         store = pd.HDFStore(input_name+'.h5')
         store['df_nttvd'] = df_nttvd
         store['df_ntpart'] = df_ntpart
         store.close()
-        print('file finished')
+        print 'file finished'
     else:
         return (df_nttvd, df_ntpart)
 
@@ -318,5 +316,5 @@ if __name__ == "__main__":
     # data_maker.do_basic_modifications()
     data_maker.make_dump()
     # data_maker.make_dump('_8mmOffset')
-    print(data_maker.data_frame.head())
-    print(data_maker.data_frame.tail())
+    print data_maker.data_frame.head()
+    print data_maker.data_frame.tail()
