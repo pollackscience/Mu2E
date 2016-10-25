@@ -316,16 +316,26 @@ def brzphi_3d_producer_modbessel_phase(z,r,phi,L,ns,ms):
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
-            '(m),(m),(m),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
-    def calc_b_fields(z,phi,r,n,A,B,D,ivp,iv,kms,model_r,model_z,model_phi):
-        for i in range(z.shape[0]):
-            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms[0]*\
-                    (A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
-            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
-                    (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
-            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
-                    (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+    # @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
+    #         '(m),(m),(m),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
+    # def calc_b_fields(z,phi,r,n,A,B,D,ivp,iv,kms,model_r,model_z,model_phi):
+    #     for i in range(z.shape[0]):
+    #         model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms[0]*\
+    #                 (A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+    #         model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
+    #                 (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
+    #         model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
+    #                 (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+
+    @guvectorize(["void(float64[:,:], float64[:,:], float64[:,:], int64[:], float64[:], float64[:], float64[:], float64[:,:], float64[:,:], float64[:], float64[:,:])"],
+            '(n,m),(n,m),(n,m),(),(),(),(),(n,m),(n,m),()->(n,m)', target='cuda')
+    def calc_b_fields(z,phi,r,n,A,B,D,ivp,iv,kms,model_r):
+        model_r += cos(n[0]*phi-D[0])*ivp*kms[0]*\
+                (A[0]*cos(kms[0]*z) + B[0]*sin(kms[0]*z))
+            #model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
+            #        (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
+            #model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
+            #        (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
 
 
     def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
@@ -348,7 +358,8 @@ def brzphi_3d_producer_modbessel_phase(z,r,phi,L,ns,ms):
                 _iv = iv[n][i]
                 _kms = np.array([kms[n][i]])
                 _n = np.array([n])
-                calc_b_fields(z,phi,r,_n,A,B,D,_ivp,_iv,_kms,model_r,model_z,model_phi)
+                #calc_b_fields(z,phi,r,_n,A,B,D,_ivp,_iv,_kms,model_r,model_z,model_phi)
+                calc_b_fields(z,phi,r,_n,A,B,D,_ivp,_iv,_kms,model_r)
 
 
         model_phi[np.isinf(model_phi)]=0
