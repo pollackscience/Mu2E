@@ -336,6 +336,10 @@ class HallProbeGenerator(object):
             if os.path.isfile(mu2e_ext_path+'tmp_phi.p'):
                 self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_phi.p', "rb"))
                 return
+        elif version == 'load3':
+            if os.path.isfile(mu2e_ext_path+'tmp_quad.p'):
+                self.sparse_field = pkl.load(open(mu2e_ext_path+'tmp_quad.p', "rb"))
+                return
 
         elif version == 1:
             row_list = []
@@ -410,11 +414,47 @@ class HallProbeGenerator(object):
                 'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
                 'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
 
+        elif version == 3:
+            row_list = []
+            all_phis = []
+            for phi in self.phi_steps:
+                all_phis.append(phi)
+                if phi == 0:
+                    all_phis.append(np.pi)
+                else:
+                    all_phis.append(phi-np.pi)
+            print 'interpolating data points'
+            for r in tqdm(self.r_steps[0], desc='R (mm)', leave=False):
+                for p in tqdm(all_phis, desc='Phi (rads)', leave=False):
+                    for z in tqdm(self.z_steps, desc='Z (mm)', leave=False):
+                        x = r*math.cos(p)
+                        y = r*math.sin(p)
+                        field_subset = self.full_field.query(
+                            '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
+                                x-100, x+100, y-100, y+100, z-100, z+100))
+
+                        _, b_lacey = interp_studies.interp_phi_quad(field_subset, x, y, z, plot=False)
+                        bx = b_lacey[0]
+                        by = b_lacey[1]
+                        bz = b_lacey[2]
+
+                        br = bx*math.cos(p)+by*math.sin(p)
+                        bphi = -bx*math.sin(p)+by*math.cos(p)
+
+                        row_list.append([r, p, z, br, bphi, bz])
+
+            row_list = np.asarray(row_list)
+            self.sparse_field = pd.DataFrame({
+                'R': row_list[:, 0], 'Phi': row_list[:, 1], 'Z': row_list[:, 2],
+                'Br': row_list[:, 3], 'Bphi': row_list[:, 4], 'Bz': row_list[:, 5]})
+
         self.sparse_field = self.sparse_field[['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz']]
         if version == 1:
             pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_rbf.p', "wb"), pkl.HIGHEST_PROTOCOL)
         elif version == 2:
             pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
+        elif version == 3:
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_quad.p', "wb"), pkl.HIGHEST_PROTOCOL)
 
         print 'interpolation complete'
 
