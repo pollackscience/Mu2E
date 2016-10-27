@@ -39,47 +39,65 @@ def interp_phi_quad(df, x, y, z, plot=False):
         bys = df_trimmed.By
         bzs = df_trimmed.Bz
 
-        # bx_interp = -(
-        #     ((x_rel*0.5*(bxs[0]+bxs[9])-x_rel*0.5*(bxs[9]+bxs[18])-(1.0/6.0)*(bxs[0]+4*bxs[9]+bxs[18]))
-        #      *0.5*(y_rel**2-y_rel)+
-        #      (x_rel*0.5*(bxs[3]+bxs[12])-x_rel*0.5*(bxs[12]+bxs[21])-(1.0/6.0)*(bxs[3]+4*bxs[12]+bxs[21]))
-        #      *(-y_rel**2+1)+
-        #      (x_rel*0.5*(bxs[6]+bxs[15])-x_rel*0.5*(bxs[15]+bxs[24])-(1.0/6.0)*(bxs[6]+4*bxs[15]+bxs[24]))
-        #      *0.5*(y_rel**2+y_rel))*0.5*(z_rel**2-z_rel)+
-        #     ((x_rel*0.5*(bxs[1]+bxs[10])-x_rel*0.5*(bxs[10]+bxs[19])-(1.0/6.0)*(bxs[1]+4*bxs[10]+bxs[19]))
-        #      *0.5*(y_rel**2-y_rel)+
-        #      (x_rel*0.5*(bxs[4]+bxs[13])-x_rel*0.5*(bxs[13]+bxs[22])-(1.0/6.0)*(bxs[4]+4*bxs[13]+bxs[22]))
-        #      *(-y_rel**2+1)+
-        #      (x_rel*0.5*(bxs[7]+bxs[16])-x_rel*0.5*(bxs[16]+bxs[25])-(1.0/6.0)*(bxs[7]+4*bxs[16]+bxs[25]))
-        #      *0.5*(y_rel**2+y_rel))*(-z_rel**2+1)+
-        #     ((x_rel*0.5*(bxs[2]+bxs[11])-x_rel*0.5*(bxs[11]+bxs[20])-(1.0/6.0)*(bxs[2]+4*bxs[11]+bxs[20]))
-        #      *0.5*(y_rel**2-y_rel)+
-        #      (x_rel*0.5*(bxs[5]+bxs[14])-x_rel*0.5*(bxs[14]+bxs[23])-(1.0/6.0)*(bxs[5]+4*bxs[14]+bxs[23]))
-        #      *(-y_rel**2+1)+
-        #      (x_rel*0.5*(bxs[8]+bxs[17])-x_rel*0.5*(bxs[17]+bxs[26])-(1.0/6.0)*(bxs[8]+4*bxs[17]+bxs[26]))
-        #      *0.5*(y_rel**2+y_rel))*0.5*(z_rel**2+z_rel)
-        # )
-
         bx_interp = -(
-            ((-(((bxs[0]+bxs[18])/2.0-bxs[9])*x_rel**2+((bxs[18]-bxs[0])/2.0)*x_rel+bxs[9])) *
+            ((
+              (max(0, x_rel)*(abs(x_rel)*bxs[9]+(1-abs(x_rel))*bxs[18])) -
+              (((bxs[0]+bxs[18])/2.0-bxs[9])*x_rel**2+((bxs[18]-bxs[0])/2.0)*x_rel+bxs[9])) *
              0.5*(y_rel**2-y_rel) +
-             (-(((bxs[3]+bxs[21])/2.0-bxs[12])*x_rel**2+((bxs[21]-bxs[3])/2.0)*x_rel+bxs[12])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[12]+(1-abs(x_rel))*bxs[21])) -
+                 (((bxs[3]+bxs[21])/2.0-bxs[12])*x_rel**2+((bxs[21]-bxs[3])/2.0)*x_rel+bxs[12])) *
              (-y_rel**2+1) +
-             (-(((bxs[6]+bxs[24])/2.0-bxs[15])*x_rel**2+((bxs[24]-bxs[6])/2.0)*x_rel+bxs[15])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[15]+(1-abs(x_rel))*bxs[24])) -
+                 (((bxs[6]+bxs[24])/2.0-bxs[15])*x_rel**2+((bxs[24]-bxs[6])/2.0)*x_rel+bxs[15])) *
              0.5*(y_rel**2+y_rel))*0.5*(z_rel**2-z_rel) +
-            ((-(((bxs[1]+bxs[19])/2.0-bxs[10])*x_rel**2+((bxs[19]-bxs[1])/2.0)*x_rel+bxs[10])) *
+            ((
+              (max(0, x_rel)*(abs(x_rel)*bxs[10]+(1-abs(x_rel))*bxs[19])) -
+                (((bxs[1]+bxs[19])/2.0-bxs[10])*x_rel**2+((bxs[19]-bxs[1])/2.0)*x_rel+bxs[10])) *
              0.5*(y_rel**2-y_rel) +
-             (-(((bxs[4]+bxs[22])/2.0-bxs[13])*x_rel**2+((bxs[22]-bxs[4])/2.0)*x_rel+bxs[13])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[13]+(1-abs(x_rel))*bxs[22])) -
+                 (((bxs[4]+bxs[22])/2.0-bxs[13])*x_rel**2+((bxs[22]-bxs[4])/2.0)*x_rel+bxs[13])) *
              (-y_rel**2+1) +
-             (-(((bxs[7]+bxs[25])/2.0-bxs[16])*x_rel**2+((bxs[25]-bxs[7])/2.0)*x_rel+bxs[16])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[16]+(1-abs(x_rel))*bxs[25])) -
+                 (((bxs[7]+bxs[25])/2.0-bxs[16])*x_rel**2+((bxs[25]-bxs[7])/2.0)*x_rel+bxs[16])) *
              0.5*(y_rel**2+y_rel))*(-z_rel**2+1) +
-            ((-(((bxs[2]+bxs[20])/2.0-bxs[11])*x_rel**2+((bxs[20]-bxs[2])/2.0)*x_rel+bxs[11])) *
+            ((
+              (max(0, x_rel)*(abs(x_rel)*bxs[11]+(1-abs(x_rel))*bxs[20])) -
+                (((bxs[2]+bxs[20])/2.0-bxs[11])*x_rel**2+((bxs[20]-bxs[2])/2.0)*x_rel+bxs[11])) *
              0.5*(y_rel**2-y_rel) +
-             (-(((bxs[5]+bxs[23])/2.0-bxs[14])*x_rel**2+((bxs[23]-bxs[5])/2.0)*x_rel+bxs[14])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[14]+(1-abs(x_rel))*bxs[23])) -
+                 (((bxs[5]+bxs[23])/2.0-bxs[14])*x_rel**2+((bxs[23]-bxs[5])/2.0)*x_rel+bxs[14])) *
              (-y_rel**2+1) +
-             (-(((bxs[8]+bxs[26])/2.0-bxs[17])*x_rel**2+((bxs[26]-bxs[8])/2.0)*x_rel+bxs[17])) *
+             (
+              (max(0, x_rel)*(abs(x_rel)*bxs[17]+(1-abs(x_rel))*bxs[26])) -
+                 (((bxs[8]+bxs[26])/2.0-bxs[17])*x_rel**2+((bxs[26]-bxs[8])/2.0)*x_rel+bxs[17])) *
              0.5*(y_rel**2+y_rel))*0.5*(z_rel**2+z_rel)
         )
+
+        # bx_interp = -(
+        #     ((-(((bxs[0]+bxs[18])/2.0-bxs[9])*x_rel**2+((bxs[18]-bxs[0])/2.0)*x_rel+bxs[9])) *
+        #      0.5*(y_rel**2-y_rel) +
+        #      (-(((bxs[3]+bxs[21])/2.0-bxs[12])*x_rel**2+((bxs[21]-bxs[3])/2.0)*x_rel+bxs[12])) *
+        #      (-y_rel**2+1) +
+        #      (-(((bxs[6]+bxs[24])/2.0-bxs[15])*x_rel**2+((bxs[24]-bxs[6])/2.0)*x_rel+bxs[15])) *
+        #      0.5*(y_rel**2+y_rel))*0.5*(z_rel**2-z_rel) +
+        #     ((-(((bxs[1]+bxs[19])/2.0-bxs[10])*x_rel**2+((bxs[19]-bxs[1])/2.0)*x_rel+bxs[10])) *
+        #      0.5*(y_rel**2-y_rel) +
+        #      (-(((bxs[4]+bxs[22])/2.0-bxs[13])*x_rel**2+((bxs[22]-bxs[4])/2.0)*x_rel+bxs[13])) *
+        #      (-y_rel**2+1) +
+        #      (-(((bxs[7]+bxs[25])/2.0-bxs[16])*x_rel**2+((bxs[25]-bxs[7])/2.0)*x_rel+bxs[16])) *
+        #      0.5*(y_rel**2+y_rel))*(-z_rel**2+1) +
+        #     ((-(((bxs[2]+bxs[20])/2.0-bxs[11])*x_rel**2+((bxs[20]-bxs[2])/2.0)*x_rel+bxs[11])) *
+        #      0.5*(y_rel**2-y_rel) +
+        #      (-(((bxs[5]+bxs[23])/2.0-bxs[14])*x_rel**2+((bxs[23]-bxs[5])/2.0)*x_rel+bxs[14])) *
+        #      (-y_rel**2+1) +
+        #      (-(((bxs[8]+bxs[26])/2.0-bxs[17])*x_rel**2+((bxs[26]-bxs[8])/2.0)*x_rel+bxs[17])) *
+        #      0.5*(y_rel**2+y_rel))*0.5*(z_rel**2+z_rel)
+        # )
 
         by_interp = -(
             ((-(((bys[0]+bys[6])/2.0-bys[3])*y_rel**2+((bys[6]-bys[0])/2.0)*y_rel+bys[3])) *
