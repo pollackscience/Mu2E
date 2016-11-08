@@ -6,6 +6,99 @@ from mu2e.offline import init_notebook_mode, iplot
 import numpy as np
 
 
+def interp_phi_cubic(df, x, y, z, plot=False):
+    df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
+        x-50, x+50, y-50, y+50, z-50, z+50))
+    df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
+    df_trimmed = df_trimmed.sort_values(['X', 'Y', 'Z']).reset_index(drop=True)
+
+    #df_true = df_trimmed.query('X=={0} and Y=={1} and Z=={2}'.format(x, y, z))
+    #if len(df_true) == 1:
+        #pass
+        # bx_interp = df_true.Bx
+        # by_interp = df_true.By
+        # bz_interp = df_true.Bz
+    if False:
+        pass
+
+    else:
+        df_trimmed['Vertex'] = [
+            # 0       1       2       3       4       5       6       7
+            '000' , '001' , '002' , '003' , '010' , '011' , '012' , '013' ,
+            # 8       9       10      11      12      13      14      15
+            '020' , '021' , '022' , '023' , '030' , '031' , '032' , '033' ,
+            # 16      17      18      19      20      21      22      23
+            '100' , '101' , '102' , '103' , '110' , '111' , '112' , '113' ,
+            # 24      25      26      27      28      29      30      31
+            '120' , '121' , '122' , '123' , '130' , '131' , '132' , '133' ,
+            # 32      33      34      35      36      37      38      39
+            '200' , '201' , '202' , '203' , '210' , '211' , '212' , '213' ,
+            # 40      41      42      43      44      45      46      47
+            '220' , '221' , '222' , '223' , '230' , '231' , '232' , '233' ,
+            # 48      49      50      51      52      53      54      55
+            '300' , '301' , '302' , '303' , '310' , '311' , '312' , '313' ,
+            # 56      57      58      59      60      61      62      63
+            '320' , '321' , '322' , '323' , '330' , '331' , '332' , '333' ,
+        ]
+
+        x_rel = (x - df_trimmed.ix[0].X) / (25.0) + 1
+        y_rel = (y - df_trimmed.ix[0].Y) / (25.0) + 1
+        z_rel = (z - df_trimmed.ix[0].Z) / (25.0) + 1
+        # print x_rel, y_rel, z_rel
+        bxs = df_trimmed.Bx
+        bys = df_trimmed.By
+        bzs = df_trimmed.Bz
+        bx_interp = by_interp = bz_interp = 0
+
+    if plot:
+        init_notebook_mode()
+
+        trace1 = go.Scatter3d(
+            x=df_trimmed.X,
+            y=df_trimmed.Y,
+            z=df_trimmed.Z,
+            mode='markers',
+            marker=dict(
+                size=12,
+                line=dict(
+                    color='rgba(217, 217, 217, 0.14)',
+                    width=0.5
+                ),
+                opacity=0.8,
+            ),
+            text=df_trimmed.Vertex,
+        )
+
+        trace2 = go.Scatter3d(
+            x=[x],
+            y=[y],
+            z=[z],
+            mode='markers',
+            marker=dict(
+                color='rgb(127, 127, 127)',
+                size=12,
+                symbol='circle',
+                line=dict(
+                    color='rgb(204, 204, 204)',
+                    width=1
+                ),
+                opacity=0.9
+            )
+        )
+        data = [trace1, trace2]
+        layout = go.Layout(
+            margin=dict(
+                l=0,
+                r=0,
+                b=0,
+                t=0
+            ),
+        )
+        fig = go.Figure(data=data, layout=layout)
+        iplot(fig)
+
+    return df_trimmed, [bx_interp, by_interp, bz_interp]
+
 def interp_phi_quad(df, x, y, z, plot=False):
     df_trimmed = df.query('{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
         x-37.5, x+37.5, y-37.5, y+37.5, z-37.5, z+37.5))

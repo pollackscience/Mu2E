@@ -153,7 +153,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         Name of saved image/plot, or None.
     """
 
-    _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
+    _modes = ['mpl', 'mpl_none', 'plotly', 'plotly_html', 'plotly_nb']
     save_name = None
 
     if conditions:
@@ -194,7 +194,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             conditions_title += ', Phi=={0:.2f}'.format(phi)
 
     if mode not in _modes:
-        raise ValueError(mode+' not in '+_modes)
+        raise ValueError(mode+' not in '+str(_modes))
 
     # Format the coordinates
     piv = df.pivot(x, y, z)
@@ -221,7 +221,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             save_name += '_fit'
 
     # Start plotting
-    if mode == 'mpl':
+    if 'mpl' in mode:
         if ptype.lower() == '3d':
             fig = plt.figure().gca(projection='3d')
         else:
