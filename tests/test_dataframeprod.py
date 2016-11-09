@@ -7,14 +7,12 @@ from mu2e import mu2e_ext_path
 class TestDataFrameProd(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        self.path = mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap'
         self.load_df = dfp.DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap',
                                           use_pickle=True).data_frame
 
     def test_invalid_version(self):
-        self.assertRaises(
-            KeyError, dfp.DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap',
-                                         use_pickle=False, field_map_version='Mau10')
-        )
+        self.assertRaises(KeyError, dfp.DataFrameMaker, self.path, field_map_version='Mau7')
 
     def test_load_df(self):
         self.assertIsInstance(self.load_df, pd.DataFrame)
