@@ -1,12 +1,13 @@
 #! /usr/bin/env python
 
 from __future__ import division
+import collections
 import plotly.graph_objs as go
 from mu2e.offline import init_notebook_mode, iplot
 import numpy as np
 
 
-def interp_phi_cubic(df, x, y, z, plot=False):
+def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
     df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
         x-50, x+50, y-50, y+50, z-50, z+50))
     df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
@@ -23,32 +24,137 @@ def interp_phi_cubic(df, x, y, z, plot=False):
 
     else:
         df_trimmed['Vertex'] = [
-            # 0       1       2       3       4       5       6       7
-            '000' , '001' , '002' , '003' , '010' , '011' , '012' , '013' ,
-            # 8       9       10      11      12      13      14      15
-            '020' , '021' , '022' , '023' , '030' , '031' , '032' , '033' ,
-            # 16      17      18      19      20      21      22      23
-            '100' , '101' , '102' , '103' , '110' , '111' , '112' , '113' ,
-            # 24      25      26      27      28      29      30      31
-            '120' , '121' , '122' , '123' , '130' , '131' , '132' , '133' ,
-            # 32      33      34      35      36      37      38      39
-            '200' , '201' , '202' , '203' , '210' , '211' , '212' , '213' ,
-            # 40      41      42      43      44      45      46      47
-            '220' , '221' , '222' , '223' , '230' , '231' , '232' , '233' ,
-            # 48      49      50      51      52      53      54      55
-            '300' , '301' , '302' , '303' , '310' , '311' , '312' , '313' ,
-            # 56      57      58      59      60      61      62      63
-            '320' , '321' , '322' , '323' , '330' , '331' , '332' , '333' ,
+            # 0           1         2         3         4         5        6        7
+            '-1-1-1' , '-1-10' , '-1-11' , '-1-12' , '-10-1' , '-100' , '-101' , '-102' ,
+            # 8           9         10        11        12        13       14       15
+            '-11-1' ,  '-110' ,  '-111' ,  '-112' ,  '-12-1' , '-120' , '-121' , '-122' ,
+            # 16         17        18        19        20        21       22       23
+            '0-1-1' ,  '0-10' ,  '0-11' ,  '0-12' ,  '00-1' ,  '000' ,  '001' ,  '002' ,
+            # 24         25        26        27        28        29       30       31
+            '01-1' ,   '010' ,   '011' ,   '012' ,   '02-1' ,  '020' ,  '021' ,  '022' ,
+            # 32         33        34        35        36        37       38       39
+            '1-1-1' ,  '1-10' ,  '1-11' ,  '1-12' ,  '10-1' ,  '100' ,  '101' ,  '102' ,
+            # 40         41        42        43        44        45       46       47
+            '11-1' ,   '110' ,   '111' ,   '112' ,   '12-1' ,  '120' ,  '121' ,  '122' ,
+            # 48         49        50        51        52        53       54       55
+            '2-1-1' ,  '2-10' ,  '2-11' ,  '2-12' ,  '20-1' ,  '200' ,  '201' ,  '202' ,
+            # 56         57        58        59        60        61       62       63
+            '21-1' ,   '210' ,   '211' ,   '212' ,   '22-1' ,  '220' ,  '221' ,  '222' ,
         ]
+        index_list = range(0,64)
+        vertex_dict = dict(zip(df_trimmed.Vertex, index_list))
 
-        x_rel = (x - df_trimmed.ix[0].X) / (25.0) + 1
-        y_rel = (y - df_trimmed.ix[0].Y) / (25.0) + 1
-        z_rel = (z - df_trimmed.ix[0].Z) / (25.0) + 1
+        # Define some lagrange polynomials
+        def lg_mone(n):
+            return -(n**3-3*n**2+2*n)/6.0
+
+        def lg_zero(n):
+            return (n**3-2*n**2-n+2)/2.0
+
+        def lg_one(n):
+            return -(n**3-n**2-2*n)/2.0
+
+        def lg_two(n):
+            return (n**3-n)/6.0
+
+        # Numerical integration
+
+        def _int_methods(b, rel, *verts):
+            if len(verts) == 2:
+                return (b.ix[vertex_dict[verts[0]]] + b.ix[vertex_dict[verts[1]]])/2.0
+            elif len(verts) == 3:
+                return (b.ix[vertex_dict[verts[0]]] + 4*b.ix[vertex_dict[verts[1]]] +
+                        b.ix[vertex_dict[verts[2]]])/3.0
+            else:
+                if mode == 'lacey':
+                    return (b.ix[vertex_dict[verts[0]]] + 3*b.ix[vertex_dict[verts[1]]] +
+                            3*b.ix[vertex_dict[verts[2]]] + b.ix[vertex_dict[verts[3]]])*(3.0/8.0)
+
+                else:
+                    A = (-3*b.ix[vertex_dict[verts[2]]] - b.ix[vertex_dict[verts[0]]] +
+                         3*b.ix[vertex_dict[verts[1]]] + b.ix[vertex_dict[verts[3]]])/6.0
+                    B = (b.ix[vertex_dict[verts[0]]] + b.ix[vertex_dict[verts[2]]] -
+                         2*b.ix[vertex_dict[verts[1]]])/2.0
+                    C = (6*b.ix[vertex_dict[verts[2]]] - 2*b.ix[vertex_dict[verts[0]]] -
+                         3*b.ix[vertex_dict[verts[1]]] - b.ix[vertex_dict[verts[3]]])/6.0
+                    D = b.ix[vertex_dict[verts[1]]]
+
+                    return (A*rel**3 + B*rel**2 + C*rel + D)
+
+
+
+        def num_int(b, rel, x, y, z):
+            if isinstance(x, collections.Sequence):
+                verts = [str(i)+str(y)+str(z) for i in range(x[0],x[-1]+1)]
+            elif isinstance(y, collections.Sequence):
+                verts = [str(x)+str(i)+str(z) for i in range(y[0],y[-1]+1)]
+            elif isinstance(z, collections.Sequence):
+                verts = [str(x)+str(y)+str(i) for i in range(z[0],z[-1]+1)]
+            else:
+                raise AttributeError('exactly one arg in num_int must be a collection')
+
+            return _int_methods(b, rel, *verts)
+
+        def int_collection(b, rel, x, y, z):
+            if x == 'var':
+                int1 = num_int(b, rel, (-1, 2), y, z)
+                int2 = num_int(b, rel, (0, 1), y, z)
+                int3 = num_int(b, rel, (-1, 0), y, z)
+                int4 = int2
+                int5 = num_int(b, rel, (-1, 1), y, z)
+                int6 = int2
+                int7 = num_int(b, rel, (1, 2), y, z)
+            elif y == 'var':
+                int1 = num_int(b, rel, x, (-1, 2), z)
+                int2 = num_int(b, rel, x, (0, 1), z)
+                int3 = num_int(b, rel, x, (-1, 0), z)
+                int4 = int2
+                int5 = num_int(b, rel, x, (-1, 1), z)
+                int6 = int2
+                int7 = num_int(b, rel, x, (1, 2), z)
+            else:
+                int1 = num_int(b, rel, x, y, (-1, 2))
+                int2 = num_int(b, rel, x, y, (0, 1))
+                int3 = num_int(b, rel, x, y, (-1, 0))
+                int4 = int2
+                int5 = num_int(b, rel, x, y, (-1, 1))
+                int6 = int2
+                int7 = num_int(b, rel, x, y, (1, 2))
+
+            if mode == 'lacey':
+                return ((-rel**2/2.0)*int1 + (3*rel**2/2.0)*int2 + rel*int3 - rel*int4 - (1/3.0)*int5 -
+                        0.5*int6 + (1/6.0)*int7)
+            else:
+                return -int1
+
+        x_rel = (x - df_trimmed.ix[21].X) / (25.0)
+        y_rel = (y - df_trimmed.ix[21].Y) / (25.0)
+        z_rel = (z - df_trimmed.ix[21].Z) / (25.0)
         # print x_rel, y_rel, z_rel
         bxs = df_trimmed.Bx
         bys = df_trimmed.By
         bzs = df_trimmed.Bz
-        bx_interp = by_interp = bz_interp = 0
+
+        bx_interp = -(lg_mone(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, -1)) +
+                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, -1)) +
+                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, -1)) +
+                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, -1))) +
+                     lg_zero(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 0)) +
+                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 0)) +
+                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 0)) +
+                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 0))) +
+                     lg_one(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 1)) +
+                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 1)) +
+                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 1)) +
+                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 1))) +
+                     lg_two(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 2)) +
+                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 2)) +
+                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 2)) +
+                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 2)))
+                     )
+
+
+        by_interp = bz_interp = 0
 
     if plot:
         init_notebook_mode()
@@ -98,6 +204,7 @@ def interp_phi_cubic(df, x, y, z, plot=False):
         iplot(fig)
 
     return df_trimmed, [bx_interp, by_interp, bz_interp]
+    #return df_trimmed, vertex_dict
 
 def interp_phi_quad(df, x, y, z, plot=False):
     df_trimmed = df.query('{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
