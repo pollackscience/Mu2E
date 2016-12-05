@@ -7,11 +7,27 @@ from mu2e.offline import init_notebook_mode, iplot
 import numpy as np
 
 
-def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
-    df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
-        x-50, x+50, y-50, y+50, z-50, z+50))
-    df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
-    df_trimmed = df_trimmed.sort_values(['X', 'Y', 'Z']).reset_index(drop=True)
+def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey', shift=0):
+    if shift == 0:
+        df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
+            x-50, x+50, y-50, y+50, z-50, z+50))
+        df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
+        df_trimmed = df_trimmed.sort_values(['X', 'Y', 'Z']).reset_index(drop=True)
+
+    elif shift == -1:
+        df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
+            x-25, x+75, y-50, y+50, z-50, z+50))
+        df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
+        df_trimmed = df_trimmed.sort_values(['X', 'Y', 'Z']).reset_index(drop=True)
+
+    elif shift == 1:
+        df_trimmed = df.query('{0}<=X<{1} and {2}<=Y<{3} and {4}<=Z<{5}'.format(
+            x-75, x+25, y-50, y+50, z-50, z+50))
+        df_trimmed = df_trimmed[['X', 'Y', 'Z', 'Bx', 'By', 'Bz']]
+        df_trimmed = df_trimmed.sort_values(['X', 'Y', 'Z']).reset_index(drop=True)
+
+    else:
+        raise KeyError('wrong shift')
 
     #df_true = df_trimmed.query('X=={0} and Y=={1} and Z=={2}'.format(x, y, z))
     #if len(df_true) == 1:
@@ -81,15 +97,13 @@ def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
 
                     return (A*rel**3 + B*rel**2 + C*rel + D)
 
-
-
         def num_int(b, rel, x, y, z):
             if isinstance(x, collections.Sequence):
-                verts = [str(i)+str(y)+str(z) for i in range(x[0],x[-1]+1)]
+                verts = [str(i)+str(y)+str(z) for i in range(x[0], x[-1]+1)]
             elif isinstance(y, collections.Sequence):
-                verts = [str(x)+str(i)+str(z) for i in range(y[0],y[-1]+1)]
+                verts = [str(x)+str(i)+str(z) for i in range(y[0], y[-1]+1)]
             elif isinstance(z, collections.Sequence):
-                verts = [str(x)+str(y)+str(i) for i in range(z[0],z[-1]+1)]
+                verts = [str(x)+str(y)+str(i) for i in range(z[0], z[-1]+1)]
             else:
                 raise AttributeError('exactly one arg in num_int must be a collection')
 
@@ -122,8 +136,8 @@ def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
                 int7 = num_int(b, rel, x, y, (1, 2))
 
             if mode == 'lacey':
-                return ((-rel**2/2.0)*int1 + (3*rel**2/2.0)*int2 + rel*int3 - rel*int4 - (1/3.0)*int5 -
-                        0.5*int6 + (1/6.0)*int7)
+                return ((-rel**2/2.0)*int1 + (3*rel**2/2.0)*int2 + rel*int3 - rel*int4 -
+                        (1/3.0)*int5 - 0.5*int6 + (1/6.0)*int7)
             else:
                 return -int1
 
@@ -136,25 +150,58 @@ def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
         bzs = df_trimmed.Bz
 
         bx_interp = -(lg_mone(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, -1)) +
-                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, -1)) +
-                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, -1)) +
-                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, -1))) +
-                     lg_zero(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 0)) +
-                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 0)) +
-                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 0)) +
-                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 0))) +
-                     lg_one(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 1)) +
-                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 1)) +
-                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 1)) +
-                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 1))) +
-                     lg_two(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 2)) +
-                                    lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 2)) +
-                                    lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 2)) +
-                                    lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 2)))
-                     )
+                                      lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, -1)) +
+                                      lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, -1)) +
+                                      lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, -1))) +
+                      lg_zero(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 0)) +
+                                      lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 0)) +
+                                      lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 0)) +
+                                      lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 0))) +
+                      lg_one(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 1)) +
+                                     lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 1)) +
+                                     lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 1)) +
+                                     lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 1))) +
+                      lg_two(z_rel)*(lg_mone(y_rel)*(int_collection(bxs, x_rel, 'var', -1, 2)) +
+                                     lg_zero(y_rel)*(int_collection(bxs, x_rel, 'var', 0, 2)) +
+                                     lg_one(y_rel)*(int_collection(bxs, x_rel, 'var', 1, 2)) +
+                                     lg_two(y_rel)*(int_collection(bxs, x_rel, 'var', 2, 2)))
+                      )
 
+        by_interp = -(lg_mone(z_rel)*(lg_mone(x_rel)*(int_collection(bys, y_rel, -1, 'var', -1)) +
+                                      lg_zero(x_rel)*(int_collection(bys, y_rel, 0, 'var', -1)) +
+                                      lg_one(x_rel)*(int_collection(bys, y_rel, 1, 'var', -1)) +
+                                      lg_two(x_rel)*(int_collection(bys, y_rel, 2, 'var', -1))) +
+                      lg_zero(z_rel)*(lg_mone(x_rel)*(int_collection(bys, y_rel, -1, 'var', 0)) +
+                                      lg_zero(x_rel)*(int_collection(bys, y_rel, 0, 'var', 0)) +
+                                      lg_one(x_rel)*(int_collection(bys, y_rel, 1, 'var', 0)) +
+                                      lg_two(x_rel)*(int_collection(bys, y_rel, 2, 'var', 0))) +
+                      lg_one(z_rel)*(lg_mone(x_rel)*(int_collection(bys, y_rel, -1, 'var', 1)) +
+                                     lg_zero(x_rel)*(int_collection(bys, y_rel, 0, 'var', 1)) +
+                                     lg_one(x_rel)*(int_collection(bys, y_rel, 1, 'var', 1)) +
+                                     lg_two(x_rel)*(int_collection(bys, y_rel, 2, 'var', 1))) +
+                      lg_two(z_rel)*(lg_mone(x_rel)*(int_collection(bys, y_rel, -1, 'var', 2)) +
+                                     lg_zero(x_rel)*(int_collection(bys, y_rel, 0, 'var', 2)) +
+                                     lg_one(x_rel)*(int_collection(bys, y_rel, 1, 'var', 2)) +
+                                     lg_two(x_rel)*(int_collection(bys, y_rel, 2, 'var', 2)))
+                      )
 
-        by_interp = bz_interp = 0
+        bz_interp = -(lg_mone(y_rel)*(lg_mone(x_rel)*(int_collection(bzs, z_rel, -1, -1, 'var')) +
+                                      lg_zero(x_rel)*(int_collection(bzs, z_rel, 0, -1, 'var')) +
+                                      lg_one(x_rel)*(int_collection(bzs, z_rel, 1, -1, 'var')) +
+                                      lg_two(x_rel)*(int_collection(bzs, z_rel, 2, -1, 'var'))) +
+                      lg_zero(y_rel)*(lg_mone(x_rel)*(int_collection(bzs, z_rel, -1, 0, 'var')) +
+                                      lg_zero(x_rel)*(int_collection(bzs, z_rel, 0, 0, 'var')) +
+                                      lg_one(x_rel)*(int_collection(bzs, z_rel, 1, 0, 'var')) +
+                                      lg_two(x_rel)*(int_collection(bzs, z_rel, 2, 0, 'var'))) +
+                      lg_one(y_rel)*(lg_mone(x_rel)*(int_collection(bzs, z_rel, -1, 1, 'var')) +
+                                     lg_zero(x_rel)*(int_collection(bzs, z_rel, 0, 1, 'var')) +
+                                     lg_one(x_rel)*(int_collection(bzs, z_rel, 1, 1, 'var')) +
+                                     lg_two(x_rel)*(int_collection(bzs, z_rel, 2, 1, 'var'))) +
+                      lg_two(y_rel)*(lg_mone(x_rel)*(int_collection(bzs, z_rel, -1, 2, 'var')) +
+                                     lg_zero(x_rel)*(int_collection(bzs, z_rel, 0, 2, 'var')) +
+                                     lg_one(x_rel)*(int_collection(bzs, z_rel, 1, 2, 'var')) +
+                                     lg_two(x_rel)*(int_collection(bzs, z_rel, 2, 2, 'var')))
+                      )
 
     if plot:
         init_notebook_mode()
@@ -202,6 +249,7 @@ def interp_phi_cubic(df, x, y, z, plot=False, mode='lacey'):
         )
         fig = go.Figure(data=data, layout=layout)
         iplot(fig)
+        print x_rel
 
     return df_trimmed, [bx_interp, by_interp, bz_interp]
     #return df_trimmed, vertex_dict
