@@ -52,7 +52,6 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.plotly as py
 import plotly.tools as tls
 import plotly.graph_objs as go
 from mpldatacursor import datacursor
@@ -60,7 +59,6 @@ import ipywidgets as widgets
 from IPython.display import display
 from plotly.widgets import GraphWidget
 from offline import init_notebook_mode, iplot, plot
-from mu2e import mu2e_ext_path
 
 
 def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None):
@@ -440,8 +438,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     return save_name
 
 
-def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
-                      df_xray=None, x_range=None, y_range=None, z_range=None, title=None):
+def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_range=None,
+                      y_range=None, z_range=None, title=None):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
     Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -453,8 +451,6 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
         x (str): Name of the first variable.
         y (str): Name of the second variable.
         z (str): Name of the third variable.
-        mode (str, optional): A string indicating which plotting package and method should be used.
-            Default is 'mpl'. Valid values: ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
         save_name (str, optional): If not `None`, the plot will be saved to
             `mu2e_ext_path+ptrap/save_name.html` (or `.jpeg`)
         color: (str, optional): Name of fourth varible, represented by color of marker.
@@ -467,103 +463,17 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
     Notes:
         Growing necessity for many input args, should implement `kwargs` in future.
     """
-    _modes = ['plotly', 'plotly_html', 'plotly_html_img', 'plotly_nb']
 
-    if mode not in _modes:
-        raise ValueError(mode+' not in '+_modes)
+    init_notebook_mode()
+    layout = ptrap_layout()
+    scat_plots = []
 
-    if mode == 'mpl':
-        pass
+    # Set the xray image if available
+    if isinstance(df_xray, pd.DataFrame):
+        xray_maker(df_xray, scat_plots)
 
-    elif 'plotly' in mode:
-        axis_title_size = 18
-        axis_tick_size = 14
-        layout = go.Layout(
-            title=title if title else 'Particle Trapping Exercise',
-            titlefont=dict(size=30),
-            autosize=False,
-            width=900,
-            height=650,
-            scene=dict(
-                xaxis=dict(
-                    title='{} (mm)'.format(x),
-                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                    tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
-                    range=x_range,
-                ),
-                yaxis=dict(
-                    title='{} (mm)'.format(y),
-                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                    tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
-                    range=y_range,
-                ),
-                zaxis=dict(
-                    title='{} (mm)'.format(z),
-                    titlefont=dict(size=axis_title_size, family='Arial Black'),
-                    tickfont=dict(size=axis_tick_size),
-                    gridcolor='rgb(255, 255, 255)',
-                    zerolinecolor='rgb(255, 255, 255)',
-                    showbackground=True,
-                    backgroundcolor='rgb(230, 230,230)',
-                    range=z_range,
-                ),
-                aspectmode='manual' if (x_range or y_range or z_range) else 'data',
-                aspectratio=dict(x=6, y=1, z=1) if (x_range or y_range or z_range) else dict(),
-                camera=dict(
-                    eye=dict(x=1.99, y=-2, z=2)
-                ),
-            ),
-            showlegend=True,
-            legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
-        )
-        scat_plots = []
-
-        # Set the xray image if available
-        if isinstance(df_xray, pd.DataFrame):
-            print 'binning...'
-            xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
-            df_xray.query(xray_query, inplace=True)
-
-            h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
-                                      bins=(100, 25, 25))
-            centers = [(e[1:]+e[:-1])/2.0 for e in edges]
-            hadj = np.rot90(h).flatten()/h.max()
-            cx, cy, cz = np.meshgrid(*centers)
-            df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
-            df_binned = df_binned.query('h>0')
-            df_binned['cats'] = pd.cut(df_binned.h, 200)
-            print 'binned'
-            groups = np.sort(df_binned.cats.unique())
-            for i, group in enumerate(groups[0:]):
-                df_tmp = df_binned[df_binned.cats == group]
-                if i == 0:
-                    sl = True
-                else:
-                    sl = False
-                scat_plots.append(
-                    go.Scatter3d(
-                        x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
-                        marker=dict(sizemode='diameter', size=4,
-                                    color='black', opacity=0.03*(i+1), symbol='square'),
-                        name='X-ray', showlegend=sl, legendgroup='xray'))
-
-            df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
-            if len(df_newmat) > 0:
-                scat_plots.append(
-                    go.Scatter3d(
-                        x=df_newmat.x, y=df_newmat.y, z=df_newmat.z, mode='markers',
-                        marker=dict(sizemode='diameter', size=6,
-                                    color='red', opacity=0.4, symbol='square'),
-                        name='X-ray', showlegend=False, legendgroup='xray'))
-
+    # Plot the actual content
+    if isinstance(df, pd.DataFrame):
         if color:
             scat_plots.append(
                 go.Scatter3d(
@@ -575,63 +485,15 @@ def mu2e_plot3d_ptrap(df, x, y, z, mode='plotly_nb', save_name=None, color=None,
                     text=df[color].astype(int),
                     name='Muons'))
 
-        # If there is an xray, treat this as main
-        elif isinstance(df_xray, pd.DataFrame):
+        else:
             scat_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z], mode='markers',
                     marker=dict(size=3, color='blue', opacity=0.5),
                     name='Muons'))
-        # If there's no xray, then treat this as an xray
-        else:
-            # This is a complicated method of generating the x-ray images
-            #   * The xray hits are binned in 3D.
-            #   * A new df is generated, based on the bin centers and occupancy of each bin.
-            #   * The df is binned into categories, based on occupancy.
-            #   * Each category is plotted, with an opacity based on the occupancy
-            #   * The result is a lego-style plot of the xray hits
 
-            print 'binning...'
-            h, edges = np.histogramdd(np.asarray([df[x], df[y], df[z]]).T, bins=(200, 20, 20))
-            centers = [(e[1:]+e[:-1])/2.0 for e in edges]
-            hadj = np.rot90(h).flatten()/h.max()
-            cx, cy, cz = np.meshgrid(*centers)
-            df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
-
-            df_binned['cats'] = pd.cut(df_binned.h, 200)
-            print 'binned'
-            groups = np.sort(df_binned.cats.unique())
-            for i, group in enumerate(groups[1:]):
-                df_tmp = df_binned[df_binned.cats == group]
-                if i == 0:
-                    sl = True
-                else:
-                    sl = False
-                scat_plots.append(
-                    go.Scatter3d(
-                        x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
-                        marker=dict(sizemode='diameter', size=4,
-                                    color='black', opacity=0.03*(i+1), symbol='square'),
-                        name='X-ray', showlegend=sl, legendgroup='xray'))
-
-        fig = go.Figure(data=scat_plots, layout=layout)
-
-        if mode == 'plotly_nb':
-            init_notebook_mode()
-            iplot(fig)
-        elif mode == 'plotly_html_img':
-            if save_name:
-                plot(fig, filename=mu2e_ext_path+'ptrap/'+save_name+'.html', image='jpeg',
-                     image_filename=save_name)
-            else:
-                plot(fig)
-        elif mode == 'plotly_html':
-            if save_name:
-                plot(fig, filename=mu2e_ext_path+'ptrap/'+save_name+'.html', auto_open=False)
-            else:
-                plot(fig)
-        elif mode == 'plotly':
-            py.iplot(fig)
+    fig = go.Figure(data=scat_plots, layout=layout)
+    iplot(fig)
 
     return save_name
 
@@ -664,54 +526,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
         (g, fig) for plotting.
     """
     init_notebook_mode()
-    axis_title_size = 18
-    axis_tick_size = 14
-    layout = go.Layout(
-        title=title if title else 'Particle Trapping Time Exercise',
-        titlefont=dict(size=30),
-        autosize=False,
-        width=900,
-        height=650,
-        scene=dict(
-            xaxis=dict(
-                title='{} (mm)'.format(x),
-                titlefont=dict(size=axis_title_size, family='Arial Black'),
-                tickfont=dict(size=axis_tick_size),
-                gridcolor='rgb(255, 255, 255)',
-                zerolinecolor='rgb(255, 255, 255)',
-                showbackground=True,
-                backgroundcolor='rgb(230, 230,230)',
-                range=[3700, 17500],
-            ),
-            yaxis=dict(
-                title='{} (mm)'.format(y),
-                titlefont=dict(size=axis_title_size, family='Arial Black'),
-                tickfont=dict(size=axis_tick_size),
-                gridcolor='rgb(255, 255, 255)',
-                zerolinecolor='rgb(255, 255, 255)',
-                showbackground=True,
-                backgroundcolor='rgb(230, 230,230)',
-                range=[-1000, 1000],
-            ),
-            zaxis=dict(
-                title='{} (mm)'.format(z),
-                titlefont=dict(size=axis_title_size, family='Arial Black'),
-                tickfont=dict(size=axis_tick_size),
-                gridcolor='rgb(255, 255, 255)',
-                zerolinecolor='rgb(255, 255, 255)',
-                showbackground=True,
-                backgroundcolor='rgb(230, 230,230)',
-                range=[-1000, 1000],
-            ),
-            aspectratio=dict(x=6, y=1, z=1),
-            aspectmode='manual',
-            camera=dict(
-                eye=dict(x=1.99, y=-2, z=2)
-            ),
-        ),
-        showlegend=True,
-        legend=dict(x=0.7, y=0.9, font=dict(size=18, family='Overpass')),
-    )
+    layout = ptrap_layout()
 
     class time_shifter:
         def __init__(self, group2=False, color=False):
@@ -776,6 +591,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
                     g.restyle({'x': [self.x2], 'y': [self.y2], 'z': [self.z2],
                                'marker': dict(size=5, color=self.color2,
                                               opacity=1, colorscale='Viridis', cmin=0, cmax=100,
+                                              symbol='x',
                                               showscale=True,
                                               line=dict(color='black', width=1),
                                               colorbar=dict(title='Momentum (MeV)',
@@ -844,9 +660,80 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
             name=g2_name)
         scats.append(init_scat2)
 
-    xray_query = 'xstop<1000 and tstop<200 and sqrt(xstop*xstop+ystop*ystop)<900'
-    df_xray.query(xray_query, inplace=True)
+    xray_maker(df_xray, scats)
+
+    p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
+    p_slider.description = 'Time Shift'
+    p_slider.value = 0
+    p_state = time_shifter(group2, color)
+    p_slider.on_trait_change(p_state.on_time_change, 'value')
+
+    fig = go.Figure(data=scats, layout=layout)
+    g = GraphWidget('https://plot.ly/~BroverCleveland/70/')
+    display(g)
+    display(p_slider)
+    return g, fig
+
+
+def ptrap_layout(title=None, x='Z', y='X', z='Y'):
+    axis_title_size = 18
+    axis_tick_size = 14
+    layout = go.Layout(
+        title=title if title else 'Particle Trapping Time Exercise',
+        titlefont=dict(size=30),
+        autosize=False,
+        width=900,
+        height=650,
+        scene=dict(
+            xaxis=dict(
+                title='{} (mm)'.format(x),
+                titlefont=dict(size=axis_title_size, family='Arial Black'),
+                tickfont=dict(size=axis_tick_size),
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)',
+                range=[3700, 17500],
+            ),
+            yaxis=dict(
+                title='{} (mm)'.format(y),
+                titlefont=dict(size=axis_title_size, family='Arial Black'),
+                tickfont=dict(size=axis_tick_size),
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)',
+                range=[-1000, 1000],
+            ),
+            zaxis=dict(
+                title='{} (mm)'.format(z),
+                titlefont=dict(size=axis_title_size, family='Arial Black'),
+                tickfont=dict(size=axis_tick_size),
+                gridcolor='rgb(255, 255, 255)',
+                zerolinecolor='rgb(255, 255, 255)',
+                showbackground=True,
+                backgroundcolor='rgb(230, 230,230)',
+                range=[-1000, 1000],
+            ),
+            aspectratio=dict(x=6, y=1, z=1),
+            aspectmode='manual',
+            camera=dict(
+                eye=dict(x=1.99, y=-2, z=2)
+            ),
+        ),
+        showlegend=True,
+        legend=dict(x=0.7, y=0.9, font=dict(size=18, family='Overpass')),
+    )
+    return layout
+
+
+def xray_maker(df_xray, scat_plots):
+    '''Helper function to generate the x-ray visualization for particle trapping plots.'''
+
     print 'binning...'
+    xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
+    df_xray.query(xray_query, inplace=True)
+
     h, edges = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
                               bins=(100, 25, 25))
     centers = [(e[1:]+e[:-1])/2.0 for e in edges]
@@ -863,29 +750,18 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
             sl = True
         else:
             sl = False
-        scats.append(
+        scat_plots.append(
             go.Scatter3d(
                 x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
-                marker=dict(size=4, color='black', opacity=0.03*(i+1), symbol='square'),
+                marker=dict(sizemode='diameter', size=4,
+                            color='black', opacity=0.03*(i+1), symbol='square'),
                 name='X-ray', showlegend=sl, legendgroup='xray'))
 
-    df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
-    if len(df_newmat) > 0:
-        scats.append(
-            go.Scatter3d(
-                x=df_newmat.x, y=df_newmat.y, z=df_newmat.z, mode='markers',
-                marker=dict(sizemode='diameter', size=6,
-                            color='red', opacity=0.4, symbol='square'),
-                name='X-ray', showlegend=False, legendgroup='xray'))
-
-    p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
-    p_slider.description = 'Time Shift'
-    p_slider.value = 0
-    p_state = time_shifter(group2, color)
-    p_slider.on_trait_change(p_state.on_time_change, 'value')
-
-    fig = go.Figure(data=scats, layout=layout)
-    g = GraphWidget('https://plot.ly/~BroverCleveland/70/')
-    display(g)
-    display(p_slider)
-    return g, fig
+    # df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
+    # if len(df_newmat) > 0:
+    #     scat_plots.append(
+    #         go.Scatter3d(
+    #             x=df_newmat.x, y=df_newmat.y, z=df_newmat.z, mode='markers',
+    #             marker=dict(sizemode='diameter', size=6,
+    #                         color='red', opacity=0.4, symbol='square'),
+    #             name='X-ray', showlegend=False, legendgroup='xray'))
