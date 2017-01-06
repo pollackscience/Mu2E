@@ -92,7 +92,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
         df = df.query(conditions)
 
     if mode not in _modes:
-        raise ValueError(mode+' not in '+_modes)
+        raise ValueError(mode+' not one of: '+', '.join(_modes))
 
     leg_label = y+' '+info if info else y
     ax = df.plot(x, y, ax=ax, kind='line', label=leg_label, legend=True, linewidth=2)
@@ -266,12 +266,12 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             min_val = np.min(data_fit_diff)
             abs_max_val = max(abs(max_val), abs(min_val))
             if (abs_max_val) > 5:
-                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, vmin=-5, vmax=5,
+                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, vmin=-1, vmax=1,
                                       cmap=plt.get_cmap('viridis'))
                 cb = plt.colorbar(heat, aspect=7)
                 cb_ticks = cb.ax.get_yticklabels()
-                cb_ticks[0] = '< -5'
-                cb_ticks[-1] = '> 5'
+                cb_ticks[0] = '< -1'
+                cb_ticks[-1] = '> 1'
                 cb_ticks = cb.ax.set_yticklabels(cb_ticks)
             else:
                 heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'),
@@ -439,7 +439,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
 
 
 def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_range=None,
-                      y_range=None, z_range=None, title=None):
+                      y_range=None, z_range=None, title=None, symbol='o'):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
     Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -465,7 +465,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
     """
 
     init_notebook_mode()
-    layout = ptrap_layout()
+    layout = ptrap_layout(title=title)
     scat_plots = []
 
     # Set the xray image if available
@@ -481,18 +481,70 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
                     marker=dict(size=4, color=df[color], colorscale='Viridis', opacity=1,
                                 line=dict(color='black', width=1),
                                 showscale=True, cmin=0, cmax=110,
+                                symbol=symbol,
                                 colorbar=dict(title='Momentum (MeV)')),
                     text=df[color].astype(int),
-                    name='Muons'))
+                    name=df.name))
 
         else:
             scat_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z], mode='markers',
                     marker=dict(size=3, color='blue', opacity=0.5),
-                    name='Muons'))
+                    name=df.name))
 
     fig = go.Figure(data=scat_plots, layout=layout)
+    iplot(fig)
+
+    return save_name
+
+
+def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=None,
+                      y_range=None, z_range=None, title=None):
+    """Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.
+
+    Generate 3D line plot for a given DF and three columns. Due to the large number of points
+    that are typically plotted, :mod:`matplotlib` is not supported.
+
+    Args:
+        df (pandas.DataFrame): The input DF, must contain columns with labels corresponding to the
+            'x', 'y', and 'z' args.
+        x (str): Name of the first variable.
+        y (str): Name of the second variable.
+        z (str): Name of the third variable.
+        save_name (str, optional): If not `None`, the plot will be saved to
+            `mu2e_ext_path+ptrap/save_name.html` (or `.jpeg`)
+        color: (str, optional): Name of fourth varible, represented by color of marker.
+        df_xray: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry of
+            the material that is typically included during particle simulation.
+
+    Returns:
+        Name of saved image/plot, or None.
+
+    Notes:
+        Growing necessity for many input args, should implement `kwargs` in future.
+    """
+
+    init_notebook_mode()
+    layout = ptrap_layout(title=title)
+    line_plots = []
+
+    # Set the xray image if available
+    if isinstance(df_xray, pd.DataFrame):
+        xray_maker(df_xray, line_plots)
+
+    # Plot the actual content
+    if isinstance(df, pd.DataFrame):
+            line_plots.append(
+                go.Scatter3d(
+                    x=df[x], y=df[y], z=df[z],
+                    marker=dict(size=5, color=df.sid, colorscale='Viridis'),
+                    line=dict(color=df.sid, width=5, colorscale='Viridis'),
+                    name=df.name
+                )
+            )
+
+    fig = go.Figure(data=line_plots, layout=layout)
     iplot(fig)
 
     return save_name
@@ -526,7 +578,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
         (g, fig) for plotting.
     """
     init_notebook_mode()
-    layout = ptrap_layout()
+    layout = ptrap_layout(title=title)
 
     class time_shifter:
         def __init__(self, group2=False, color=False):
@@ -662,7 +714,7 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
 
     xray_maker(df_xray, scats)
 
-    p_slider = widgets.IntSlider(min=0, max=130, value=0, step=1, continuous_update=False)
+    p_slider = widgets.IntSlider(min=0, max=500, value=0, step=1, continuous_update=False)
     p_slider.description = 'Time Shift'
     p_slider.value = 0
     p_state = time_shifter(group2, color)

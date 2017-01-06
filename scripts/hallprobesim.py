@@ -631,9 +631,9 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm,
     #                              cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
-                                 cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
-                                 cfg_pickle_Mau_800mm_long, cfg_plot_plotly_html)
+    #hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
+    #                             cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
+    #                             cfg_pickle_Mau_800mm_long, cfg_plot_plotly_html)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_interp', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_800mm_interp, cfg_params_Mau_DS_800mm_long,
@@ -660,9 +660,9 @@ if __name__ == "__main__":
     #                              cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
     #                              cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long,
-    #                              cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long,
-    #                              cfg_pickle_Mau_bad_m_test_req, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long,
+                                 cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long,
+                                 cfg_pickle_Mau_bad_m_test_req, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_p_req', cfg_data_DS_Mau10_long,
     #                              cfg_geom_cyl_bad_position_req, cfg_params_Mau_DS_800mm_long,
@@ -672,10 +672,10 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_bad_rotation_req, cfg_params_Mau_DS_800mm_long,
     #                              cfg_pickle_Mau_bad_r_test_req, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req_fullsim',
-    #                              cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim800,
-    #                              cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_m_test_req,
-    #                              cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req_fullsim',
+                                 cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim800,
+                                 cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_m_test_req,
+                                 cfg_plot_mpl)
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_p_req_fullsim',
     #                              cfg_data_DS_Mau10_long, cfg_geom_cyl_fullsim800,
     #                              cfg_params_Mau_DS_800mm_long, cfg_pickle_Mau_bad_p_test_req,

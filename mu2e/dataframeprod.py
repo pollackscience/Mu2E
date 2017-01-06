@@ -239,7 +239,8 @@ class DataFrameMaker(object):
         return (-row['Y'])
 
 
-def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
+def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False,
+                 trees=['vd', 'tvd', 'part'], cluster='', tree_prefix='readvd'):
     from root_pandas import read_root
     '''
     Quick converter for virtual detector ROOT files from the Mu2E Art Framework.
@@ -251,35 +252,68 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False):
              *Note: Testing out HDF5 storage instead of pickle.*
          do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column 'runevt' in
              order to identify individual events. Add total momentum for nttvd.
+         trees(list, optional): List of up to three potential trees to reproduce. List can have
+             'vd', 'tvd', and 'part' as its members.
 
     Return:
         A tuple of dataframes, or none.
     '''
+    do_vd = do_tvd = do_part = False
+
+    for tree in trees:
+        if tree not in ['vd', 'tvd', 'part']:
+            raise KeyError(str(tree)+' is not a valid tree')
+        if tree == 'vd':
+            do_vd = True
+        elif tree == 'tvd':
+            do_tvd = True
+        elif tree == 'part':
+            do_part = True
+
     input_root = input_name + '.root'
-    df_nttvd = read_root(input_root, 'readvd/nttvd')
-    df_ntpart = read_root(input_root, 'readvd/ntpart', ignore='*vd')
+
+    df_ntpart = df_nttvd = df_ntvd = None
+
+    if tree_prefix is not '':
+        tree_prefix = tree_prefix+'/'
+    if do_part:
+        df_ntpart = read_root(input_root, tree_prefix+'ntpart', ignore='*vd')
+    if do_tvd:
+        df_nttvd = read_root(input_root, tree_prefix+'nttvd')
+    if do_vd:
+        df_ntvd = read_root(input_root, tree_prefix+'ntvd')
 
     if do_basic_modifications:
-        df_nttvd.eval('x = x+3904', inplace=True)
-        df_ntpart.eval('x = x+3904', inplace=True)
-        df_ntpart.eval('xstop = xstop+3904', inplace=True)
-
-        df_nttvd['runevt'] = (df_nttvd.subrun.astype(int).astype(str) +
-                              df_nttvd.evt.astype(int).astype(str)).astype(int)
-        df_nttvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
-        df_ntpart['runevt'] = (df_ntpart.subrun.astype(int).astype(str) +
-                               df_ntpart.evt.astype(int).astype(str)).astype(int)
+        if do_part:
+            df_ntpart.eval('x = x+3904', inplace=True)
+            df_ntpart.eval('xstop = xstop+3904', inplace=True)
+            df_ntpart['runevt'] = (str(cluster)+df_ntpart.subrun.astype(int).astype(str) +
+                                   df_ntpart.evt.astype(int).astype(str)).astype(int)
+        if do_tvd:
+            df_nttvd.eval('x = x+3904', inplace=True)
+            df_nttvd['runevt'] = (str(cluster)+df_nttvd.subrun.astype(int).astype(str) +
+                                  df_nttvd.evt.astype(int).astype(str)).astype(int)
+            df_nttvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
+        if do_vd:
+            df_ntvd.eval('x = x+3904', inplace=True)
+            df_ntvd['runevt'] = (str(cluster)+df_ntvd.subrun.astype(int).astype(str) +
+                                 df_ntvd.evt.astype(int).astype(str)).astype(int)
+            df_ntvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
 
     if make_pickle:
         print 'loading into hdf5'
         # pkl.dump((df_nttvd, df_ntpart), open(input_name + '.p', "wb"), pkl.HIGHEST_PROTOCOL)
         store = pd.HDFStore(input_name+'.h5')
-        store['df_nttvd'] = df_nttvd
-        store['df_ntpart'] = df_ntpart
+        if do_part:
+            store['df_ntpart'] = df_ntpart
+        if do_tvd:
+            store['df_nttvd'] = df_nttvd
+        if do_vd:
+            store['df_ntvd'] = df_ntvd
         store.close()
         print 'file finished'
     else:
-        return (df_nttvd, df_ntpart)
+        return (df_ntpart, df_nttvd, df_ntvd)
 
 if __name__ == "__main__":
     from mu2e import mu2e_ext_path
