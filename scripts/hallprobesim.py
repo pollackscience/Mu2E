@@ -334,7 +334,7 @@ cfg_params_Mau_DS_700                 = cfg_params(ns=3, ms=70, cns=0, cms=0, Re
 cfg_params_Mau_DS_bad                 = cfg_params(ns=3, ms=80, cns=0, cms=0, Reff=7000,
                                                    func_version=1)
 
-cfg_params_GA05_DS_800mm              = cfg_params(ns=10, ms=60, cns=0, cms=0, Reff=7000,
+cfg_params_GA05_DS_800mm              = cfg_params(ns=16, ms=50, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
 cfg_params_GA05_DS_offset             = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
@@ -360,16 +360,16 @@ cfg_pickle_Mau_825mm_v2            = cfg_pickle(use_pickle=True, save_pickle=Tru
                                                 load_name='Mau10_825mm_v2',
                                                 save_name='Mau10_825mm_v2', recreate=True)
 
-cfg_pickle_GA05_800mm              = cfg_pickle(use_pickle=False, save_pickle=True,
+cfg_pickle_GA05_800mm              = cfg_pickle(use_pickle=True, save_pickle=True,
                                                 load_name='GA05_800mm', save_name='GA05_800mm',
                                                 recreate=False)
 cfg_pickle_GA05_offset             = cfg_pickle(use_pickle=False, save_pickle=True,
                                                 load_name='GA05_offset', save_name='GA05_offset',
                                                 recreate=False)
 
-cfg_pickle_Mau_800mm_long          = cfg_pickle(use_pickle=True, save_pickle=True,
+cfg_pickle_Mau_800mm_long          = cfg_pickle(use_pickle=False, save_pickle=True,
                                                 load_name='Mau10_800mm_long',
-                                                save_name='Mau10_800mm_long', recreate=True)
+                                                save_name='Mau10_800mm_long', recreate=False)
 cfg_pickle_Mau_800mm               = cfg_pickle(use_pickle=False, save_pickle=True,
                                                 load_name='Mau10_800mm', save_name='Mau10_800mm',
                                                 recreate=False)

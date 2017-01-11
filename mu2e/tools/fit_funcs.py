@@ -5,8 +5,9 @@ from __future__ import absolute_import
 from scipy import special
 import numpy as np
 import numexpr as ne
-from numba import guvectorize
-from math import cos,sin
+#from numba import guvectorize
+from numba import guvectorize, cuda, float32
+from math import cos,sin,ceil
 
 import six
 from six.moves import range
@@ -168,6 +169,8 @@ def b_full_3d_producer(a,b,c,R,z,r,phi,ns,ms,cns,cms):
         ABs = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
         Cs = sorted({k:v for (k,v) in six.iteritems(AB_params) if 'C' in k})
 
+        print(AB_params)
+        input()
         for n in range(ns):
             for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
@@ -308,34 +311,55 @@ def brzphi_3d_producer_modbessel_phase(z,r,phi,L,ns,ms):
         for m in range(ms):
             kms[-1].append((m+1)*np.pi/L)
     kms=np.asarray(kms)
-    iv = np.empty((ns,ms,r.shape[0],r.shape[1]))
-    ivp = np.empty((ns,ms,r.shape[0],r.shape[1]))
+    iv = np.empty((ns,ms,r.shape[0]))
+    ivp = np.empty((ns,ms,r.shape[0]))
     for n in range(ns):
         for m in range(ms):
             iv[n][m] = special.iv(n,kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n,kms[n][m]*np.abs(r))
 
+    threadsperblock = 512
+    blockspergrid = ceil(z.shape[0] / threadsperblock)
+    d_z = cuda.to_device(z)
+    d_r = cuda.to_device(r)
+    d_phi = cuda.to_device(phi)
 
-    # @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],float64[:], float64[:])"],
-    #         '(m),(m),(m),(),(),(),(),(m),(m),()->(m),(m),(m)', nopython=True, target='parallel')
-    # def calc_b_fields(z,phi,r,n,A,B,D,ivp,iv,kms,model_r,model_z,model_phi):
-    #     for i in range(z.shape[0]):
-    #         model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms[0]*\
-    #                 (A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
-    #         model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
-    #                 (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
-    #         model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
-    #                 (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+    d_iv = cuda.to_device(iv)
+    d_ivp = cuda.to_device(ivp)
+    d_kms = cuda.to_device(kms)
 
-    @guvectorize(["void(float64[:,:], float64[:,:], float64[:,:], int64[:], float64[:], float64[:], float64[:], float64[:,:], float64[:,:], float64[:], float64[:,:])"],
-            '(n,m),(n,m),(n,m),(),(),(),(),(n,m),(n,m),()->(n,m)', target='cuda')
-    def calc_b_fields(z,phi,r,n,A,B,D,ivp,iv,kms,model_r):
-        model_r += cos(n[0]*phi-D[0])*ivp*kms[0]*\
-                (A[0]*cos(kms[0]*z) + B[0]*sin(kms[0]*z))
-            #model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
-            #        (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
-            #model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
-            #        (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+
+    @cuda.jit
+    def calc_b_fields(z,r,phi,iv,ivp,kms,A,B,D,model_r,model_z,model_phi):
+        x = cuda.grid(1)
+
+        if x<z.shape[0]:
+            tmp_r = tmp_z = tmp_phi = 0.
+            for n in range(ns):
+                phase = cos(n*phi[x]-D[n])
+                phase_phi = n*-sin(n*phi[x]-D[n])*(1.0/abs(r[x]))
+                for m in range(ms):
+                    tmp_r += (phase*ivp[n, m, x]*kms[n, m]*
+                                     (A[n, m]*cos(kms[n, m]*z[x]) +
+                                      B[n, m]*sin(kms[n, m]*z[x])))
+                    tmp_z += (phase*iv[n, m, x]*kms[n, m]*
+                                     (-A[n, m]*sin(kms[n, m]*z[x]) +
+                                      B[n, m]*cos(kms[n, m]*z[x])))
+                    tmp_phi += (phase_phi*iv[n, m, x]*
+                                     (A[n, m]*cos(kms[n, m]*z[x]) +
+                                      B[n, m]*sin(kms[n, m]*z[x])))
+            model_r[x] = tmp_r
+            model_z[x] = tmp_z
+            model_phi[x] = tmp_phi
+            #print(model_r)
+
+        #for i in range(z.shape[0]):
+        #    model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms[0]*\
+        #            (A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+        #    model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0]*\
+        #            (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
+        #    model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0]))*\
+        #            (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
 
 
     def brzphi_3d_fast(z,r,phi,R,ns,ms,**AB_params):
@@ -345,21 +369,43 @@ def brzphi_3d_producer_modbessel_phase(z,r,phi,L,ns,ms):
         model_z = np.zeros(z.shape,dtype = np.float64)
         model_phi = np.zeros(z.shape,dtype = np.float64)
         R = R
-        ABs = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
-        Ds = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+        #As = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('A' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        #Bs = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('B' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[2].zfill(5),x.split('_')[0])))
+        #Ds = sorted({k:v for (k,v) in six.iteritems(AB_params) if ('D' in k)},key=lambda x:','.join((x.split('_')[1].zfill(5),x.split('_')[0])))
+        As = []
+        Bs = []
+        Ds = []
+        for i in six.iterkeys(AB_params):
+            if 'A' in i:
+                As.append(i)
+            elif 'B' in i:
+                Bs.append(i)
+            else:
+                Ds.append(i)
 
-        for n,d in enumerate(Ds):
-            for i,ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+        As = sorted(As)
+        Bs = sorted(Bs)
+        Ds = sorted(Ds)
 
-                A = np.array([AB_params[ab[0]]],dtype = np.float64)
-                B = np.array([AB_params[ab[1]]],dtype = np.float64)
-                D = np.array([AB_params[d]], dtype = np.float64)
-                _ivp = ivp[n][i]
-                _iv = iv[n][i]
-                _kms = np.array([kms[n][i]])
-                _n = np.array([n])
-                #calc_b_fields(z,phi,r,_n,A,B,D,_ivp,_iv,_kms,model_r,model_z,model_phi)
-                calc_b_fields(z,phi,r,_n,A,B,D,_ivp,_iv,_kms,model_r)
+        A_vals = np.asarray([AB_params[A] for A in As]).reshape(ns, ms)
+        B_vals = np.asarray([AB_params[B] for B in Bs]).reshape(ns, ms)
+        D_vals = np.asarray([AB_params[D] for D in Ds])
+        #d_A_vals = cuda.to_device(A_vals)
+        #d_B_vals = cuda.to_device(B_vals)
+        #d_D_vals = cuda.to_device(D_vals)
+        #print(AB_params)
+        #print(sorted(As))
+        #print(np.asarray(As).reshape(3,10))
+        #print(Ds)
+        #input()
+        #calc_b_fields[threadsperblock, blockspergrid](A_vals,B_vals,D_vals,model_r,model_z,model_phi)
+        #d_model_r = cuda.to_device(model_r)
+        calc_b_fields[threadsperblock,
+                      blockspergrid](d_z, d_r, d_phi, d_iv, d_ivp, d_kms,
+                                     A_vals,B_vals,D_vals,model_r,model_z,model_phi)
+        #model_r = d_model_r.copy_to_host()
+        #print(A_vals, B_vals, D_vals)
+        #print(model_r)
 
 
         model_phi[np.isinf(model_phi)]=0

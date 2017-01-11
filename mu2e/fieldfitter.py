@@ -174,12 +174,12 @@ class FieldFitter:
             PP.append(PP_slice)
 
         # combine all phi slices
-        ZZ = np.concatenate(ZZ)
-        RR = np.concatenate(RR)
-        PP = np.concatenate(PP)
-        Bz = np.concatenate(Bz)
-        Br = np.concatenate(Br)
-        Bphi = np.concatenate(Bphi)
+        ZZ = np.concatenate(ZZ).ravel()
+        RR = np.concatenate(RR).ravel()
+        PP = np.concatenate(PP).ravel()
+        Bz = np.concatenate(Bz).ravel()
+        Br = np.concatenate(Br).ravel()
+        Bphi = np.concatenate(Bphi).ravel()
         if profile:
             # terminate here if we are profiling the code for further optimization
             return ZZ, RR, PP, Bz, Br, Bphi
@@ -283,7 +283,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 1000})
+                                       method='leastsq', fit_kws={'maxfev': 2000})
 
         self.params = self.result.params
         end_time = time()
