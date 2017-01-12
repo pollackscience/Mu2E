@@ -61,7 +61,8 @@ from plotly.widgets import GraphWidget
 from offline import init_notebook_mode, iplot, plot
 
 
-def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None):
+def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None,
+              auto_open=True):
     """Generate 2D plots, x vs y.
 
     Generate a 2D plot for a given DF and two columns. An optional selection string is applied to
@@ -81,6 +82,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
         savename (str, optional): If not `None`, the plot will be saved to the indicated path and
             file name.
         ax (matplotlib.axis, optional): Use existing mpl axis object.
+        auto_open (bool, optional): If `True`, automatically open a plotly html file.
 
     Returns:
         axis object if 'mpl', else `None`.
@@ -88,11 +90,11 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
     _modes = ['mpl', 'plotly', 'plotly_html', 'plotly_nb']
 
-    if conditions:
-        df = df.query(conditions)
-
     if mode not in _modes:
         raise ValueError(mode+' not one of: '+', '.join(_modes))
+
+    if conditions:
+        df, conditions_title = conditions_parser(df, conditions)
 
     leg_label = y+' '+info if info else y
     ax = df.plot(x, y, ax=ax, kind='line', label=leg_label, legend=True, linewidth=2)
@@ -109,9 +111,12 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
             init_notebook_mode()
             iplot(py_fig)
         elif mode == 'plotly_html':
-            plot(py_fig)
+            if savename:
+                plot(py_fig, filename=savename, auto_open=auto_open)
+            else:
+                plot(py_fig, auto_open=auto_open)
 
-    if savename:
+    elif savename:
         plt.savefig(savename)
     if mode == 'mpl':
         return ax
@@ -119,8 +124,8 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
         return None
 
 
-def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, df_fit=None,
-                ptype='3D'):
+def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
+                df_fit=None, ptype='3D'):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -142,57 +147,24 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         info (str, optional): Extra information to add to the title.
         save_dir (str, optional): If not `None`, the plot will be saved to the indicated path. The
             file name is automated, based on the input args.
+        save_name (str, optional): If `None`, the plot name will be generated based on the 'x', 'y',
+            'z', and 'condition' args.
         df_fit (bool, optional): If the input df contains columns with the suffix '_fit', plot a
             scatter plot using the normal columns, and overlay a wireframe plot using the '_fit'
             columns.  Also generate a heatmap showing the residual difference between the two plots.
         ptype (str, optional): Choose between '3d' and 'heat'.  Default is '3d'.
 
     Returns:
-        Name of saved image/plot, or None.
+        Name of saved image/plot or None.
     """
 
     _modes = ['mpl', 'mpl_none', 'plotly', 'plotly_html', 'plotly_nb']
-    save_name = None
-
-    if conditions:
-
-        # Special treatment to detect cylindrical coordinates:
-        # Some regex matching to find any 'Phi' condition and treat it as (Phi & Phi-Pi).
-        # This is done because when specifying R-Z coordinates, we almost always want the
-        # 2-D plane that corresponds to that (Phi & Phi-Pi) pair.  In order to plot this,
-        # we assign a value of -R to all R points that correspond to the 'Phi-Pi' half-plane
-
-        p = re.compile(r'(?:and)*\s*Phi\s*==\s*([-+]?(?:[0-9]*\.[0-9]+|[0-9]+))')
-        phi_str = p.search(conditions)
-        conditions_nophi = p.sub('', conditions)
-        conditions_nophi = re.sub(r'^\s*and\s*', '', conditions_nophi)
-        conditions_nophi = conditions_nophi.strip()
-        try:
-            phi = float(phi_str.group(1))
-        except:
-            phi = None
-
-        df = df.query(conditions_nophi)
-
-        # Make radii negative for negative phi values (for plotting purposes)
-        if phi is not None:
-            isc = np.isclose
-            if isc(phi, 0):
-                nphi = np.pi
-            else:
-                nphi = phi-np.pi
-            df = df[(isc(phi, df.Phi)) | (isc(nphi, df.Phi))]
-            df.ix[isc(nphi, df.Phi), 'R'] *= -1
-
-        conditions_title = conditions_nophi.replace(' and ', ', ')
-        conditions_title = conditions_title.replace('R!=0', '')
-        conditions_title = conditions_title.strip()
-        conditions_title = conditions_title.strip(',')
-        if phi is not None:
-            conditions_title += ', Phi=={0:.2f}'.format(phi)
 
     if mode not in _modes:
-        raise ValueError(mode+' not in '+str(_modes))
+        raise ValueError(mode+' not one of: '+', '.join(_modes))
+
+    if conditions:
+        df, conditions_title = conditions_parser(df, conditions)
 
     # Format the coordinates
     piv = df.pivot(x, y, z)
@@ -211,12 +183,13 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     if save_dir:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        save_name = '{0}_{1}{2}_{3}'.format(
-            z, x, y, '_'.join([i for i in conditions_title.split(', ') if i != 'and']))
-        save_name = re.sub(r'[<>=!\s]', '', save_name)
+        if save_name is None:
+            save_name = '{0}_{1}{2}_{3}'.format(
+                z, x, y, '_'.join([i for i in conditions_title.split(', ') if i != 'and']))
+            save_name = re.sub(r'[<>=!\s]', '', save_name)
 
-        if df_fit:
-            save_name += '_fit'
+            if df_fit:
+                save_name += '_fit'
 
     # Start plotting
     if 'mpl' in mode:
@@ -381,8 +354,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             textz = [['x: '+'{:0.5f}'.format(Xi[i][j])+'<br>y: '+'{:0.5f}'.format(Yi[i][j]) +
                       '<br>z: ' + '{:0.5f}'.format(data_fit_diff[i][j]) for j in
                       range(data_fit_diff.shape[1])] for i in range(data_fit_diff.shape[0])]
-            # For heatmap
 
+            # For heatmap
             # projection in the z-direction
             def proj_z(x, y, z):
                 return z
@@ -499,8 +472,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
     return save_name
 
 
-def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=None,
-                      y_range=None, z_range=None, title=None):
+def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=None, y_range=None,
+                           z_range=None, title=None):
     """Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.
 
     Generate 3D line plot for a given DF and three columns. Due to the large number of points
@@ -817,3 +790,45 @@ def xray_maker(df_xray, scat_plots):
     #             marker=dict(sizemode='diameter', size=6,
     #                         color='red', opacity=0.4, symbol='square'),
     #             name='X-ray', showlegend=False, legendgroup='xray'))
+
+
+def conditions_parser(df, conditions):
+    '''Helper function for parsing queries passed to a plotting function.  Special care is taken if
+    a 'Phi==X' condition is encountered, in order to select Phi and Pi-Phi'''
+
+    # Special treatment to detect cylindrical coordinates:
+    # Some regex matching to find any 'Phi' condition and treat it as (Phi & Phi-Pi).
+    # This is done because when specifying R-Z coordinates, we almost always want the
+    # 2-D plane that corresponds to that (Phi & Phi-Pi) pair.  In order to plot this,
+    # we assign a value of -R to all R points that correspond to the 'Phi-Pi' half-plane
+
+    p = re.compile(r'(?:and)*\s*Phi\s*==\s*([-+]?(?:[0-9]*\.[0-9]+|[0-9]+))')
+    phi_str = p.search(conditions)
+    conditions_nophi = p.sub('', conditions)
+    conditions_nophi = re.sub(r'^\s*and\s*', '', conditions_nophi)
+    conditions_nophi = conditions_nophi.strip()
+    try:
+        phi = float(phi_str.group(1))
+    except:
+        phi = None
+
+    df = df.query(conditions_nophi)
+
+    # Make radii negative for negative phi values (for plotting purposes)
+    if phi is not None:
+        isc = np.isclose
+        if isc(phi, 0):
+            nphi = np.pi
+        else:
+            nphi = phi-np.pi
+        df = df[(isc(phi, df.Phi)) | (isc(nphi, df.Phi))]
+        df.ix[isc(nphi, df.Phi), 'R'] *= -1
+
+    conditions_title = conditions_nophi.replace(' and ', ', ')
+    conditions_title = conditions_title.replace('R!=0', '')
+    conditions_title = conditions_title.strip()
+    conditions_title = conditions_title.strip(',')
+    if phi is not None:
+        conditions_title += ', Phi=={0:.2f}'.format(phi)
+
+    return df, conditions_title

@@ -433,7 +433,8 @@ class HallProbeGenerator(object):
                             '{0}<=X<={1} and {2}<=Y<={3} and {4}<=Z<={5}'.format(
                                 x-100, x+100, y-100, y+100, z-100, z+100))
 
-                        _, b_lacey = interp_studies.interp_phi_quad(field_subset, x, y, z, plot=False)
+                        _, b_lacey = interp_studies.interp_phi_quad(field_subset, x, y, z,
+                                                                    plot=False)
                         bx = b_lacey[0]
                         by = b_lacey[1]
                         bz = b_lacey[2]
@@ -454,7 +455,8 @@ class HallProbeGenerator(object):
         elif version == 2:
             pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_phi.p', "wb"), pkl.HIGHEST_PROTOCOL)
         elif version == 3:
-            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_quad.p', "wb"), pkl.HIGHEST_PROTOCOL)
+            pkl.dump(self.sparse_field, open(mu2e_ext_path+'tmp_quad.p', "wb"),
+                     pkl.HIGHEST_PROTOCOL)
 
         print 'interpolation complete'
 
