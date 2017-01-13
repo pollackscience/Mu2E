@@ -25,6 +25,7 @@ Contents:
    dataframeprod
    hallprobing
    fitting
+   fit_funcs
    plotting
 
 

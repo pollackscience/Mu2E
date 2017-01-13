@@ -33,7 +33,7 @@
 
   
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/>
-        <link rel="prev" title="Fitting Data" href="fitting.html"/> 
+        <link rel="prev" title="Implementation of Functional Forms" href="fit_funcs.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -89,6 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hallprobing.html">Hall Probe Measurements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fitting.html">Fitting Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_funcs.html">Implementation of Functional Forms</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-mu2e.mu2eplots">The <cite>mu2eplots</cite> Module</a></li>
 </ul>
@@ -185,8 +186,15 @@ the user wants to share the plots.</p>
 <p><em>2016 Brian Pollack, Northwestern University</em></p>
 <p><a class="reference external" href="mailto:brianleepollack&#37;&#52;&#48;gmail&#46;com">brianleepollack<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="function">
+<dt id="mu2e.mu2eplots.conditions_parser">
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">conditions_parser</code><span class="sig-paren">(</span><em>df</em>, <em>conditions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#conditions_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.conditions_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for parsing queries passed to a plotting function.  Special care is taken if
+a &#8216;Phi==X&#8217; condition is encountered, in order to select Phi and Pi-Phi</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="mu2e.mu2eplots.mu2e_plot">
-<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>conditions=None</em>, <em>mode='mpl'</em>, <em>info=None</em>, <em>savename=None</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>conditions=None</em>, <em>mode='mpl'</em>, <em>info=None</em>, <em>savename=None</em>, <em>ax=None</em>, <em>auto_open=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate 2D plots, x vs y.</p>
 <p>Generate a 2D plot for a given DF and two columns. An optional selection string is applied to
 the data via the <code class="xref py py-func docutils literal"><span class="pre">pandas.DataFrame.query()</span></code> interface, and is added to the title.  This
@@ -208,6 +216,7 @@ Default is &#8216;mpl&#8217;. Valid values: [&#8216;mpl&#8217;, &#8216;plotly&#8
 <li><strong>savename</strong> (<em>str, optional</em>) &#8211; If not <cite>None</cite>, the plot will be saved to the indicated path and
 file name.</li>
 <li><strong>ax</strong> (<em>matplotlib.axis, optional</em>) &#8211; Use existing mpl axis object.</li>
+<li><strong>auto_open</strong> (<em>bool, optional</em>) &#8211; If <cite>True</cite>, automatically open a plotly html file.</li>
 </ul>
 </td>
 </tr>
@@ -220,7 +229,7 @@ file name.</li>
 
 <dl class="function">
 <dt id="mu2e.mu2eplots.mu2e_plot3d">
-<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>conditions=None</em>, <em>mode='mpl'</em>, <em>info=None</em>, <em>save_dir=None</em>, <em>df_fit=None</em>, <em>ptype='3D'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>conditions=None</em>, <em>mode='mpl'</em>, <em>info=None</em>, <em>save_dir=None</em>, <em>save_name=None</em>, <em>df_fit=None</em>, <em>ptype='3D'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate 3D plots, x and y vs z.</p>
 <p>Generate a 3D surface plot for a given DF and three columns. An optional selection string is
 applied to the data via the <code class="xref py py-func docutils literal"><span class="pre">pandas.DataFrame.query()</span></code> interface, and is added to the title.
@@ -244,6 +253,8 @@ Default is &#8216;mpl&#8217;. Valid values: [&#8216;mpl&#8217;, &#8216;plotly&#8
 <li><strong>info</strong> (<em>str, optional</em>) &#8211; Extra information to add to the title.</li>
 <li><strong>save_dir</strong> (<em>str, optional</em>) &#8211; If not <cite>None</cite>, the plot will be saved to the indicated path. The
 file name is automated, based on the input args.</li>
+<li><strong>save_name</strong> (<em>str, optional</em>) &#8211; If <cite>None</cite>, the plot name will be generated based on the &#8216;x&#8217;, &#8216;y&#8217;,
+&#8216;z&#8217;, and &#8216;condition&#8217; args.</li>
 <li><strong>df_fit</strong> (<em>bool, optional</em>) &#8211; If the input df contains columns with the suffix &#8216;_fit&#8217;, plot a
 scatter plot using the normal columns, and overlay a wireframe plot using the &#8216;_fit&#8217;
 columns.  Also generate a heatmap showing the residual difference between the two plots.</li>
@@ -251,7 +262,7 @@ columns.  Also generate a heatmap showing the residual difference between the tw
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Name of saved image/plot, or None.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Name of saved image/plot or None.</p>
 </td>
 </tr>
 </tbody>
@@ -260,7 +271,7 @@ columns.  Also generate a heatmap showing the residual difference between the tw
 
 <dl class="function">
 <dt id="mu2e.mu2eplots.mu2e_plot3d_ptrap">
-<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>mode='plotly_nb'</em>, <em>save_name=None</em>, <em>color=None</em>, <em>df_xray=None</em>, <em>x_range=None</em>, <em>y_range=None</em>, <em>z_range=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>save_name=None</em>, <em>color=None</em>, <em>df_xray=None</em>, <em>x_range=None</em>, <em>y_range=None</em>, <em>z_range=None</em>, <em>title=None</em>, <em>symbol='o'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.</p>
 <p>Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
 that are typically plotted, <code class="xref py py-mod docutils literal"><span class="pre">matplotlib</span></code> is not supported.</p>
@@ -274,8 +285,6 @@ that are typically plotted, <code class="xref py py-mod docutils literal"><span 
 <li><strong>x</strong> (<em>str</em>) &#8211; Name of the first variable.</li>
 <li><strong>y</strong> (<em>str</em>) &#8211; Name of the second variable.</li>
 <li><strong>z</strong> (<em>str</em>) &#8211; Name of the third variable.</li>
-<li><strong>mode</strong> (<em>str, optional</em>) &#8211; A string indicating which plotting package and method should be used.
-Default is &#8216;mpl&#8217;. Valid values: [&#8216;mpl&#8217;, &#8216;plotly&#8217;, &#8216;plotly_html&#8217;, &#8216;plotly_nb&#8217;]</li>
 <li><strong>save_name</strong> (<em>str, optional</em>) &#8211; If not <cite>None</cite>, the plot will be saved to
 <cite>mu2e_ext_path+ptrap/save_name.html</cite> (or <cite>.jpeg</cite>)</li>
 <li><strong>color</strong> &#8211; (str, optional): Name of fourth varible, represented by color of marker.</li>
@@ -332,6 +341,45 @@ of the material that is typically included during particle simulation.</li>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="mu2e.mu2eplots.mu2e_plot3d_ptrap_traj">
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">mu2e_plot3d_ptrap_traj</code><span class="sig-paren">(</span><em>df</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>save_name=None</em>, <em>df_xray=None</em>, <em>x_range=None</em>, <em>y_range=None</em>, <em>z_range=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#mu2e_plot3d_ptrap_traj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.mu2e_plot3d_ptrap_traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.</p>
+<p>Generate 3D line plot for a given DF and three columns. Due to the large number of points
+that are typically plotted, <code class="xref py py-mod docutils literal"><span class="pre">matplotlib</span></code> is not supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<em>pandas.DataFrame</em>) &#8211; The input DF, must contain columns with labels corresponding to the
+&#8216;x&#8217;, &#8216;y&#8217;, and &#8216;z&#8217; args.</li>
+<li><strong>x</strong> (<em>str</em>) &#8211; Name of the first variable.</li>
+<li><strong>y</strong> (<em>str</em>) &#8211; Name of the second variable.</li>
+<li><strong>z</strong> (<em>str</em>) &#8211; Name of the third variable.</li>
+<li><strong>save_name</strong> (<em>str, optional</em>) &#8211; If not <cite>None</cite>, the plot will be saved to
+<cite>mu2e_ext_path+ptrap/save_name.html</cite> (or <cite>.jpeg</cite>)</li>
+<li><strong>color</strong> &#8211; (str, optional): Name of fourth varible, represented by color of marker.</li>
+<li><strong>df_xray</strong> &#8211; (<code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code>, optional): A seperate DF, representing the geometry of
+the material that is typically included during particle simulation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Name of saved image/plot, or None.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Growing necessity for many input args, should implement <cite>kwargs</cite> in future.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mu2e.mu2eplots.xray_maker">
+<code class="descclassname">mu2e.mu2eplots.</code><code class="descname">xray_maker</code><span class="sig-paren">(</span><em>df_xray</em>, <em>scat_plots</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mu2e/mu2eplots.html#xray_maker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mu2e.mu2eplots.xray_maker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to generate the x-ray visualization for particle trapping plots.</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -343,7 +391,7 @@ of the material that is typically included during particle simulation.</li>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="fitting.html" class="btn btn-neutral" title="Fitting Data" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fit_funcs.html" class="btn btn-neutral" title="Implementation of Functional Forms" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

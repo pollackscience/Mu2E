@@ -33,7 +33,7 @@
 
   
     <link rel="top" title="Mu2E 1.0.0 documentation" href="index.html"/>
-        <link rel="next" title="Plotting" href="plotting.html"/>
+        <link rel="next" title="Implementation of Functional Forms" href="fit_funcs.html"/>
         <link rel="prev" title="Hall Probe Measurements" href="hallprobing.html"/> 
 
   
@@ -93,6 +93,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-mu2e.fieldfitter">The <cite>fieldfitter</cite> Module</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="fit_funcs.html">Implementation of Functional Forms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
 </ul>
 
@@ -140,7 +141,8 @@
             
   <div class="section" id="fitting-data">
 <h1>Fitting Data<a class="headerlink" href="#fitting-data" title="Permalink to this headline">¶</a></h1>
-<p>The actual fitting of the field measurements is mainly handled by the <cite>fieldfitter.py</cite> module.
+<p>The module that handles the interface between the underlying fit functions, the hall probe data, and
+the <cite>lmfit.py</cite> package is mainly handled by the <cite>fieldfitter.py</cite> module.
 Typically, the parametric fitting function has ~400 free parameters, so care has been taken to
 optimize the function calls.  The outputs of the fitting procedure are appended to the dataframe of
 the input data, to assist in visualization and further analysis.  The fit parameters are saved in a
@@ -151,12 +153,12 @@ the fit, or used in a standalone plugin to generate field values based on the fi
 <p>Module for fitting magnetic field data with a parametric expression.</p>
 <p>This is the main workhorse module for fitting the magnetic field data.  It is assumed that the data
 has passed through the <a class="reference internal" href="dataframeprod.html#mu2e.dataframeprod.DataFrameMaker" title="mu2e.dataframeprod.DataFrameMaker"><code class="xref py py-class docutils literal"><span class="pre">mu2e.dataframeprod.DataFrameMaker</span></code></a>, and thus in the expected format.
-In most cases the data has also passed through the <a class="reference internal" href="hallprobing.html#module-mu2e.hallprober" title="mu2e.hallprober"><code class="xref py py-mod docutils literal"><span class="pre">mu2e.hallprober</span></code></a> module, to imitate the act
+In most cases the data has also passed through the <code class="xref py py-mod docutils literal"><span class="pre">mu2e.hallprober</span></code> module, to imitate the act
 of surveying one of the Mu2E solenoids with a series of hall probes.  The
 <a class="reference internal" href="#mu2e.fieldfitter.FieldFitter" title="mu2e.fieldfitter.FieldFitter"><code class="xref py py-class docutils literal"><span class="pre">mu2e.fieldfitter.FieldFitter</span></code></a> preps the data, flattens it into 1D, and uses the <code class="xref py py-mod docutils literal"><span class="pre">lmfit</span></code>
 package extensively for parameter-handling, fitting, optimization, etc.</p>
 <p class="rubric">Example</p>
-<p>Incomplete excerpt, see <a class="reference internal" href="hallprobing.html#mu2e.hallprober.field_map_analysis" title="mu2e.hallprober.field_map_analysis"><code class="xref py py-func docutils literal"><span class="pre">mu2e.hallprober.field_map_analysis()</span></code></a> and <cite>scripts/hallprobesim</cite>
+<p>Incomplete excerpt, see <code class="xref py py-func docutils literal"><span class="pre">mu2e.hallprober.field_map_analysis()</span></code> and <cite>scripts/hallprobesim</cite>
 for more typical use cases:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># assuming config files already defined...</span>
 
@@ -329,7 +331,7 @@ comparison of results.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="plotting.html" class="btn btn-neutral float-right" title="Plotting" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fit_funcs.html" class="btn btn-neutral float-right" title="Implementation of Functional Forms" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="hallprobing.html" class="btn btn-neutral" title="Hall Probe Measurements" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

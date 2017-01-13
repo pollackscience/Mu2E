@@ -89,6 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../dataframeprod.html">Prepping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hallprobing.html">Hall Probe Measurements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fitting.html">Fitting Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_funcs.html">Implementation of Functional Forms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../plotting.html">Plotting</a></li>
 </ul>
 
@@ -188,7 +189,6 @@
 <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pkl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">root_pandas</span> <span class="k">import</span> <span class="n">read_root</span>
 <span class="kn">import</span> <span class="nn">mu2e.src.RowTransformations</span> <span class="k">as</span> <span class="nn">rt</span>
 
 
@@ -377,7 +377,9 @@
         <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="g4root_to_df"><a class="viewcode-back" href="../../dataframeprod.html#mu2e.dataframeprod.g4root_to_df">[docs]</a><span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">do_basic_modifications</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">g4root_to_df</span><span class="p">(</span><span class="n">input_name</span><span class="p">,</span> <span class="n">make_pickle</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">do_basic_modifications</span><span class="o">=</span><span class="k">False</span><span class="p">,</span>
+                 <span class="n">trees</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;vd&#39;</span><span class="p">,</span> <span class="s">&#39;tvd&#39;</span><span class="p">,</span> <span class="s">&#39;part&#39;</span><span class="p">],</span> <span class="n">cluster</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">tree_prefix</span><span class="o">=</span><span class="s">&#39;readvd&#39;</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">root_pandas</span> <span class="k">import</span> <span class="n">read_root</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Quick converter for virtual detector ROOT files from the Mu2E Art Framework.</span>
 
@@ -388,35 +390,68 @@
 <span class="sd">             *Note: Testing out HDF5 storage instead of pickle.*</span>
 <span class="sd">         do_basic_modifications(bool, optional): If `True`, recenter x-axis, add column &#39;runevt&#39; in</span>
 <span class="sd">             order to identify individual events. Add total momentum for nttvd.</span>
+<span class="sd">         trees(list, optional): List of up to three potential trees to reproduce. List can have</span>
+<span class="sd">             &#39;vd&#39;, &#39;tvd&#39;, and &#39;part&#39; as its members.</span>
 
 <span class="sd">    Return:</span>
 <span class="sd">        A tuple of dataframes, or none.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">do_vd</span> <span class="o">=</span> <span class="n">do_tvd</span> <span class="o">=</span> <span class="n">do_part</span> <span class="o">=</span> <span class="k">False</span>
+
+    <span class="k">for</span> <span class="n">tree</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tree</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vd&#39;</span><span class="p">,</span> <span class="s">&#39;tvd&#39;</span><span class="p">,</span> <span class="s">&#39;part&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; is not a valid tree&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tree</span> <span class="o">==</span> <span class="s">&#39;vd&#39;</span><span class="p">:</span>
+            <span class="n">do_vd</span> <span class="o">=</span> <span class="k">True</span>
+        <span class="k">elif</span> <span class="n">tree</span> <span class="o">==</span> <span class="s">&#39;tvd&#39;</span><span class="p">:</span>
+            <span class="n">do_tvd</span> <span class="o">=</span> <span class="k">True</span>
+        <span class="k">elif</span> <span class="n">tree</span> <span class="o">==</span> <span class="s">&#39;part&#39;</span><span class="p">:</span>
+            <span class="n">do_part</span> <span class="o">=</span> <span class="k">True</span>
+
     <span class="n">input_root</span> <span class="o">=</span> <span class="n">input_name</span> <span class="o">+</span> <span class="s">&#39;.root&#39;</span>
-    <span class="n">df_nttvd</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="s">&#39;readvd/nttvd&#39;</span><span class="p">)</span>
-    <span class="n">df_ntpart</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="s">&#39;readvd/ntpart&#39;</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="s">&#39;*vd&#39;</span><span class="p">)</span>
+
+    <span class="n">df_ntpart</span> <span class="o">=</span> <span class="n">df_nttvd</span> <span class="o">=</span> <span class="n">df_ntvd</span> <span class="o">=</span> <span class="k">None</span>
+
+    <span class="k">if</span> <span class="n">tree_prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">tree_prefix</span> <span class="o">=</span> <span class="n">tree_prefix</span><span class="o">+</span><span class="s">&#39;/&#39;</span>
+    <span class="k">if</span> <span class="n">do_part</span><span class="p">:</span>
+        <span class="n">df_ntpart</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="n">tree_prefix</span><span class="o">+</span><span class="s">&#39;ntpart&#39;</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="s">&#39;*vd&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">do_tvd</span><span class="p">:</span>
+        <span class="n">df_nttvd</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="n">tree_prefix</span><span class="o">+</span><span class="s">&#39;nttvd&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">do_vd</span><span class="p">:</span>
+        <span class="n">df_ntvd</span> <span class="o">=</span> <span class="n">read_root</span><span class="p">(</span><span class="n">input_root</span><span class="p">,</span> <span class="n">tree_prefix</span><span class="o">+</span><span class="s">&#39;ntvd&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">do_basic_modifications</span><span class="p">:</span>
-        <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
-        <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
-        <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;xstop = xstop+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
-
-        <span class="n">df_nttvd</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_nttvd</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
-                              <span class="n">df_nttvd</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-        <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;p = sqrt(px**2+py**2+pz**2)&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
-        <span class="n">df_ntpart</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_ntpart</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
-                               <span class="n">df_ntpart</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_part</span><span class="p">:</span>
+            <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="n">df_ntpart</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;xstop = xstop+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="n">df_ntpart</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span><span class="o">+</span><span class="n">df_ntpart</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
+                                   <span class="n">df_ntpart</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_tvd</span><span class="p">:</span>
+            <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="n">df_nttvd</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span><span class="o">+</span><span class="n">df_nttvd</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
+                                  <span class="n">df_nttvd</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">df_nttvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;p = sqrt(px**2+py**2+pz**2)&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_vd</span><span class="p">:</span>
+            <span class="n">df_ntvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;x = x+3904&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
+            <span class="n">df_ntvd</span><span class="p">[</span><span class="s">&#39;runevt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span><span class="o">+</span><span class="n">df_ntvd</span><span class="o">.</span><span class="n">subrun</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span>
+                                 <span class="n">df_ntvd</span><span class="o">.</span><span class="n">evt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">df_ntvd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s">&#39;p = sqrt(px**2+py**2+pz**2)&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">make_pickle</span><span class="p">:</span>
         <span class="nb">print</span> <span class="s">&#39;loading into hdf5&#39;</span>
         <span class="c"># pkl.dump((df_nttvd, df_ntpart), open(input_name + &#39;.p&#39;, &quot;wb&quot;), pkl.HIGHEST_PROTOCOL)</span>
         <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">input_name</span><span class="o">+</span><span class="s">&#39;.h5&#39;</span><span class="p">)</span>
-        <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_nttvd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_nttvd</span>
-        <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_ntpart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ntpart</span>
+        <span class="k">if</span> <span class="n">do_part</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_ntpart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ntpart</span>
+        <span class="k">if</span> <span class="n">do_tvd</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_nttvd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_nttvd</span>
+        <span class="k">if</span> <span class="n">do_vd</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="s">&#39;df_ntvd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ntvd</span>
         <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="nb">print</span> <span class="s">&#39;file finished&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">df_nttvd</span><span class="p">,</span> <span class="n">df_ntpart</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">df_ntpart</span><span class="p">,</span> <span class="n">df_nttvd</span><span class="p">,</span> <span class="n">df_ntvd</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">mu2e</span> <span class="k">import</span> <span class="n">mu2e_ext_path</span>
