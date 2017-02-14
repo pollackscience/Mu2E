@@ -52,6 +52,7 @@ import cPickle as pkl
 import numpy as np
 import pandas as pd
 import mu2e.src.RowTransformations as rt
+from tqdm import tqdm
 
 
 class DataFrameMaker(object):
@@ -314,6 +315,21 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False,
         print 'file finished'
     else:
         return (df_ntpart, df_nttvd, df_ntvd)
+
+
+def g4root_to_df_skim_and_combo(input_name, total_n):
+    for i in tqdm(range(total_n)):
+        df_ntpart, df_nttvd, df_ntvd = g4root_to_df(input_name+str(i), make_pickle=False,
+                                                    do_basic_modifications=True, cluster=i)
+        good_runevt = df_ntpart.query('pdg==11 and p>75').runevt.unique()
+        df_ntpart = df_ntpart[df_ntpart.runevt.isin(good_runevt)]
+        df_ntvd = df_ntvd[df_ntvd.runevt.isin(good_runevt)]
+        df_nttvd = df_nttvd[df_nttvd.runevt.isin(good_runevt)]
+        output_root = input_name+str(i)+'_skim.root'
+        df_ntvd.to_root(output_root, tree_key='ntvd', mode='w')
+        df_nttvd.to_root(output_root, tree_key='nttvd', mode='a')
+        df_ntpart.to_root(output_root, tree_key='ntpart', mode='a')
+
 
 if __name__ == "__main__":
     from mu2e import mu2e_ext_path

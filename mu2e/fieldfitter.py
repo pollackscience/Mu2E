@@ -47,6 +47,7 @@ import pandas as pd
 from lmfit import Model, Parameters, report_fit
 from mu2e import mu2e_ext_path
 import tools.fit_funcs as ff
+# import tools.fit_func_class as ffc
 
 
 class FieldFitter:
@@ -131,6 +132,11 @@ class FieldFitter:
         RR           = []
         ZZ           = []
         PP           = []
+        XX           = []
+        YY           = []
+        if func_version == 6:
+            cns = cfg_params.cns
+            cms = cfg_params.cms
 
         for phi in self.phi_steps:
             # determine phi and negative phi
@@ -151,6 +157,9 @@ class FieldFitter:
             piv_bz = input_data_phi.pivot('Z', 'R', 'Bz')
             piv_br = input_data_phi.pivot('Z', 'R', 'Br')
             piv_bphi = input_data_phi.pivot('Z', 'R', 'Bphi')
+            if func_version == 6:
+                piv_x = input_data_phi.pivot('Z', 'R', 'X')
+                piv_y = input_data_phi.pivot('Z', 'R', 'Y')
 
             # bookkeeping for field and position values
             R = piv_br.columns.values
@@ -161,6 +170,9 @@ class FieldFitter:
             RR_slice, ZZ_slice = np.meshgrid(R, Z)
             RR.append(RR_slice)
             ZZ.append(ZZ_slice)
+            if func_version == 6:
+                XX.append(piv_x.values)
+                YY.append(piv_y.values)
             use_phis = np.sort(input_data_phi.Phi.unique())
             # formatting for correct phi ordering
             if phi == 0:
@@ -177,6 +189,9 @@ class FieldFitter:
         Bz = np.concatenate(Bz)
         Br = np.concatenate(Br)
         Bphi = np.concatenate(Bphi)
+        if func_version == 6:
+            XX = np.concatenate(XX)
+            YY = np.concatenate(YY)
         if profile:
             # terminate here if we are profiling the code for further optimization
             return ZZ, RR, PP, Bz, Br, Bphi
@@ -191,12 +206,20 @@ class FieldFitter:
         elif func_version == 4:
             brzphi_3d_fast = ff.brzphi_3d_producer_numba_v2(ZZ, RR, PP, Reff, ns, ms)
         elif func_version == 5:
+            # factory = ffc.FunctionProducer(RR, PP, ZZ, ns, ms, 'modbessel', L=Reff)
+            # brzphi_3d_fast = factory.get_fit_function()
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 6:
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_ext(ZZ, RR, PP, Reff, ns, ms,
+                                                                       cns, cms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
         # Generate an lmfit Model
-        self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
+        if func_version == 6:
+            self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
+        else:
+            self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
@@ -217,7 +240,7 @@ class FieldFitter:
 
         for n in range(ns):
             # If function version 5, `D` parameter is a delta offset for phi
-            if func_version == 5:
+            if func_version in [5, 6]:
                 if 'D_{0}'.format(n) not in self.params:
                     self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5)
                 else:
@@ -256,30 +279,76 @@ class FieldFitter:
                         self.params['E_{0}_{1}'.format(n, m)].vary = False
                         self.params['F_{0}_{1}'.format(n, m)].vary = False
 
+        if func_version == 6:
+
+            if 'cns' not in self.params:
+                self.params.add('cns', value=cns, vary=False)
+            else:
+                self.params['cns'].value = cns
+            if 'cms' not in self.params:
+                self.params.add('cms', value=cms, vary=False)
+            else:
+                self.params['cms'].value = cms
+            for cn in range(1, cns+1):
+                for cm in range(1, cms+1):
+                    if 'C_{0}'.format(cm-1+(cn-1)*cms) not in self.params:
+                        self.params.add('C_{0}'.format(cm-1+(cn-1)*cms), value=0, vary=False)
+                    else:
+                        self.params['C_{0}'.format(cm-1+(cn-1)*cms)].vary = True
+
+            if 'e1' not in self.params:
+                self.params.add('e1'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=False)
+            else:
+                self.params['e1'].vary = True
+            if 'e2' not in self.params:
+                self.params.add('e2'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=False)
+            else:
+                self.params['e2'].vary = True
+
         if not cfg_pickle.recreate:
             print 'fitting with n={0}, m={1}'.format(ns, ms)
         else:
             print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(
                 ns, ms, cfg_pickle.load_name)
         start_time = time()
-        if cfg_pickle.recreate:
-            for param in self.params:
-                self.params[param].vary = False
-            self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                       r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 1})
-        elif cfg_pickle.use_pickle:
-            mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
-            self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                       weights=np.concatenate([mag, mag, mag]).ravel(),
-                                       r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 10000})
+        if func_version != 6:
+            if cfg_pickle.recreate:
+                for param in self.params:
+                    self.params[param].vary = False
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 1})
+            elif cfg_pickle.use_pickle:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 5000})
+            else:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 1000})
         else:
-            mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
-            self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                       weights=np.concatenate([mag, mag, mag]).ravel(),
-                                       r=RR, z=ZZ, phi=PP, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 2000})
+            if cfg_pickle.recreate:
+                for param in self.params:
+                    self.params[param].vary = False
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 1})
+            elif cfg_pickle.use_pickle:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 7000})
+            else:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 2000})
 
         self.params = self.result.params
         end_time = time()
@@ -441,9 +510,9 @@ class FieldFitter:
             bz = best_fit[l:int(2*l)]
             bphi = best_fit[int(2*l):]
             p = len(br)
-            br = br[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
-            bz = bz[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
-            bphi = bphi[(i/len(self.phi_steps))*p:((i+1)/len(self.phi_steps))*p]
+            br = br[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
+            bz = bz[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
+            bphi = bphi[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
 
             z_size = len(df_fit_tmp.Z.unique())
             r_size = 2*len(df_fit_tmp.R.unique())

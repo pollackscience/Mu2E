@@ -444,6 +444,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
     # Set the xray image if available
     if isinstance(df_xray, pd.DataFrame):
         xray_maker(df_xray, scat_plots)
+    if not hasattr(df, 'name'):
+        df.name = 'Particle'
 
     # Plot the actual content
     if isinstance(df, pd.DataFrame):
@@ -472,8 +474,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
     return save_name
 
 
-def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=None, y_range=None,
-                           z_range=None, title=None):
+def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3700, 17500),
+                           y_range=(-1000, 1000), z_range=(-1000, 1000), title=None):
     """Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.
 
     Generate 3D line plot for a given DF and three columns. Due to the large number of points
@@ -499,7 +501,7 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=No
     """
 
     init_notebook_mode()
-    layout = ptrap_layout(title=title)
+    layout = ptrap_layout(title=title, x_range=x_range, y_range=y_range, z_range=z_range)
     line_plots = []
 
     # Set the xray image if available
@@ -511,8 +513,8 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=No
             line_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z],
-                    marker=dict(size=5, color=df.sid, colorscale='Viridis'),
-                    line=dict(color=df.sid, width=5, colorscale='Viridis'),
+                    marker=dict(size=5, color=df.time, colorscale='Viridis'),
+                    line=dict(color=df.time, width=5, colorscale='Viridis'),
                     name=df.name
                 )
             )
@@ -700,7 +702,8 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
     return g, fig
 
 
-def ptrap_layout(title=None, x='Z', y='X', z='Y'):
+def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range=(-1000, 1000),
+                 z_range=(-1000, 1000)):
     axis_title_size = 18
     axis_tick_size = 14
     layout = go.Layout(
@@ -718,7 +721,8 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y'):
                 zerolinecolor='rgb(255, 255, 255)',
                 showbackground=True,
                 backgroundcolor='rgb(230, 230,230)',
-                range=[3700, 17500],
+                range=x_range,
+                # range=[7500, 12900],
             ),
             yaxis=dict(
                 title='{} (mm)'.format(y),
@@ -728,7 +732,7 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y'):
                 zerolinecolor='rgb(255, 255, 255)',
                 showbackground=True,
                 backgroundcolor='rgb(230, 230,230)',
-                range=[-1000, 1000],
+                range=y_range
             ),
             zaxis=dict(
                 title='{} (mm)'.format(z),
@@ -738,9 +742,11 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y'):
                 zerolinecolor='rgb(255, 255, 255)',
                 showbackground=True,
                 backgroundcolor='rgb(230, 230,230)',
-                range=[-1000, 1000],
+                range=z_range
             ),
-            aspectratio=dict(x=6, y=1, z=1),
+            aspectratio=dict(x=6, y=1, z=4),
+            # aspectratio=dict(x=6, y=1, z=1),
+            # aspectratio=dict(x=4, y=1, z=1),
             aspectmode='manual',
             camera=dict(
                 eye=dict(x=1.99, y=-2, z=2)
