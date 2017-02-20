@@ -582,6 +582,8 @@
     <span class="c"># Set the xray image if available</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_xray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="n">xray_maker</span><span class="p">(</span><span class="n">df_xray</span><span class="p">,</span> <span class="n">scat_plots</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">):</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Particle&#39;</span>
 
     <span class="c"># Plot the actual content</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
@@ -610,8 +612,8 @@
     <span class="k">return</span> <span class="n">save_name</span></div>
 
 
-<div class="viewcode-block" id="mu2e_plot3d_ptrap_traj"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap_traj">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap_traj</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">df_xray</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">x_range</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">y_range</span><span class="o">=</span><span class="k">None</span><span class="p">,</span>
-                           <span class="n">z_range</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+<div class="viewcode-block" id="mu2e_plot3d_ptrap_traj"><a class="viewcode-back" href="../../plotting.html#mu2e.mu2eplots.mu2e_plot3d_ptrap_traj">[docs]</a><span class="k">def</span> <span class="nf">mu2e_plot3d_ptrap_traj</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">df_xray</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">x_range</span><span class="o">=</span><span class="p">(</span><span class="mi">3700</span><span class="p">,</span> <span class="mi">17500</span><span class="p">),</span>
+                           <span class="n">y_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">z_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.</span>
 
 <span class="sd">    Generate 3D line plot for a given DF and three columns. Due to the large number of points</span>
@@ -637,7 +639,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">init_notebook_mode</span><span class="p">()</span>
-    <span class="n">layout</span> <span class="o">=</span> <span class="n">ptrap_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">ptrap_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">x_range</span><span class="o">=</span><span class="n">x_range</span><span class="p">,</span> <span class="n">y_range</span><span class="o">=</span><span class="n">y_range</span><span class="p">,</span> <span class="n">z_range</span><span class="o">=</span><span class="n">z_range</span><span class="p">)</span>
     <span class="n">line_plots</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c"># Set the xray image if available</span>
@@ -649,8 +651,8 @@
             <span class="n">line_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
                     <span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="n">z</span><span class="p">],</span>
-                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">sid</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">),</span>
-                    <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">sid</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">),</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">),</span>
+                    <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s">&#39;Viridis&#39;</span><span class="p">),</span>
                     <span class="n">name</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">name</span>
                 <span class="p">)</span>
             <span class="p">)</span>
@@ -838,7 +840,8 @@
     <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="n">fig</span></div>
 
 
-<span class="k">def</span> <span class="nf">ptrap_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="s">&#39;Y&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">ptrap_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s">&#39;Z&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;X&#39;</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="s">&#39;Y&#39;</span><span class="p">,</span> <span class="n">x_range</span><span class="o">=</span><span class="p">(</span><span class="mi">3700</span><span class="p">,</span> <span class="mi">17500</span><span class="p">),</span> <span class="n">y_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+                 <span class="n">z_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)):</span>
     <span class="n">axis_title_size</span> <span class="o">=</span> <span class="mi">18</span>
     <span class="n">axis_tick_size</span> <span class="o">=</span> <span class="mi">14</span>
     <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
@@ -856,7 +859,8 @@
                 <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
                 <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
                 <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="mi">3700</span><span class="p">,</span> <span class="mi">17500</span><span class="p">],</span>
+                <span class="nb">range</span><span class="o">=</span><span class="n">x_range</span><span class="p">,</span>
+                <span class="c"># range=[7500, 12900],</span>
             <span class="p">),</span>
             <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
@@ -866,7 +870,7 @@
                 <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
                 <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
                 <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+                <span class="nb">range</span><span class="o">=</span><span class="n">y_range</span>
             <span class="p">),</span>
             <span class="n">zaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="s">&#39;{} (mm)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
@@ -876,9 +880,11 @@
                 <span class="n">zerolinecolor</span><span class="o">=</span><span class="s">&#39;rgb(255, 255, 255)&#39;</span><span class="p">,</span>
                 <span class="n">showbackground</span><span class="o">=</span><span class="k">True</span><span class="p">,</span>
                 <span class="n">backgroundcolor</span><span class="o">=</span><span class="s">&#39;rgb(230, 230,230)&#39;</span><span class="p">,</span>
-                <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+                <span class="nb">range</span><span class="o">=</span><span class="n">z_range</span>
             <span class="p">),</span>
-            <span class="n">aspectratio</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">aspectratio</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="c"># aspectratio=dict(x=6, y=1, z=1),</span>
+            <span class="c"># aspectratio=dict(x=4, y=1, z=1),</span>
             <span class="n">aspectmode</span><span class="o">=</span><span class="s">&#39;manual&#39;</span><span class="p">,</span>
             <span class="n">camera</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">eye</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">1.99</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
