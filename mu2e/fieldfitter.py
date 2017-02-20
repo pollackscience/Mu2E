@@ -134,9 +134,8 @@ class FieldFitter:
         PP           = []
         XX           = []
         YY           = []
-        if func_version == 6:
-            cns = cfg_params.cns
-            cms = cfg_params.cms
+        cns = cfg_params.cns
+        cms = cfg_params.cms
 
         for phi in self.phi_steps:
             # determine phi and negative phi
@@ -212,6 +211,9 @@ class FieldFitter:
         elif func_version == 6:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_ext(ZZ, RR, PP, Reff, ns, ms,
                                                                        cns, cms)
+        elif func_version == 7:
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
+                                                                          cns, cms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
@@ -305,6 +307,33 @@ class FieldFitter:
             else:
                 self.params['e2'].vary = True
 
+        if func_version == 7:
+            if 'cns' not in self.params:
+                self.params.add('cns', value=cns, vary=False)
+            else:
+                self.params['cns'].value = cns
+            if 'cms' not in self.params:
+                self.params.add('cms', value=cms, vary=False)
+            else:
+                self.params['cms'].value = cms
+
+            for cn in range(cns):
+                if 'G_{0}'.format(cn) not in self.params:
+                    self.params.add('G_{0}'.format(cn), value=0, min=-np.pi*0.5, max=np.pi*0.5,
+                                    vary=False)
+                else:
+                    self.params['G_{0}'.format(cn)].vary = True
+
+                for cm in range(cms):
+                    if 'E_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('E_{0}_{1}'.format(cn, cm), value=0, vary=False)
+                    else:
+                        self.params['E_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'F_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('F_{0}_{1}'.format(cn, cm), value=0, vary=False)
+                    else:
+                        self.params['F_{0}_{1}'.format(cn, cm)].vary = True
+
         if not cfg_pickle.recreate:
             print 'fitting with n={0}, m={1}'.format(ns, ms)
         else:
@@ -329,7 +358,7 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 1000})
+                                           method='leastsq', fit_kws={'maxfev': 2000})
         else:
             if cfg_pickle.recreate:
                 for param in self.params:

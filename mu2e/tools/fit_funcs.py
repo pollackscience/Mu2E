@@ -512,8 +512,116 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                 _e1 = np.array([e1], dtype=np.float64)
                 _e2 = np.array([e2], dtype=np.float64)
                 _c = np.array([c], dtype=np.float64)
-                calc_b_fields_cart(z, x, y, phi, _c, C, alpha, beta, gamma, _e1, _e2, model_r, model_z,
-                                   model_phi)
+                calc_b_fields_cart(z, x, y, phi, _c, C, alpha, beta, gamma, _e1, _e2, model_r,
+                                   model_z, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+    R = 15000
+
+    b_zeros = []
+    for cn in range(cns):
+        b_zeros.append(special.jn_zeros(cn, cms))
+    kms_j = np.asarray([b/R for b in b_zeros])
+    jv = np.empty((cns, cms, r.shape[0], r.shape[1]))
+    jvp = np.empty((cns, cms, r.shape[0], r.shape[1]))
+    for cn in range(cns):
+        for cm in range(cms):
+            jv[cn][cm] = special.jv(cn, kms_j[cn][cm]*np.abs(r))
+            jvp[cn][cm] = special.jvp(cn, kms_j[cn][cm]*np.abs(r))
+
+    kms_i = []
+    for n in range(ns):
+        kms_i.append([])
+        for m in range(ms):
+            kms_i[-1].append((m+1)*np.pi/L)
+    kms_i = np.asarray(kms_i)
+    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv[n][m] = special.iv(n, kms_i[n][m]*np.abs(r))
+            ivp[n][m] = special.ivp(n, kms_i[n][m]*np.abs(r))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_mb(z, phi, r, n, A, B, D, ivp, iv, kms_i, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms_i[0] * \
+                (A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms_i[0] * \
+                (-A[0]*np.sin(kms_i[0]*z[i]) + B[0]*np.cos(kms_i[0]*z[i]))
+            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
+                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_b(z, phi, r, n, E, F, G, jvp, jv, kms_j, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += np.cos(n[0]*phi[i]-G[0])*jvp[i]*kms_j[0] * \
+                (E[0]*np.sinh(kms_j[0]*z[i]) + F[0]*np.cosh(kms_j[0]*z[i]))
+            model_z[i] += np.cos(n[0]*phi[i]-G[0])*jv[i]*kms_j[0] * \
+                (E[0]*np.cosh(kms_j[0]*z[i]) + F[0]*np.sinh(kms_j[0]*z[i]))
+            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-G[0])) * \
+                (1/np.abs(r[i]))*jv[i]*(E[0]*np.sinh(kms_j[0]*z[i]) + F[0]*np.cosh(kms_j[0]*z[i]))
+
+    def brzphi_3d_fast(z, r, phi, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        for n, d in enumerate(Ds):
+            for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                D = np.array([AB_params[d]], dtype=np.float64)
+                _ivp = ivp[n][i]
+                _iv = iv[n][i]
+                _kms = np.array([kms_i[n][i]])
+                _n = np.array([n])
+                calc_b_fields_mb(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
+                                 model_phi)
+
+        for cn, g in enumerate(Gs):
+            for i, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
+
+                E = np.array([AB_params[ef[0]]], dtype=np.float64)
+                F = np.array([AB_params[ef[1]]], dtype=np.float64)
+                G = np.array([AB_params[g]], dtype=np.float64)
+                _jvp = jvp[cn][i]
+                _jv = jv[cn][i]
+                _kms = np.array([kms_j[n][i]])
+                _n = np.array([cn])
+                calc_b_fields_b(z, phi, r, _n, E, F, G, _jvp, _jv, _kms, model_r, model_z,
+                                model_phi)
 
         model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()

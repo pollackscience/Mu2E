@@ -347,8 +347,8 @@ cfg_params_Mau_DS_700                 = cfg_params(ns=3, ms=70, cns=0, cms=0, Re
 cfg_params_Mau_DS_bad                 = cfg_params(ns=3, ms=80, cns=0, cms=0, Reff=7000,
                                                    func_version=1)
 
-cfg_params_GA05_DS_800mm              = cfg_params(ns=4, ms=60, cns=5, cms=5, Reff=7000,
-                                                   func_version=6)
+cfg_params_GA05_DS_800mm              = cfg_params(ns=4, ms=50, cns=10, cms=15, Reff=7000,
+                                                   func_version=7)
 cfg_params_GA05_DS_offset             = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
 cfg_params_Mau10_DS_offset            = cfg_params(ns=3, ms=50, cns=0, cms=0, Reff=7000,
