@@ -630,8 +630,10 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
 
 def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, ms, cns, cms):
     '''
-    Factory function that readies a potential fit function for a 3D magnetic field.
-    This function creates a modified bessel function expression/
+    Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
+    return wire located outside of the solenoid.
+
+    The displaced field is modeled by the Modified Bessel Function solution to Laplace's EQ.
     '''
     R = 5000
 
@@ -726,8 +728,10 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, 
 
 def brzphi_3d_producer_modbessel_phase_hybrid_disp(z, r, phi, rp, phip, L, ns, ms, cns, cms):
     '''
-    Factory function that readies a potential fit function for a 3D magnetic field.
-    This function creates a modified bessel function expression/
+    Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
+    return wire located outside of the solenoid.
+
+    The displaced field is modeled by the Regular Bessel Function solution to Laplace's EQ.
     '''
     R = 30000
 

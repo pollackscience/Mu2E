@@ -136,6 +136,13 @@ class FieldFitter:
         YY           = []
         cns = cfg_params.cns
         cms = cfg_params.cms
+        if func_version == 8:
+            self.input_data.eval('Xp = X+1075', inplace=True)
+            self.input_data.eval('Yp = Y-440', inplace=True)
+            self.input_data.eval('Rp = sqrt(Xp**2+Yp**2)', inplace=True)
+            self.input_data.eval('Phip = arctan2(Yp,Xp)', inplace=True)
+            RRP = []
+            PPP = []
 
         for phi in self.phi_steps:
             # determine phi and negative phi
@@ -159,6 +166,9 @@ class FieldFitter:
             if func_version == 6:
                 piv_x = input_data_phi.pivot('Z', 'R', 'X')
                 piv_y = input_data_phi.pivot('Z', 'R', 'Y')
+            elif func_version == 8:
+                piv_rp = input_data_phi.pivot('Z', 'R', 'Rp')
+                piv_phip = input_data_phi.pivot('Z', 'R', 'Phip')
 
             # bookkeeping for field and position values
             R = piv_br.columns.values
@@ -172,6 +182,9 @@ class FieldFitter:
             if func_version == 6:
                 XX.append(piv_x.values)
                 YY.append(piv_y.values)
+            elif func_version == 8:
+                RRP.append(piv_rp.values)
+                PPP.append(piv_phip.values)
             use_phis = np.sort(input_data_phi.Phi.unique())
             # formatting for correct phi ordering
             if phi == 0:
@@ -192,13 +205,8 @@ class FieldFitter:
             XX = np.concatenate(XX)
             YY = np.concatenate(YY)
         if func_version == 8:
-            disp = 1180  # displacement of the return cable
-            phi_disp = -0.3687  # relative angle of cable
-
-            XXP = RR*np.cos(PP)-disp*np.cos(phi_disp)
-            YYP = RR*np.sin(PP)-disp*np.sin(phi_disp)
-            RRP = np.sqrt(XXP**2+YYP**2)
-            PPP = np.arctan2(YYP, XXP)
+            RRP = np.concatenate(RRP)
+            PPP = np.concatenate(PPP)
         if profile:
             # terminate here if we are profiling the code for further optimization
             return ZZ, RR, PP, Bz, Br, Bphi
@@ -223,9 +231,9 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
                                                                           cns, cms)
         elif func_version == 8:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp2(ZZ, RR, PP, RRP, PPP,
-                                                                               Reff, ns, ms, cns,
-                                                                               cms)
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp2(ZZ, RR, PP, RRP,
+                                                                                PPP, Reff, ns, ms,
+                                                                                cns, cms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
