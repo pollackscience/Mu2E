@@ -163,6 +163,7 @@ class FieldFitter:
             piv_bz = input_data_phi.pivot('Z', 'R', 'Bz')
             piv_br = input_data_phi.pivot('Z', 'R', 'Br')
             piv_bphi = input_data_phi.pivot('Z', 'R', 'Bphi')
+            piv_phi = input_data_phi.pivot('Z', 'R', 'Phi')
             if func_version == 6:
                 piv_x = input_data_phi.pivot('Z', 'R', 'X')
                 piv_y = input_data_phi.pivot('Z', 'R', 'Y')
@@ -185,14 +186,14 @@ class FieldFitter:
             elif func_version == 8:
                 RRP.append(piv_rp.values)
                 PPP.append(piv_phip.values)
-            use_phis = np.sort(input_data_phi.Phi.unique())
+            # use_phis = np.sort(input_data_phi.Phi.unique())
             # formatting for correct phi ordering
-            if phi == 0:
-                use_phis = use_phis[::-1]
-            print phi, use_phis
-            PP_slice = np.full_like(RR_slice, use_phis[0])
-            PP_slice[:, int(PP_slice.shape[1]/2):] = use_phis[1]
-            PP.append(PP_slice)
+            # if phi == 0:
+            #     use_phis = use_phis[::-1]
+            # print phi, use_phis
+            # PP_slice = np.full_like(RR_slice, use_phis[0])
+            # PP_slice[:, int(PP_slice.shape[1]/2):] = use_phis[1]
+            PP.append(piv_phi.values)
 
         # combine all phi slices
         ZZ = np.concatenate(ZZ)
@@ -341,7 +342,7 @@ class FieldFitter:
 
             for cn in range(cns):
                 if 'G_{0}'.format(cn) not in self.params:
-                    self.params.add('G_{0}'.format(cn), value=0, min=-np.pi, max=np.pi,
+                    self.params.add('G_{0}'.format(cn), value=0, min=-np.pi*0.5, max=np.pi*0.5,
                                     vary=True)
                 else:
                     self.params['G_{0}'.format(cn)].vary = True

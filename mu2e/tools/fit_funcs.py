@@ -635,7 +635,7 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, 
 
     The displaced field is modeled by the Modified Bessel Function solution to Laplace's EQ.
     '''
-    R = 5000
+    R = 7000
 
     kms_j = []
     for n in range(cns):
