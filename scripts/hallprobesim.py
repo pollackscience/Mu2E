@@ -360,13 +360,13 @@ cfg_params_Mau_PS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, Re
 
 cfg_params_GA05_DS_800mm              = cfg_params(ns=4, ms=50, cns=4, cms=5, Reff=7000,
                                                    func_version=8)
-cfg_params_GA05_DS_seg_trk            = cfg_params(ns=3, ms=30, cns=15, cms=15, Reff=7000,
+cfg_params_GA05_DS_seg_trk            = cfg_params(ns=5, ms=30, cns=10, cms=15, Reff=7000,
                                                    func_version=8)
 
 ###################
 # the pickle cfgs #
 ###################
-cfg_pickle_GA05_seg_trk            = cfg_pickle(use_pickle=False, save_pickle=True,
+cfg_pickle_GA05_seg_trk            = cfg_pickle(use_pickle=True, save_pickle=True,
                                                 load_name='GA05_seg_trk', save_name='GA05_seg_trk',
                                                 recreate=False)
 
@@ -649,9 +649,9 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm,
     #                              cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
-                                 cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
-                                 cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
+    #                              cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
+    #                              cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_interp', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_800mm_interp, cfg_params_Mau_DS_800mm_long,
@@ -682,9 +682,9 @@ if __name__ == "__main__":
     #                              cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
     #                              cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_GA05_seg_trk', cfg_data_DS_GA05, cfg_geom_cyl_seg_trk,
-    #                              cfg_params_GA05_DS_seg_trk, cfg_pickle_GA05_seg_trk,
-    #                              cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_GA05_seg_trk', cfg_data_DS_GA05, cfg_geom_cyl_seg_trk,
+                                 cfg_params_GA05_DS_seg_trk, cfg_pickle_GA05_seg_trk,
+                                 cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long,

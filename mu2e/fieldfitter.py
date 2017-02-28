@@ -232,7 +232,7 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
                                                                           cns, cms)
         elif func_version == 8:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp2(ZZ, RR, PP, RRP,
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp(ZZ, RR, PP, RRP,
                                                                                 PPP, Reff, ns, ms,
                                                                                 cns, cms)
         else:

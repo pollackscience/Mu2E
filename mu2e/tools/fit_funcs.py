@@ -716,7 +716,7 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, 
                 G = np.array([AB_params[g]], dtype=np.float64)
                 _ivp = ivp_p[cn][i]
                 _iv = iv_p[cn][i]
-                _kms = np.array([kms_j[n][i]])
+                _kms = np.array([kms_j[cn][i]])
                 _n = np.array([cn])
                 calc_b_fields_mb(z, phip, rp, _n, E, F, G, _ivp, _iv, _kms, model_r, model_z,
                                  model_phi)
@@ -826,7 +826,7 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp(z, r, phi, rp, phip, L, ns, m
                 G = np.array([AB_params[g]], dtype=np.float64)
                 _jvp = jvp[cn][i]
                 _jv = jv[cn][i]
-                _kms = np.array([kms_j[n][i]])
+                _kms = np.array([kms_j[cn][i]])
                 _n = np.array([cn])
                 calc_b_fields_b(z, phip, rp, _n, E, F, G, _jvp, _jv, _kms, model_r, model_z,
                                 model_phi)
