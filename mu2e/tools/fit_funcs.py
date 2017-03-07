@@ -628,104 +628,6 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
     return brzphi_3d_fast
 
 
-def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, ms, cns, cms):
-    '''
-    Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
-    return wire located outside of the solenoid.
-
-    The displaced field is modeled by the Modified Bessel Function solution to Laplace's EQ.
-    '''
-    R = 7000
-
-    kms_j = []
-    for n in range(cns):
-        kms_j.append([])
-        for m in range(cms):
-            kms_j[-1].append((m+1)*np.pi/R)
-    kms_j = np.asarray(kms_j)
-    iv_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
-    ivp_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
-    for n in range(cns):
-        for m in range(cms):
-            iv_p[n][m] = special.iv(n, kms_j[n][m]*np.abs(rp))
-            ivp_p[n][m] = special.ivp(n, kms_j[n][m]*np.abs(rp))
-
-    kms_i = []
-    for n in range(ns):
-        kms_i.append([])
-        for m in range(ms):
-            kms_i[-1].append((m+1)*np.pi/L)
-    kms_i = np.asarray(kms_i)
-    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    for n in range(ns):
-        for m in range(ms):
-            iv[n][m] = special.iv(n, kms_i[n][m]*np.abs(r))
-            ivp[n][m] = special.ivp(n, kms_i[n][m]*np.abs(r))
-
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:])"],
-                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
-                 nopython=True, target='parallel')
-    def calc_b_fields_mb(z, phi, r, n, A, B, D, ivp, iv, kms_i, model_r, model_z, model_phi):
-        for i in range(z.shape[0]):
-            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms_i[0] * \
-                (A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
-            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms_i[0] * \
-                (-A[0]*np.sin(kms_i[0]*z[i]) + B[0]*np.cos(kms_i[0]*z[i]))
-            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
-                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
-
-    def brzphi_3d_fast(z, r, phi, rp, phip, ns, ms, **AB_params):
-        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
-
-        model_r = np.zeros(z.shape, dtype=np.float64)
-        model_z = np.zeros(z.shape, dtype=np.float64)
-        model_phi = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
-                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
-                                            x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
-                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
-                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
-                                            x.split('_')[0])))
-        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
-                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-
-        for n, d in enumerate(Ds):
-            for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
-
-                A = np.array([AB_params[ab[0]]], dtype=np.float64)
-                B = np.array([AB_params[ab[1]]], dtype=np.float64)
-                D = np.array([AB_params[d]], dtype=np.float64)
-                _ivp = ivp[n][i]
-                _iv = iv[n][i]
-                _kms = np.array([kms_i[n][i]])
-                _n = np.array([n])
-                calc_b_fields_mb(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
-                                 model_phi)
-
-        for cn, g in enumerate(Gs):
-            for i, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
-
-                E = np.array([AB_params[ef[0]]], dtype=np.float64)
-                F = np.array([AB_params[ef[1]]], dtype=np.float64)
-                G = np.array([AB_params[g]], dtype=np.float64)
-                _ivp = ivp_p[cn][i]
-                _iv = iv_p[cn][i]
-                _kms = np.array([kms_j[cn][i]])
-                _n = np.array([cn])
-                calc_b_fields_mb(z, phip, rp, _n, E, F, G, _ivp, _iv, _kms, model_r, model_z,
-                                 model_phi)
-
-        model_phi[np.isinf(model_phi)] = 0
-        return np.concatenate([model_r, model_z, model_phi]).ravel()
-    return brzphi_3d_fast
-
-
 def brzphi_3d_producer_modbessel_phase_hybrid_disp(z, r, phi, rp, phip, L, ns, ms, cns, cms):
     '''
     Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
@@ -831,6 +733,205 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp(z, r, phi, rp, phip, L, ns, m
                 calc_b_fields_b(z, phip, rp, _n, E, F, G, _jvp, _jv, _kms, model_r, model_z,
                                 model_phi)
 
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, ms, cns, cms):
+    '''
+    Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
+    return wire located outside of the solenoid.
+
+    The displaced field is modeled by the Modified Bessel Function solution to Laplace's EQ.
+    '''
+    R = 7000
+
+    kms_j = []
+    for n in range(cns):
+        kms_j.append([])
+        for m in range(cms):
+            kms_j[-1].append((m+1)*np.pi/R)
+    kms_j = np.asarray(kms_j)
+    iv_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
+    ivp_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
+    for n in range(cns):
+        for m in range(cms):
+            iv_p[n][m] = special.iv(n, kms_j[n][m]*np.abs(rp))
+            ivp_p[n][m] = special.ivp(n, kms_j[n][m]*np.abs(rp))
+
+    kms_i = []
+    for n in range(ns):
+        kms_i.append([])
+        for m in range(ms):
+            kms_i[-1].append((m+1)*np.pi/L)
+    kms_i = np.asarray(kms_i)
+    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv[n][m] = special.iv(n, kms_i[n][m]*np.abs(r))
+            ivp[n][m] = special.ivp(n, kms_i[n][m]*np.abs(r))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_mb(z, phi, r, n, A, B, D, ivp, iv, kms_i, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms_i[0] * \
+                (A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms_i[0] * \
+                (-A[0]*np.sin(kms_i[0]*z[i]) + B[0]*np.cos(kms_i[0]*z[i]))
+            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
+                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+
+    def brzphi_3d_fast(z, r, phi, rp, phip, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        for n, d in enumerate(Ds):
+            for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                D = np.array([AB_params[d]], dtype=np.float64)
+                _ivp = ivp[n][i]
+                _iv = iv[n][i]
+                _kms = np.array([kms_i[n][i]])
+                _n = np.array([n])
+                calc_b_fields_mb(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
+                                 model_phi)
+
+        for cn, g in enumerate(Gs):
+            for i, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
+
+                E = np.array([AB_params[ef[0]]], dtype=np.float64)
+                F = np.array([AB_params[ef[1]]], dtype=np.float64)
+                G = np.array([AB_params[g]], dtype=np.float64)
+                _ivp = ivp_p[cn][i]
+                _iv = iv_p[cn][i]
+                _kms = np.array([kms_j[cn][i]])
+                _n = np.array([cn])
+                calc_b_fields_mb(z, phip, rp, _n, E, F, G, _ivp, _iv, _kms, model_r, model_z,
+                                 model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_modbessel_phase_hybrid_disp3(z, r, phi, rp, phip, L, ns, ms, cns, cms):
+    '''
+    Fit function for the GA05 map.  Requires a set of displaced coordinates that correspond to a
+    return wire located outside of the solenoid.
+
+    The displaced field is modeled by the Modified Bessel Function solution to Laplace's EQ.
+    '''
+    R = 7000
+
+    kms_j = []
+    for n in range(cns):
+        kms_j.append([])
+        for m in range(cms):
+            kms_j[-1].append((m+1)*np.pi/R)
+    kms_j = np.asarray(kms_j)
+    iv_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
+    ivp_p = np.empty((cns, cms, rp.shape[0], rp.shape[1]))
+    for n in range(cns):
+        for m in range(cms):
+            iv_p[n][m] = special.iv(n, kms_j[n][m]*np.abs(rp))
+            ivp_p[n][m] = special.ivp(n, kms_j[n][m]*np.abs(rp))
+
+    kms_i = []
+    for n in range(ns):
+        kms_i.append([])
+        for m in range(ms):
+            kms_i[-1].append((m+1)*np.pi/L)
+    kms_i = np.asarray(kms_i)
+    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv[n][m] = special.iv(n, kms_i[n][m]*np.abs(r))
+            ivp[n][m] = special.ivp(n, kms_i[n][m]*np.abs(r))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_mb(z, phi, r, n, A, B, D, ivp, iv, kms_i, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms_i[0] * \
+                (A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms_i[0] * \
+                (-A[0]*np.sin(kms_i[0]*z[i]) + B[0]*np.cos(kms_i[0]*z[i]))
+            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
+                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+
+    def brzphi_3d_fast(z, r, phi, rp, phip, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
+
+        for n, d in enumerate(Ds):
+            for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                D = np.array([AB_params[d]], dtype=np.float64)
+                _ivp = ivp[n][i]
+                _iv = iv[n][i]
+                _kms = np.array([kms_i[n][i]])
+                _n = np.array([n])
+                calc_b_fields_mb(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
+                                 model_phi)
+
+        for cn, g in enumerate(Gs):
+            for i, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
+
+                E = np.array([AB_params[ef[0]]], dtype=np.float64)
+                F = np.array([AB_params[ef[1]]], dtype=np.float64)
+                G = np.array([AB_params[g]], dtype=np.float64)
+                _ivp = ivp_p[cn][i]
+                _iv = iv_p[cn][i]
+                _kms = np.array([kms_j[cn][i]])
+                _n = np.array([cn])
+                calc_b_fields_mb(z, phip, rp, _n, E, F, G, _ivp, _iv, _kms, model_r, model_z,
+                                 model_phi)
+
+        # Modify Br and Bphi to have contributions from two external fields in the X and Y plane
+        model_r += AB_params['X']*np.cos(phi)+AB_params['Y']*np.sin(phi)
+        model_phi += -1.0*AB_params['X']*np.sin(phi)+AB_params['Y']*np.cos(phi)
         model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast

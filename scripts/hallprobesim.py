@@ -56,6 +56,8 @@ cfg_data_DS_GA05_grad    = cfg_data('GA05', 'DS', path_DS_GA05,
                                     ('Z>4200', 'Z<7000', 'R!=0'))
 cfg_data_DS_GA02         = cfg_data('GA02', 'DS', path_DS_GA02,
                                     ('Z>4000', 'Z<14000', 'R!=0'))
+cfg_data_DS_GA05_seg_trk = cfg_data('GA05', 'DS', path_DS_GA05,
+                                    ('Z>8300', 'Z<12700', 'R!=0'))
 #################
 # the geom cfgs #
 #################
@@ -360,15 +362,30 @@ cfg_params_Mau_PS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, Re
 
 cfg_params_GA05_DS_800mm              = cfg_params(ns=4, ms=50, cns=4, cms=5, Reff=7000,
                                                    func_version=8)
-cfg_params_GA05_DS_seg_trk            = cfg_params(ns=5, ms=30, cns=10, cms=15, Reff=7000,
+
+cfg_params_GA05_DS_seg_trk_no_mod     = cfg_params(ns=10, ms=35, cns=0, cms=0, Reff=7000,
+                                                   func_version=5)
+
+cfg_params_GA05_DS_seg_trk_mod1       = cfg_params(ns=6, ms=35, cns=10, cms=15, Reff=7000,
                                                    func_version=8)
+
+cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, Reff=7000,
+                                                   func_version=9)
 
 ###################
 # the pickle cfgs #
 ###################
-cfg_pickle_GA05_seg_trk            = cfg_pickle(use_pickle=True, save_pickle=True,
-                                                load_name='GA05_seg_trk', save_name='GA05_seg_trk',
-                                                recreate=False)
+cfg_pickle_GA05_seg_trk_no_mod     = cfg_pickle(use_pickle=True, save_pickle=True,
+                                                load_name='GA05_seg_trk_no_mod',
+                                                save_name='GA05_seg_trk_no_mod', recreate=False)
+
+cfg_pickle_GA05_seg_trk_mod1       = cfg_pickle(use_pickle=True, save_pickle=True,
+                                                load_name='GA05_seg_trk_mod1',
+                                                save_name='GA05_seg_trk_mod1', recreate=False)
+
+cfg_pickle_GA05_seg_trk_mod2       = cfg_pickle(use_pickle=True, save_pickle=True,
+                                                load_name='GA05_seg_trk_mod2',
+                                                save_name='GA05_seg_trk_mod2', recreate=True)
 
 cfg_pickle_GA05_800mm              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                 load_name='GA05_800mm', save_name='GA05_800mm',
@@ -682,9 +699,17 @@ if __name__ == "__main__":
     #                              cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
     #                              cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_GA05_seg_trk', cfg_data_DS_GA05, cfg_geom_cyl_seg_trk,
-                                 cfg_params_GA05_DS_seg_trk, cfg_pickle_GA05_seg_trk,
-                                 cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_GA05_seg_trk_no_mod', cfg_data_DS_GA05_seg_trk,
+                                 cfg_geom_cyl_seg_trk, cfg_params_GA05_DS_seg_trk_no_mod,
+                                 cfg_pickle_GA05_seg_trk_no_mod, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_GA05_seg_trk_mod1', cfg_data_DS_GA05_seg_trk,
+    #                              cfg_geom_cyl_seg_trk, cfg_params_GA05_DS_seg_trk_mod1,
+    #                              cfg_pickle_GA05_seg_trk_mod1, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_GA05_seg_trk_mod2', cfg_data_DS_GA05_seg_trk,
+    #                              cfg_geom_cyl_seg_trk, cfg_params_GA05_DS_seg_trk_mod2,
+    #                              cfg_pickle_GA05_seg_trk_mod2, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long_bad_m_req', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_bad_measure_req, cfg_params_Mau_DS_800mm_long,

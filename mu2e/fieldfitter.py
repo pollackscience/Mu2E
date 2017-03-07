@@ -136,7 +136,7 @@ class FieldFitter:
         YY           = []
         cns = cfg_params.cns
         cms = cfg_params.cms
-        if func_version == 8:
+        if func_version in [8, 9]:
             self.input_data.eval('Xp = X+1075', inplace=True)
             self.input_data.eval('Yp = Y-440', inplace=True)
             self.input_data.eval('Rp = sqrt(Xp**2+Yp**2)', inplace=True)
@@ -167,7 +167,7 @@ class FieldFitter:
             if func_version == 6:
                 piv_x = input_data_phi.pivot('Z', 'R', 'X')
                 piv_y = input_data_phi.pivot('Z', 'R', 'Y')
-            elif func_version == 8:
+            elif func_version in [8, 9]:
                 piv_rp = input_data_phi.pivot('Z', 'R', 'Rp')
                 piv_phip = input_data_phi.pivot('Z', 'R', 'Phip')
 
@@ -183,7 +183,7 @@ class FieldFitter:
             if func_version == 6:
                 XX.append(piv_x.values)
                 YY.append(piv_y.values)
-            elif func_version == 8:
+            elif func_version in [8, 9]:
                 RRP.append(piv_rp.values)
                 PPP.append(piv_phip.values)
             # use_phis = np.sort(input_data_phi.Phi.unique())
@@ -205,7 +205,7 @@ class FieldFitter:
         if func_version == 6:
             XX = np.concatenate(XX)
             YY = np.concatenate(YY)
-        if func_version == 8:
+        if func_version in [8, 9]:
             RRP = np.concatenate(RRP)
             PPP = np.concatenate(PPP)
         if profile:
@@ -232,7 +232,11 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
                                                                           cns, cms)
         elif func_version == 8:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp(ZZ, RR, PP, RRP,
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp2(ZZ, RR, PP, RRP,
+                                                                                PPP, Reff, ns, ms,
+                                                                                cns, cms)
+        elif func_version == 9:
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp3(ZZ, RR, PP, RRP,
                                                                                 PPP, Reff, ns, ms,
                                                                                 cns, cms)
         else:
@@ -241,7 +245,7 @@ class FieldFitter:
         # Generate an lmfit Model
         if func_version == 6:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
-        elif func_version == 8:
+        elif func_version in [8,9]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
         else:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
@@ -265,7 +269,7 @@ class FieldFitter:
 
         for n in range(ns):
             # If function version 5, `D` parameter is a delta offset for phi
-            if func_version in [5, 6, 7, 8]:
+            if func_version in [5, 6, 7, 8, 9]:
                 if 'D_{0}'.format(n) not in self.params:
                     self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5)
                 else:
@@ -330,7 +334,7 @@ class FieldFitter:
             else:
                 self.params['e2'].vary = True
 
-        if func_version in [7, 8]:
+        if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
                 self.params.add('cns', value=cns, vary=False)
             else:
@@ -357,13 +361,19 @@ class FieldFitter:
                     else:
                         self.params['F_{0}_{1}'.format(cn, cm)].vary = True
 
+            if func_version == 9:
+                if 'X' not in self.params:
+                    self.params.add('X', value=0, vary=True)
+                if 'Y' not in self.params:
+                    self.params.add('Y', value=0, vary=True)
+
         if not cfg_pickle.recreate:
             print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms)
         else:
-            print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(
-                ns, ms, cfg_pickle.load_name)
+            print 'recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
+                ns, ms, cns, cms, cfg_pickle.load_name)
         start_time = time()
-        if func_version not in [6, 8]:
+        if func_version not in [6, 8, 9]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -402,7 +412,7 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 2000})
 
-        elif func_version == 8:
+        elif func_version in [8, 9]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -414,7 +424,7 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, rp=RRP, phip=PPP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 5000})
+                                           method='leastsq', fit_kws={'maxfev': 12000})
             else:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
@@ -426,7 +436,7 @@ class FieldFitter:
         end_time = time()
         print("Elapsed time was %g seconds" % (end_time - start_time))
         report_fit(self.result, show_correl=False)
-        if cfg_pickle.save_pickle and not cfg_pickle.recreate:
+        if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 
     def fit_external(self, cns=1, cms=1, use_pickle=False, pickle_name='default',
