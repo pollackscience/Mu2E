@@ -455,7 +455,7 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
                     x=df[x], y=df[y], z=df[z], mode='markers',
                     marker=dict(size=4, color=df[color], colorscale='Viridis', opacity=1,
                                 line=dict(color='black', width=1),
-                                showscale=True, cmin=0, cmax=110,
+                                showscale=True, cmin=0, cmax=140,
                                 symbol=symbol,
                                 colorbar=dict(title='Momentum (MeV)')),
                     text=df[color].astype(int),
@@ -744,8 +744,8 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
                 backgroundcolor='rgb(230, 230,230)',
                 range=z_range
             ),
-            aspectratio=dict(x=6, y=1, z=4),
-            # aspectratio=dict(x=6, y=1, z=1),
+            # aspectratio=dict(x=6, y=1, z=4),
+            aspectratio=dict(x=6, y=1, z=1),
             # aspectratio=dict(x=4, y=1, z=1),
             aspectmode='manual',
             camera=dict(
