@@ -831,6 +831,11 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, 
                 calc_b_fields_mb(z, phip, rp, _n, E, F, G, _ivp, _iv, _kms, model_r, model_z,
                                  model_phi)
 
+        # model_phi[np.isinf(model_phi)] = 0
+
+        # Modify Br and Bphi to have contributions from two external fields in the X and Y plane
+        model_r += AB_params['X']*np.cos(phi)+AB_params['Y']*np.sin(phi)
+        model_phi += -1.0*AB_params['X']*np.sin(phi)+AB_params['Y']*np.cos(phi)
         model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast

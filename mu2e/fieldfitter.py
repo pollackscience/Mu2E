@@ -245,7 +245,7 @@ class FieldFitter:
         # Generate an lmfit Model
         if func_version == 6:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
-        elif func_version in [8,9]:
+        elif func_version in [8, 9]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
         else:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
@@ -361,7 +361,7 @@ class FieldFitter:
                     else:
                         self.params['F_{0}_{1}'.format(cn, cm)].vary = True
 
-            if func_version == 9:
+            if func_version in [8, 9]:
                 if 'X' not in self.params:
                     self.params.add('X', value=0, vary=True)
                 if 'Y' not in self.params:

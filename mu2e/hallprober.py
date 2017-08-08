@@ -89,7 +89,7 @@ from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
 import imp
 interp_studies = imp.load_source('interp_studies',
-                                 '/Users/brianpollack/Coding/Mu2E/scripts/interp_studies.py')
+                                 '/Users/brianpollack/Coding/Mu2E/scripts/FieldFitting/interp_studies.py')
 
 warnings.simplefilter('always', DeprecationWarning)
 

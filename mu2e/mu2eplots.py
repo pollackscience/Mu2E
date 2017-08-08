@@ -125,7 +125,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
 
 def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
-                df_fit=None, ptype='3D'):
+                df_fit=None, ptype='3D', aspect='square'):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -260,8 +260,12 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
 
     elif 'plotly' in mode:
-        axis_title_size = 18
-        axis_tick_size = 14
+        if aspect == 'square':
+            ar = dict(x=1, y=1, z=1)
+        elif aspect == 'rect':
+            ar = dict(x=1, y=4, z=1)
+        axis_title_size = 20
+        axis_tick_size = 16
         if info is not None:
             title = '{0} {1} vs {2} and {3} for DS<br>{4}'.format(info, z, x, y, conditions_title)
         else:
@@ -291,7 +295,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 title=title,
                 titlefont=dict(size=30),
                 autosize=False,
-                width=800,
+                width=1400,
                 height=650,
                 scene=dict(
                     xaxis=dict(
@@ -321,6 +325,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                         showbackground=True,
                         backgroundcolor='rgb(230, 230,230)',
                     ),
+                    aspectratio=ar,
+                    aspectmode='manual'
                 ),
                 showlegend=True,
                 legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
@@ -376,7 +382,11 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             if ptype == '3d':
                 surface = go.Surface(
                     x=Xi, y=Yi, z=Z,
-                    colorbar=go.ColorBar(title='Tesla', titleside='right'),
+                    colorbar=go.ColorBar(title='Tesla',
+                                         titleside='right',
+                                         titlefont=dict(size=20),
+                                         tickfont=dict(size=18),
+                                         ),
                     colorscale='Viridis')
                 lines = [surface]
             elif ptype == 'heat':
@@ -475,7 +485,8 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
 
 
 def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3700, 17500),
-                           y_range=(-1000, 1000), z_range=(-1000, 1000), title=None):
+                           y_range=(-1000, 1000), z_range=(-1000, 1000),
+                           title=None, aspect='cosmic', color_mode='time'):
     """Generate 3D line plots, typically for visualizing 3D trajectorys of charged particles.
 
     Generate 3D line plot for a given DF and three columns. Due to the large number of points
@@ -501,8 +512,22 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3
     """
 
     init_notebook_mode()
-    layout = ptrap_layout(title=title, x_range=x_range, y_range=y_range, z_range=z_range)
+    layout = ptrap_layout(title=title, x_range=x_range, y_range=y_range, z_range=z_range,
+                          aspect=aspect)
     line_plots = []
+
+    # Define what color will represent
+    if color_mode == 'time':
+        c = df.time
+        c_title = 'Global Time (ns)'
+        c_min = df.time.min()
+        c_max = df.time.max()
+
+    elif color_mode == 'mom':
+        c = df.p
+        c_title = 'Momentum (MeV)'
+        c_min = df.p.min()
+        c_max = df.p.max()
 
     # Set the xray image if available
     if isinstance(df_xray, pd.DataFrame):
@@ -513,8 +538,10 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3
             line_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z],
-                    marker=dict(size=5, color=df.time, colorscale='Viridis'),
-                    line=dict(color=df.time, width=5, colorscale='Viridis'),
+                    marker=dict(size=5, color=c, colorscale='Viridis',
+                                line=dict(color=c, width=5, colorscale='Viridis'),
+                                showscale=True, cmin=c_min, cmax=c_max,
+                                colorbar=dict(title=c_title)),
                     name=df.name
                 )
             )
@@ -703,7 +730,11 @@ def mu2e_plot3d_ptrap_anim(df_group1, x, y, z, df_xray, df_group2=None, color=No
 
 
 def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range=(-1000, 1000),
-                 z_range=(-1000, 1000)):
+                 z_range=(-1000, 1000), aspect='default'):
+    if aspect == 'default':
+        ar = dict(x=6, y=1, z=1)
+    elif aspect == 'cosmic':
+        ar = dict(x=6, y=1, z=4)
     axis_title_size = 18
     axis_tick_size = 14
     layout = go.Layout(
@@ -745,7 +776,7 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
                 range=z_range
             ),
             # aspectratio=dict(x=6, y=1, z=4),
-            aspectratio=dict(x=6, y=1, z=1),
+            aspectratio=ar,
             # aspectratio=dict(x=4, y=1, z=1),
             aspectmode='manual',
             camera=dict(

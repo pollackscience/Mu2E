@@ -149,10 +149,25 @@ class DataFrameMaker(object):
                 self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
                 skiprows=4, dtype=np.float64)
 
+        elif 'Pure_Cyl' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
+                skiprows=8)
+
+        elif 'Pure_Hel' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
+                skiprows=1, dtype=np.float64)
+
+        elif 'Only' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
+                skiprows=1)
+
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
-    def do_basic_modifications(self, offset=None):
+    def do_basic_modifications(self, offset=None, helix=False, pitch=None):
         """Perform the expected modifications to the input, needed for further analysis.
 
         Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
@@ -169,17 +184,27 @@ class DataFrameMaker(object):
         Args:
             offset (float, optional): If specified, apply this offset to x-axis. Value should be in
                 millimeters.
+            helix (boolean, optional): If True, calculate helical coordinates in addition to other
+                modifications.
+            pitch (float, optional): If helix is True, pitch must be specified in order to create
+                helical coordinates. Expect units of mm.
 
         Returns:
             Nothing. Operations are performed in place, and modify the internal `data_frame`.
 
         """
 
-        print 'num of columns start', len(self.data_frame.index)
+        print 'num of rows start', len(self.data_frame.index)
+        print self.data_frame.head()
+        print self.data_frame.tail()
 
         # Convert to mm for some hard-coded versions
         if (('GA' in self.field_map_version and '5' not in self.field_map_version) or
-           ('rand' in self.file_name)):
+                ('rand' in self.file_name) or
+                ('Pure' in self.field_map_version) or
+                ('MIN' in self.file_name) or
+                ('MAX' in self.file_name) or
+                ('Only' in self.field_map_version)):
 
             self.data_frame.eval('X = X*1000', inplace=True)
             self.data_frame.eval('Y = Y*1000', inplace=True)
@@ -213,11 +238,29 @@ class DataFrameMaker(object):
         self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
                                                         self.data_frame['Bx'].values,
                                                         self.data_frame['By'].values)
+        if helix:
+            if not isinstance(pitch, float):
+                raise TypeError("If `helix` is True, pitch must be a float")
+
+            self.data_frame.loc[:, 'Zeta'] = rt.apply_make_zeta(self.data_frame['Z'].values,
+                                                                self.data_frame['Phi'].values,
+                                                                pitch)
+
+            self.data_frame.loc[:, 'Bphi_wald'] = rt.apply_make_bphi_wald(
+                self.data_frame['Phi'].values, self.data_frame['R'].values,
+                self.data_frame['Bx'].values, self.data_frame['By'].values, pitch)
+
+            self.data_frame.loc[:, 'Bzeta'] = rt.apply_make_bzeta(
+                self.data_frame['Phi'].values, self.data_frame['R'].values,
+                self.data_frame['Bx'].values, self.data_frame['By'].values,
+                self.data_frame['Bz'].values,
+                pitch)
+
         # Clean up, sort, round off.
         self.data_frame.sort_values(['X', 'Y', 'Z'], inplace=True)
         self.data_frame.reset_index(inplace=True, drop=True)
         self.data_frame = self.data_frame.round(9)
-        print 'num of columns end', len(self.data_frame.index)
+        print 'num of rows end', len(self.data_frame.index)
 
     def make_dump(self, suffix=''):
         """Create a pickle file containing the data_frame, in the same dir as the input.
@@ -343,8 +386,8 @@ if __name__ == "__main__":
     # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA01')
-    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA04/Mu2e_DS_GA04',
-                                use_pickle=False, field_map_version='GA04')
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA04/Mu2e_DS_GA04',
+    #                             use_pickle=False, field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
     #                            field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
@@ -361,9 +404,30 @@ if __name__ == "__main__":
     #                            field_map_version='Mau10')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA05/DSMap',use_pickle=False,
     #                            field_map_version='GA05')
-    data_maker.do_basic_modifications(-3896)
+    # data_maker.do_basic_modifications(-3896)
+
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsPure/DS8_Bz_xzplane.table',
+    #                             use_pickle=False, field_map_version='Pure_Cyl_2D')
+    # data_maker.do_basic_modifications(helix=True, pitch=7.38)
+
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsPure/DS8_HeliCalcfields',
+    #                             use_pickle=False, field_map_version='Pure_Hel_2D')
+    # data_maker.do_basic_modifications(helix=True, pitch=7.38)
+
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau9/MAX',
+    #                             use_pickle=False, field_map_version='Mau9')
+    # data_maker.do_basic_modifications(-3896)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/Mu2e_v10_solenoids_only_test',
+    #     use_pickle=False, field_map_version='Cyl_Only_3D')
     # data_maker.do_basic_modifications(-3904)
-    # data_maker.do_basic_modifications()
+
+    data_maker = DataFrameMaker(
+        mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only',
+        use_pickle=False, field_map_version='Bus_Only_3D')
+    data_maker.do_basic_modifications(-3904)
+
     data_maker.make_dump()
     # data_maker.make_dump('_8mmOffset')
     print data_maker.data_frame.head()
