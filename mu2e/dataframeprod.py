@@ -162,7 +162,7 @@ class DataFrameMaker(object):
         elif 'Only' in self.field_map_version:
             self.data_frame = pd.read_csv(
                 self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
-                skiprows=1)
+                skiprows=8)
 
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
@@ -418,15 +418,15 @@ if __name__ == "__main__":
     #                             use_pickle=False, field_map_version='Mau9')
     # data_maker.do_basic_modifications(-3896)
 
-    # data_maker = DataFrameMaker(
-    #     mu2e_ext_path+'datafiles/FieldMapsPure/Mu2e_v10_solenoids_only_test',
-    #     use_pickle=False, field_map_version='Cyl_Only_3D')
-    # data_maker.do_basic_modifications(-3904)
-
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only',
-        use_pickle=False, field_map_version='Bus_Only_3D')
+        mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_fullmap',
+        use_pickle=False, field_map_version='Cyl_Only_3D')
     data_maker.do_basic_modifications(-3904)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap',
+    #     use_pickle=False, field_map_version='Bus_Only_3D')
+    # data_maker.do_basic_modifications(-3904)
 
     data_maker.make_dump()
     # data_maker.make_dump('_8mmOffset')

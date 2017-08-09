@@ -383,15 +383,15 @@ class FieldFitter:
             elif cfg_pickle.use_pickle:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 5000})
+                                           method='leastsq', fit_kws={'maxfev': 7000})
             else:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                           weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 2000})
+                                           method='leastsq', fit_kws={'maxfev': 3000})
         elif func_version == 6:
             if cfg_pickle.recreate:
                 for param in self.params:
