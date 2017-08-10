@@ -1185,10 +1185,10 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
             beta[n-1][m-1] = n
             alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2-n**2)
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:])"],
-                 '(m), (m), (m), (m), (), (), (), (), (), (), () ->(m), (m), (m)',
+                 '(m), (m), (m), (), (), (), (), () ->(m), (m), (m)',
                  nopython=True, target='parallel')
     def calc_b_fields_cart(x, y, z, A, B, alpha, beta, gamma, model_x, model_y, model_z):
         for i in range(z.shape[0]):

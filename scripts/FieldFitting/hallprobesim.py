@@ -29,6 +29,7 @@ path_DSnoext_GA05   = mu2e_ext_path+'datafiles/FieldMapsGA_Special/Mu2e_DS_noPST
 path_DSnoDS_GA05    = mu2e_ext_path+'datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0'
 path_DS_GA02        = mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0'
 path_DS_Cyl_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_fullmap'
+path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -63,6 +64,8 @@ cfg_data_DS_GA05_seg_trk2 = cfg_data('GA05', 'DS', path_DS_GA05,
                                      ('Z>9900', 'Z<11400', 'R!=0'))
 # Glass
 cfg_data_DS_Glass_Cyl     = cfg_data('Glass', 'DS', path_DS_Cyl_Only_Glass,
+                                     ('Z>4500', 'Z<13500', 'R!=0'))
+cfg_data_DS_Glass_Bus     = cfg_data('Glass', 'DS', path_DS_Bus_Only_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
 
 #################
@@ -159,6 +162,8 @@ z_steps_PS = range(-7879, -4004, 50)
 z_steps_DS_seg_trk = range(8371, 12621, 50)
 z_steps_DS_seg_trk2 = range(9921, 11371, 50)
 z_steps_DS_glass = range(4521, 13521, 100)
+
+xy_steps_DS_glass = range(-800, 801, 200)
 
 # for interp
 phi_steps_interp = [(i/8.0)*np.pi for i in range(0, 8)]
@@ -335,6 +340,12 @@ cfg_geom_cyl_glass              = cfg_geom('cyl', z_steps_DS_glass, r_steps_800m
                                            xy_steps=None, bad_calibration=[False, False, False],
                                            interpolate=False)
 
+cfg_geom_bus_glass              = cfg_geom('cart', z_steps_DS_glass, r_steps=None, phi_steps=None,
+                                           xy_steps=xy_steps_DS_glass, bad_calibration=[False,
+                                                                                        False,
+                                                                                        False],
+                                           interpolate=False)
+
 # cfg_geom_set_cyl_800mm_interp   = [
 #     cfg_geom('cyl', z_steps_DS_interp, r_steps_interp,
 #              phi_steps_interp, xy_steps=None,
@@ -392,6 +403,9 @@ cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, 
 
 cfg_params_Glass_DS_Cyl               = cfg_params(ns=3, ms=70, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
+
+cfg_params_Glass_DS_Bus               = cfg_params(ns=10, ms=15, cns=0, cms=0, Reff=10000,
+                                                   func_version=0)
 
 ###################
 # the pickle cfgs #
@@ -533,6 +547,10 @@ cfg_pickle_Mau_800mm_interp_v3      = cfg_pickle(use_pickle=True, save_pickle=Tr
 cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Cyl_Only',
                                                  save_name='Cyl_Only', recreate=False)
+
+cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Bus_Only',
+                                                 save_name='Bus_Only', recreate=False)
 
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
@@ -776,6 +794,10 @@ if __name__ == "__main__":
     #                        cfg_geom_set_cyl_800mm[i], cfg_params_Mau_DS_800mm_long,
     #                        cfg_pickle_set_Mau_bad_m[i], cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Only', cfg_data_DS_Glass_Cyl,
-                                 cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl,
-                                 cfg_pickle_Glass_Cyl, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Only', cfg_data_DS_Glass_Cyl,
+    #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl,
+    #                              cfg_pickle_Glass_Cyl, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Bus_Only', cfg_data_DS_Glass_Bus,
+                                 cfg_geom_bus_glass, cfg_params_Glass_DS_Bus,
+                                 cfg_pickle_Glass_Bus, cfg_plot_mpl)

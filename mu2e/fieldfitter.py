@@ -482,7 +482,7 @@ class FieldFitter:
         Bx = np.concatenate(Bx)
         By = np.concatenate(By)
 
-        bxyz_3d_fast = ff.bxy_3d_producer_cart(XX, YY, ZZ, Reff, ns, ms)
+        bxyz_3d_fast = ff.bxyz_3d_producer_cart(XX, YY, ZZ, Reff, ns, ms)
         self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
