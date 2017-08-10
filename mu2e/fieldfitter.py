@@ -86,6 +86,7 @@ class FieldFitter:
         elif cfg_geom.geom == 'cart':
             self.xy_steps = cfg_geom.xy_steps
         self.pickle_path = mu2e_ext_path+'fit_params/'
+        self.geom = cfg_geom.geom
 
     def fit(self, geom, cfg_params, cfg_pickle, profile=False):
         """Helper function that chooses one of the subsequent fitting functions."""
@@ -439,27 +440,22 @@ class FieldFitter:
         if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 
-    def fit_external(self, cns=1, cms=1, use_pickle=False, pickle_name='default',
-                     line_profile=False, recreate=False):
+    def fit_external(self, cfg_params, cfg_pickle, profile=False):
         """For fitting an external field in cartesian space.
 
         Note:
-            Not currently used or maintained.
+            Being revamped!
         """
 
-        a     = 3e4
-        b     = 3e4
-        c     = 3e4
-
-        Bz    = []
-        Bx    = []
-        By    = []
-        Bzerr = []
-        Bxerr = []
-        Byerr = []
-        ZZ    = []
-        XX    = []
-        YY    = []
+        Reff         = cfg_params.Reff
+        ns           = cfg_params.ns
+        ms           = cfg_params.ms
+        Bx           = []
+        By           = []
+        Bz           = []
+        XX           = []
+        YY           = []
+        ZZ           = []
         for y in self.xy_steps:
 
             input_data_y = self.input_data[self.input_data.Y == y]
@@ -467,18 +463,12 @@ class FieldFitter:
             piv_bz = input_data_y.pivot('Z', 'X', 'Bz')
             piv_bx = input_data_y.pivot('Z', 'X', 'Bx')
             piv_by = input_data_y.pivot('Z', 'X', 'By')
-            piv_bz_err = input_data_y.pivot('Z', 'X', 'Bzerr')
-            piv_bx_err = input_data_y.pivot('Z', 'X', 'Bxerr')
-            piv_by_err = input_data_y.pivot('Z', 'X', 'Byerr')
 
             X = piv_bx.columns.values
             Z = piv_bx.index.values
             Bz.append(piv_bz.values)
             Bx.append(piv_bx.values)
             By.append(piv_by.values)
-            Bzerr.append(piv_bz_err.values)
-            Bxerr.append(piv_bx_err.values)
-            Byerr.append(piv_by_err.values)
             XX_slice, ZZ_slice = np.meshgrid(X, Z)
             XX.append(XX_slice)
             ZZ.append(ZZ_slice)
@@ -491,69 +481,69 @@ class FieldFitter:
         Bz = np.concatenate(Bz)
         Bx = np.concatenate(Bx)
         By = np.concatenate(By)
-        Bzerr = np.concatenate(Bzerr)
-        Bxerr = np.concatenate(Bxerr)
-        Byerr = np.concatenate(Byerr)
-        if line_profile:
-            return ZZ, XX, YY, Bz, Bx, By
 
-        b_external_3d_fast = ff.b_external_3d_producer(a, b, c, ZZ, XX, YY, cns, cms)
-        self.mod = Model(b_external_3d_fast, independent_vars=['x', 'y', 'z'])
+        bxyz_3d_fast = ff.bxy_3d_producer_cart(XX, YY, ZZ, Reff, ns, ms)
+        self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
-        if use_pickle or recreate:
-            self.params = pkl.load(open(pickle_name+'_results.p', "rb"))
+        # Load pre-defined starting valyes for parameters, or make a new set
+        if cfg_pickle.use_pickle or cfg_pickle.recreate:
+            self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p', "rb"))
         else:
             self.params = Parameters()
 
-        if 'cns' not in self.params:
-            self.params.add('cns', value=cns, vary=False)
+        if 'L' not in self.params:
+            self.params.add('L', value=Reff, vary=False)
+        if 'ns' not in self.params:
+            self.params.add('ns', value=ns, vary=False)
         else:
-            self.params['cns'].value = cns
-        if 'cms' not in self.params:
-            self.params.add('cms', value=cms, vary=False)
+            self.params['ns'].value = ns
+        if 'ms' not in self.params:
+            self.params.add('ms', value=ms, vary=False)
         else:
-            self.params['cms'].value = cms
+            self.params['ms'].value = ms
 
-        if 'epsilon1' not in self.params:
-            self.params.add('epsilon1', value=0.1, min=0, max=2*np.pi, vary=True)
-        else:
-            self.params['epsilon1'].vary = True
-        if 'epsilon2' not in self.params:
-            self.params.add('epsilon2', value=0.1, min=0, max=2*np.pi, vary=True)
-        else:
-            self.params['epsilon2'].vary = True
-
-        for cn in range(1, cns+1):
-            for cm in range(1, cms+1):
-                if 'C_{0}_{1}'.format(cn, cm) not in self.params:
-                    self.params.add('C_{0}_{1}'.format(cn, cm), value=1, vary=True)
+        for n in range(ns):
+            for m in range(ms):
+                if 'A_{0}_{1}'.format(n, m) not in self.params:
+                    self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                 else:
-                    self.params['C_{0}_{1}'.format(cn, cm)].vary = True
+                    self.params['A_{0}_{1}'.format(n, m)].vary = True
+                if 'B_{0}_{1}'.format(n, m) not in self.params:
+                    self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                else:
+                    self.params['B_{0}_{1}'.format(n, m)].vary = True
 
-        if not recreate:
-            print 'fitting external with cn={0}, cm={1}'.format(cns, cms)
+        if not cfg_pickle.recreate:
+            print 'fitting with n={0}, m={1}'.format(ns, ms)
+        else:
+            print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns, ms,
+                                                                             cfg_pickle.load_name)
         start_time = time()
-        if recreate:
+        if cfg_pickle.recreate:
             for param in self.params:
                 self.params[param].vary = False
-
-            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(), x=XX, y=YY, z=ZZ,
-                                       params=self.params, method='leastsq', fit_kws={'maxfev': 1})
-        elif use_pickle:
-            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(), x=XX, y=YY, z=ZZ,
-                                       params=self.params, method='leastsq',
-                                       fit_kws={'maxfev': 1000})
+            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
+                                       x=XX, y=YY, z=ZZ, params=self.params,
+                                       method='leastsq', fit_kws={'maxfev': 1})
+        elif cfg_pickle.use_pickle:
+            # mag = 1/np.sqrt(Bx**2+By**2+Bz**2)
+            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
+                                       # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                       x=XX, y=YY, z=ZZ, params=self.params,
+                                       method='leastsq', fit_kws={'maxfev': 7000})
         else:
-            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(), x=XX, y=YY, z=ZZ,
-                                       params=self.params, method='leastsq')
+            # mag = 1/np.sqrt(Bx**2+By**2+Bz**2)
+            self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
+                                       # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                       x=XX, y=YY, z=ZZ, params=self.params,
+                                       method='leastsq', fit_kws={'maxfev': 3000})
 
         self.params = self.result.params
         end_time = time()
-        if not recreate:
-            print("Elapsed time was %g seconds" % (end_time - start_time))
-            report_fit(self.result, show_correl=False)
-        if not self.no_save and not recreate:
-            self.pickle_results(pickle_name)
+        print("Elapsed time was %g seconds" % (end_time - start_time))
+        report_fit(self.result, show_correl=False)
+        if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
+            self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 
     def pickle_results(self, pickle_name='default'):
         """Pickle the resulting Parameters after a fit is performed."""
@@ -564,44 +554,73 @@ class FieldFitter:
         """Combine the fit results and the input data into one dataframe for easier
         comparison of results.
 
-        Adds three columns to input_data: `Br_fit, Bphi_fit, Bz_fit`
+        Adds three columns to input_data: `Br_fit, Bphi_fit, Bz_fit` or `Bx_fit, By_fit, Bz_fit`,
+        depending on the geometry.
         """
         best_fit = self.result.best_fit
 
         df_fit = pd.DataFrame()
         isc = np.isclose
-        for i, phi in enumerate(self.phi_steps):
-            if phi == 0:
-                nphi = np.pi
-            else:
-                nphi = phi-np.pi
-            data_frame_phi = self.input_data[
-                (isc(self.input_data.Phi, phi)) | (isc(self.input_data.Phi, nphi))
-            ]
 
-            # careful sorting of values to match up with fit output bookkeeping
-            df_fit_tmp = data_frame_phi[
-                isc(data_frame_phi.Phi, nphi)][['Z', 'R', 'Phi']].sort_values(
-                    ['R', 'Phi', 'Z'], ascending=[False, True, True])
-            df_fit_tmp = df_fit_tmp.append(
-                data_frame_phi[isc(data_frame_phi.Phi, phi)][['Z', 'R', 'Phi']].sort_values(
-                    ['R', 'Phi', 'Z'], ascending=[True, True, True]))
+        if self.geom == 'cyl':
+            for i, phi in enumerate(self.phi_steps):
+                if phi == 0:
+                    nphi = np.pi
+                else:
+                    nphi = phi-np.pi
+                data_frame_phi = self.input_data[
+                    (isc(self.input_data.Phi, phi)) | (isc(self.input_data.Phi, nphi))
+                ]
 
-            l = int(len(best_fit)/3)
-            br = best_fit[:l]
-            bz = best_fit[l:int(2*l)]
-            bphi = best_fit[int(2*l):]
-            p = len(br)
-            br = br[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
-            bz = bz[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
-            bphi = bphi[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
+                # careful sorting of values to match up with fit output bookkeeping
+                df_fit_tmp = data_frame_phi[
+                    isc(data_frame_phi.Phi, nphi)][['Z', 'R', 'Phi']].sort_values(
+                        ['R', 'Phi', 'Z'], ascending=[False, True, True])
+                df_fit_tmp = df_fit_tmp.append(
+                    data_frame_phi[isc(data_frame_phi.Phi, phi)][['Z', 'R', 'Phi']].sort_values(
+                        ['R', 'Phi', 'Z'], ascending=[True, True, True]))
 
-            z_size = len(df_fit_tmp.Z.unique())
-            r_size = 2*len(df_fit_tmp.R.unique())
-            df_fit_tmp['Br_fit'] = np.transpose(br.reshape((z_size, r_size))).flatten()
-            df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, r_size))).flatten()
-            df_fit_tmp['Bphi_fit'] = np.transpose(bphi.reshape((z_size, r_size))).flatten()
+                l = int(len(best_fit)/3)
+                br = best_fit[:l]
+                bz = best_fit[l:int(2*l)]
+                bphi = best_fit[int(2*l):]
+                p = len(br)
+                br = br[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
+                bz = bz[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
+                bphi = bphi[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
 
-            df_fit = df_fit.append(df_fit_tmp)
+                z_size = len(df_fit_tmp.Z.unique())
+                r_size = 2*len(df_fit_tmp.R.unique())
+                df_fit_tmp['Br_fit'] = np.transpose(br.reshape((z_size, r_size))).flatten()
+                df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, r_size))).flatten()
+                df_fit_tmp['Bphi_fit'] = np.transpose(bphi.reshape((z_size, r_size))).flatten()
 
-        self.input_data = pd.merge(self.input_data, df_fit, on=['Z', 'R', 'Phi'])
+                df_fit = df_fit.append(df_fit_tmp)
+
+            self.input_data = pd.merge(self.input_data, df_fit, on=['Z', 'R', 'Phi'])
+
+        elif self.geom == 'cart':
+            for i, y in enumerate(self.xy_steps):
+                df_fit_tmp = self.input_data[self.input_data.Y == y]
+
+                # careful sorting of values to match up with fit output bookkeeping
+                l = int(len(best_fit)/3)
+                bx = best_fit[:l]
+                by = best_fit[l:int(2*l)]
+                bz = best_fit[int(2*l):]
+                p = len(bx)
+                bx = bx[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
+                by = by[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
+                bz = bz[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
+
+                z_size = len(df_fit_tmp.Z.unique())
+                x_size = len(df_fit_tmp.X.unique())
+                df_fit_tmp['Bx_fit'] = np.transpose(bx.reshape((z_size, x_size))).flatten()
+                df_fit_tmp['By_fit'] = np.transpose(by.reshape((z_size, x_size))).flatten()
+                df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, x_size))).flatten()
+
+                df_fit = df_fit.append(df_fit_tmp)
+
+            self.input_data = pd.merge(self.input_data, df_fit, on=['X', 'Y', 'Z'])
+        else:
+            raise KeyError('Geom is not specified correctly')

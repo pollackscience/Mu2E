@@ -88,8 +88,8 @@ from mu2e.fieldfitter import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
 import imp
-interp_studies = imp.load_source('interp_studies',
-                                 '/Users/brianpollack/Coding/Mu2E/scripts/FieldFitting/interp_studies.py')
+interp_studies = imp.load_source(
+    'interp_studies', '/Users/brianpollack/Coding/Mu2E/scripts/FieldFitting/interp_studies.py')
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -152,6 +152,8 @@ class HallProbeGenerator(object):
         self.r_steps = r_steps
         self.phi_steps = phi_steps
         self.z_steps = z_steps
+        self.x_steps = x_steps
+        self.y_steps = y_steps
 
         if interpolate is not False:
             self.interpolate_points(interpolate)
@@ -512,12 +514,11 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     if geom == 'cyl':
         steps = cfg_geom.phi_steps
     if geom == 'cart':
-        raise NotImplementedError('geom = cart not implemented for plotter')
+        steps = cfg_geom.xy_steps
     conditions = cfg_data.conditions
 
     ABC_geom = {'cyl': [['R', 'Z', 'Bz'], ['R', 'Z', 'Br'], ['R', 'Z', 'Bphi']],
-                'cart': [['Y', 'Z', 'Bx'], ['Y', 'Z', 'By'], ['Y', 'Z', 'Bz'],
-                         ['X', 'Z', 'Bx'], ['X', 'Z', 'By'], ['X', 'Z', 'Bz']]}
+                'cart': [['X', 'Z', 'Bx'], ['X', 'Z', 'By'], ['X', 'Z', 'Bz']]}
 
     if cfg_plot.save_loc == 'local':
         save_dir = mu2e.mu2e_ext_path+'plots/'+name
@@ -526,7 +527,10 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
 
     for step in steps:
         for ABC in ABC_geom[geom]:
-            conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
+            if geom == 'cyl':
+                conditions_str = ' and '.join(conditions+('Phi=={}'.format(step),))
+            else:
+                conditions_str = ' and '.join(conditions+('Y=={}'.format(step),))
             save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions=conditions_str,
                                     df_fit=True, mode=plot_type, save_dir=save_dir)
 
