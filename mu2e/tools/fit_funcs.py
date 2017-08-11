@@ -1183,7 +1183,7 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
         for m in range(1, ms+1):
             gamma[n-1][m-1] = (m*np.pi)/L
             beta[n-1][m-1] = n
-            alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2-n**2)
+            alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2+beta[n-1][m-1]**2)
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:], float64[:],"
@@ -1192,13 +1192,13 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
                  nopython=True, target='parallel')
     def calc_b_fields_cart(x, y, z, A, B, alpha, beta, gamma, model_x, model_y, model_z):
         for i in range(z.shape[0]):
-            model_x += alpha[0]*np.cosh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
+            model_x[i] += alpha[0]*np.cosh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
                 (A[0]*np.cos(gamma[0]*z[i]) + B[0]*np.sin(gamma[0]*z[i]))
 
-            model_y += np.sinh(alpha[0]*x[i])*beta[0]*np.cosh(beta[0]*y[i]) * \
+            model_y[i] += np.sinh(alpha[0]*x[i])*beta[0]*np.cosh(beta[0]*y[i]) * \
                 (A[0]*np.cos(gamma[0]*z[i]) + B[0]*np.sin(gamma[0]*z[i]))
 
-            model_z += np.sinh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
+            model_z[i] += np.sinh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
                 gamma[0]*(-A[0]*np.sin(gamma[0]*z[i]) + B[0]*np.cos(gamma[0]*z[i]))
 
     def brzphi_3d_fast(x, y, z, L, ns, ms, **AB_params):

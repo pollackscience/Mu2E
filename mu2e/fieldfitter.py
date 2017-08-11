@@ -536,7 +536,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 3000})
+                                       method='leastsq', fit_kws={'maxfev': 10})
 
         self.params = self.result.params
         end_time = time()
@@ -601,7 +601,7 @@ class FieldFitter:
 
         elif self.geom == 'cart':
             for i, y in enumerate(self.xy_steps):
-                df_fit_tmp = self.input_data[self.input_data.Y == y]
+                df_fit_tmp = self.input_data[self.input_data.Y == y][['X', 'Y', 'Z']]
 
                 # careful sorting of values to match up with fit output bookkeeping
                 l = int(len(best_fit)/3)

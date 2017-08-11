@@ -66,7 +66,7 @@ cfg_data_DS_GA05_seg_trk2 = cfg_data('GA05', 'DS', path_DS_GA05,
 cfg_data_DS_Glass_Cyl     = cfg_data('Glass', 'DS', path_DS_Cyl_Only_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
 cfg_data_DS_Glass_Bus     = cfg_data('Glass', 'DS', path_DS_Bus_Only_Glass,
-                                     ('Z>4500', 'Z<13500', 'R!=0'))
+                                     ('Z>4500', 'Z<13500'))
 
 #################
 # the geom cfgs #
