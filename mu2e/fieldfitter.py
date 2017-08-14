@@ -22,7 +22,7 @@ Example:
         In [11]: hpg = HallProbeGenerator(
         ...         input_data, z_steps = cfg_geom.z_steps,
         ...         r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
-        ...         x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+        ...         x_steps = cfg_geom.x_steps, y_steps = cfg_geom.y_steps)
 
         In [12]: ff = FieldFitter(hpg.get_toy(), cfg_geom)
 
@@ -66,13 +66,14 @@ class FieldFitter:
     Args:
         input_data (pandas.DataFrame): DF that contains the field component values to be fit.
         cfg_geom (namedtuple): namedtuple with the following members:
-            'geom z_steps r_steps phi_steps xy_steps bad_calibration'
+            'geom z_steps r_steps phi_steps x_steps y_steps bad_calibration'
 
     Attributes:
         input_data (pandas.DataFrame): The input DF, with possible modifications.
         phi_steps (List[float]): The axial values of the field data (cylindrial coords)
         r_steps (List[float]): The radial values of the field data (cylindrial coords)
-        xy_steps (List[float]): The xy values of the field data (cartesian coords)
+        x_steps (List[float]): The x values of the field data (cartesian coords)
+        y_steps (List[float]): The y values of the field data (cartesian coords)
         pickle_path (str): Location to read/write the pickled fit parameter values
         params (lmfit.Parameters): Set of Parameters, inherited from `lmfit`
         result (lmfit.ModelResult): Container for resulting fit information, inherited from `lmfit`
@@ -84,7 +85,8 @@ class FieldFitter:
             self.phi_steps = cfg_geom.phi_steps
             self.r_steps = cfg_geom.r_steps
         elif cfg_geom.geom == 'cart':
-            self.xy_steps = cfg_geom.xy_steps
+            self.x_steps = cfg_geom.x_steps
+            self.y_steps = cfg_geom.y_steps
         self.pickle_path = mu2e_ext_path+'fit_params/'
         self.geom = cfg_geom.geom
 
@@ -450,13 +452,14 @@ class FieldFitter:
         Reff         = cfg_params.Reff
         ns           = cfg_params.ns
         ms           = cfg_params.ms
+        func_version = cfg_params.func_version
         Bx           = []
         By           = []
         Bz           = []
         XX           = []
         YY           = []
         ZZ           = []
-        for y in self.xy_steps:
+        for y in self.y_steps:
 
             input_data_y = self.input_data[self.input_data.Y == y]
 
@@ -482,7 +485,12 @@ class FieldFitter:
         Bx = np.concatenate(Bx)
         By = np.concatenate(By)
 
-        bxyz_3d_fast = ff.bxyz_3d_producer_cart(XX, YY, ZZ, Reff, ns, ms)
+        if func_version == 20:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 21:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v2(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 22:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v3(XX, YY, ZZ, Reff, ns, ms)
         self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
@@ -505,13 +513,22 @@ class FieldFitter:
         for n in range(ns):
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    self.params.add('A_{0}_{1}'.format(n, m), value=1, vary=True)
                 else:
                     self.params['A_{0}_{1}'.format(n, m)].vary = True
                 if 'B_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    self.params.add('B_{0}_{1}'.format(n, m), value=1, vary=True)
                 else:
                     self.params['B_{0}_{1}'.format(n, m)].vary = True
+                if func_version == 22:
+                    if 'C_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('C_{0}_{1}'.format(n, m), value=1, vary=True)
+                    else:
+                        self.params['C_{0}_{1}'.format(n, m)].vary = True
+                    if 'D_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('D_{0}_{1}'.format(n, m), value=1, vary=True)
+                    else:
+                        self.params['D_{0}_{1}'.format(n, m)].vary = True
 
         if not cfg_pickle.recreate:
             print 'fitting with n={0}, m={1}'.format(ns, ms)
@@ -536,7 +553,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 10})
+                                       method='leastsq', fit_kws={'maxfev': 3000})
 
         self.params = self.result.params
         end_time = time()
@@ -600,7 +617,7 @@ class FieldFitter:
             self.input_data = pd.merge(self.input_data, df_fit, on=['Z', 'R', 'Phi'])
 
         elif self.geom == 'cart':
-            for i, y in enumerate(self.xy_steps):
+            for i, y in enumerate(self.y_steps):
                 df_fit_tmp = self.input_data[self.input_data.Y == y][['X', 'Y', 'Z']]
 
                 # careful sorting of values to match up with fit output bookkeeping
@@ -609,9 +626,9 @@ class FieldFitter:
                 by = best_fit[l:int(2*l)]
                 bz = best_fit[int(2*l):]
                 p = len(bx)
-                bx = bx[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
-                by = by[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
-                bz = bz[(i*p)//len(self.xy_steps):((i+1)*p)//len(self.xy_steps)]
+                bx = bx[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
+                by = by[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
+                bz = bz[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
 
                 z_size = len(df_fit_tmp.Z.unique())
                 x_size = len(df_fit_tmp.X.unique())

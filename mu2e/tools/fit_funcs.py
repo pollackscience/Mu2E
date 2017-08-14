@@ -39,6 +39,12 @@ def pairwise(iterable):
     return izip(a, a)
 
 
+def quadwise(iterable):
+    """s -> (s0,s1,s2,s3), (s4,s5,s6,s7), ..."""
+    a = iter(iterable)
+    return izip(a, a, a, a)
+
+
 def brzphi_3d_producer(z, r, phi, R, ns, ms):
     b_zeros = []
     for n in range(ns):
@@ -1182,7 +1188,7 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
     for n in range(1, ns+1):
         for m in range(1, ms+1):
             gamma[n-1][m-1] = (m*np.pi)/L
-            beta[n-1][m-1] = n
+            beta[n-1][m-1] = n/L
             alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2+beta[n-1][m-1]**2)
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
@@ -1192,13 +1198,13 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
                  nopython=True, target='parallel')
     def calc_b_fields_cart(x, y, z, A, B, alpha, beta, gamma, model_x, model_y, model_z):
         for i in range(z.shape[0]):
-            model_x[i] += alpha[0]*np.cosh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
+            model_x[i] += alpha[0]*np.exp(alpha[0]*x[i])*np.exp(beta[0]*y[i]) * \
                 (A[0]*np.cos(gamma[0]*z[i]) + B[0]*np.sin(gamma[0]*z[i]))
 
-            model_y[i] += np.sinh(alpha[0]*x[i])*beta[0]*np.cosh(beta[0]*y[i]) * \
+            model_y[i] += np.exp(alpha[0]*x[i])*beta[0]*np.exp(beta[0]*y[i]) * \
                 (A[0]*np.cos(gamma[0]*z[i]) + B[0]*np.sin(gamma[0]*z[i]))
 
-            model_z[i] += np.sinh(alpha[0]*x[i])*np.sinh(beta[0]*y[i]) * \
+            model_z[i] += np.exp(alpha[0]*x[i])*np.exp(beta[0]*y[i]) * \
                 gamma[0]*(-A[0]*np.sin(gamma[0]*z[i]) + B[0]*np.cos(gamma[0]*z[i]))
 
     def brzphi_3d_fast(x, y, z, L, ns, ms, **AB_params):
@@ -1221,6 +1227,144 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
                 _gamma = np.array(gamma[n][m], dtype=np.float64)
 
                 calc_b_fields_cart(x, y, z, A, B, _alpha, _beta, _gamma, model_x, model_y, model_z)
+        # print 'model_x'
+        # print model_x
+        # print 'model_y'
+        # print model_y
+        # print 'model_z'
+        # print model_z
+
+        return np.concatenate([model_x, model_y, model_z]).ravel()
+    return brzphi_3d_fast
+
+
+def bxyz_3d_producer_cart_v2(x, y, z, L, ns, ms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    alpha = np.zeros((ns, ms))
+    beta = np.zeros((ns, ms))
+    gamma = np.zeros((ns, ms))
+
+    for n in range(1, ns+1):
+        for m in range(1, ms+1):
+            gamma[n-1][m-1] = (m*np.pi)/L
+            beta[n-1][m-1] = n/L
+            alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2+beta[n-1][m-1]**2)
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), () ->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_cart(x, y, z, A, B, alpha, beta, gamma, model_x, model_y, model_z):
+        for i in range(z.shape[0]):
+            model_x[i] += alpha[0]*(A[0]*np.exp(alpha[0]*x[i]) - B[0]*np.exp(-alpha[0]*x[i])) * \
+                np.exp(beta[0]*y[i])*np.sin(gamma[0]*z[i])
+
+            model_y[i] += (A[0]*np.exp(alpha[0]*x[i]) + B[0]*np.exp(-alpha[0]*x[i])) * \
+                beta[0]*np.exp(beta[0]*y[i])*np.sin(gamma[0]*z[i])
+
+            model_z[i] += (A[0]*np.exp(alpha[0]*x[i]) + B[0]*np.exp(-alpha[0]*x[i])) * \
+                np.exp(beta[0]*y[i])*gamma[0]*np.cos(gamma[0]*z[i])
+
+    def brzphi_3d_fast(x, y, z, L, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_x = np.zeros(z.shape, dtype=np.float64)
+        model_y = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in xrange(ns):
+            for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                _alpha = np.array(alpha[n][m], dtype=np.float64)
+                _beta = np.array(beta[n][m], dtype=np.float64)
+                _gamma = np.array(gamma[n][m], dtype=np.float64)
+
+                calc_b_fields_cart(x, y, z, A, B, _alpha, _beta, _gamma, model_x, model_y, model_z)
+        # print 'model_x'
+        # print model_x
+        # print 'model_y'
+        # print model_y
+        # print 'model_z'
+        # print model_z
+
+        return np.concatenate([model_x, model_y, model_z]).ravel()
+    return brzphi_3d_fast
+
+
+def bxyz_3d_producer_cart_v3(x, y, z, L, ns, ms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    alpha = np.zeros((ns, ms))
+    beta = np.zeros((ns, ms))
+    gamma = np.zeros((ns, ms))
+
+    for n in range(1, ns+1):
+        for m in range(1, ms+1):
+            gamma[n-1][m-1] = (m*np.pi)/L
+            beta[n-1][m-1] = n/L
+            alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2+beta[n-1][m-1]**2)
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), () ->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_cart(x, y, z, A, B, C, D, alpha, beta, gamma, model_x, model_y, model_z):
+        for i in range(z.shape[0]):
+            model_x[i] += alpha[0]*(A[0]*np.exp(alpha[0]*x[i]) - B[0]*np.exp(-alpha[0]*x[i])) * \
+                (C[0]*np.exp(beta[0]*y[i]) +
+                 D[0]*np.exp(-beta[0]*y[i]))*np.sin(gamma[0]*z[i])
+
+            model_y[i] += (A[0]*np.exp(alpha[0]*x[i]) + B[0]*np.exp(-alpha[0]*x[i])) * \
+                beta[0]*(C[0]*np.exp(beta[0]*y[i]) -
+                         D[0]*np.exp(-beta[0]*y[i]))*np.sin(gamma[0]*z[i])
+
+            model_z[i] += (A[0]*np.exp(alpha[0]*x[i]) + B[0]*np.exp(-alpha[0]*x[i])) * \
+                (C[0]*np.exp(beta[0]*y[i]) +
+                 D[0]*np.exp(-beta[0]*y[i]))*gamma[0]*np.cos(gamma[0]*z[i])
+
+    def brzphi_3d_fast(x, y, z, L, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_x = np.zeros(z.shape, dtype=np.float64)
+        model_y = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in xrange(ns):
+            for m, ab in enumerate(quadwise(ABs[n*ms*2:(n+1)*ms*2])):
+
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                _alpha = np.array(alpha[n][m], dtype=np.float64)
+                _beta = np.array(beta[n][m], dtype=np.float64)
+                _gamma = np.array(gamma[n][m], dtype=np.float64)
+
+                calc_b_fields_cart(x, y, z, A, B, C, D, _alpha, _beta, _gamma, model_x, model_y,
+                                   model_z)
+        # print 'model_x'
+        # print model_x
+        # print 'model_y'
+        # print model_y
+        # print 'model_z'
+        # print model_z
 
         return np.concatenate([model_x, model_y, model_z]).ravel()
     return brzphi_3d_fast

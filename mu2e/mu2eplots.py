@@ -295,7 +295,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 title=title,
                 titlefont=dict(size=30),
                 autosize=False,
-                width=1400,
+                width=800,
                 height=650,
                 scene=dict(
                     xaxis=dict(
@@ -414,7 +414,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 plot(fig)
         elif mode == 'plotly_html':
             if save_dir:
-                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=False)
+                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=True)
             else:
                 plot(fig)
 

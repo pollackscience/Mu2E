@@ -30,7 +30,7 @@ Example:
         In [11]: hpg = HallProbeGenerator(
         ...         input_data, z_steps = cfg_geom.z_steps,
         ...         r_steps = cfg_geom.r_steps, phi_steps = cfg_geom.phi_steps,
-        ...         x_steps = cfg_geom.xy_steps, y_steps = cfg_geom.xy_steps)
+        ...         x_steps = cfg_geom.x_steps, y_steps = cfg_geom.y_steps)
 
 
         # Introduce miscalibrations
@@ -514,7 +514,7 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
     if geom == 'cyl':
         steps = cfg_geom.phi_steps
     if geom == 'cart':
-        steps = cfg_geom.xy_steps
+        steps = cfg_geom.y_steps
     conditions = cfg_data.conditions
 
     ABC_geom = {'cyl': [['R', 'Z', 'Bz'], ['R', 'Z', 'Br'], ['R', 'Z', 'Bphi']],
@@ -573,7 +573,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     input_data.query(' and '.join(cfg_data.conditions))
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
-                             x_steps=cfg_geom.xy_steps, y_steps=cfg_geom.xy_steps,
+                             x_steps=cfg_geom.x_steps, y_steps=cfg_geom.y_steps,
                              interpolate=cfg_geom.interpolate)
 
     seed = None
