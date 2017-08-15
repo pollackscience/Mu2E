@@ -1314,7 +1314,7 @@ def bxyz_3d_producer_cart_v3(x, y, z, L, ns, ms):
     for n in range(1, ns+1):
         for m in range(1, ms+1):
             gamma[n-1][m-1] = (m*np.pi)/L
-            beta[n-1][m-1] = n/L
+            beta[n-1][m-1] = n/10000
             alpha[n-1][m-1] = np.sqrt(gamma[n-1][m-1]**2+beta[n-1][m-1]**2)
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
@@ -1347,7 +1347,7 @@ def bxyz_3d_producer_cart_v3(x, y, z, L, ns, ms):
                                             x.split('_')[0])))
 
         for n in xrange(ns):
-            for m, ab in enumerate(quadwise(ABs[n*ms*2:(n+1)*ms*2])):
+            for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
                 B = np.array([AB_params[ab[1]]], dtype=np.float64)

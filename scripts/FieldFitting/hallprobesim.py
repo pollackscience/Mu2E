@@ -393,9 +393,6 @@ cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, 
 cfg_params_Glass_DS_Cyl               = cfg_params(ns=3, ms=70, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
 
-cfg_params_Glass_DS_Bus               = cfg_params(ns=2, ms=5, cns=0, cms=0, Reff=10000,
-                                                   func_version=22)
-
 ###################
 # the pickle cfgs #
 ###################
@@ -536,6 +533,9 @@ cfg_pickle_Mau_800mm_interp_v3      = cfg_pickle(use_pickle=True, save_pickle=Tr
 cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Cyl_Only',
                                                  save_name='Cyl_Only', recreate=False)
+
+cfg_params_Glass_DS_Bus             = cfg_params(ns=5, ms=5, cns=0, cms=0, Reff=10000,
+                                                 func_version=22)
 
 cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Bus_Only',

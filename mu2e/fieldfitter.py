@@ -547,13 +547,18 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 7000})
+                                       method='least_squares', fit_kws={
+                                           'max_nfev': 200, 'loss': 'soft_l1', 'verbose': 2})
+                                       # method='leastsq', fit_kws={'maxfev': 7000})
         else:
             # mag = 1/np.sqrt(Bx**2+By**2+Bz**2)
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 3000})
+                                       method='least_squares', fit_kws={
+                                           'max_nfev': 1000, 'loss': 'linear',
+                                           'method': 'lm', 'verbose': 2})
+                                       # method='leastsq', fit_kws={'maxfev': 3000})
 
         self.params = self.result.params
         end_time = time()
