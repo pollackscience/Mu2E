@@ -30,6 +30,7 @@ path_DSnoDS_GA05    = mu2e_ext_path+'datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_
 path_DS_GA02        = mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0'
 path_DS_Cyl_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_fullmap'
 path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap'
+path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_combo_fullmap'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -66,7 +67,9 @@ cfg_data_DS_GA05_seg_trk2 = cfg_data('GA05', 'DS', path_DS_GA05,
 cfg_data_DS_Glass_Cyl     = cfg_data('Glass', 'DS', path_DS_Cyl_Only_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
 cfg_data_DS_Glass_Bus     = cfg_data('Glass', 'DS', path_DS_Bus_Only_Glass,
-                                     ('Z>4500', 'Z<13500'))
+                                     ('Z>6000', 'Z<12000'))
+cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
+                                     ('Z>4500', 'Z<13500', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -161,10 +164,10 @@ z_steps_DS_fullsim2 = range(4221, 13921, 25)
 z_steps_PS = range(-7879, -4004, 50)
 z_steps_DS_seg_trk = range(8371, 12621, 50)
 z_steps_DS_seg_trk2 = range(9921, 11371, 50)
-z_steps_DS_glass = range(4521, 13521, 100)
+z_steps_DS_glass = range(6021, 12021, 100)
 
 x_steps_DS_glass = range(-800, 801, 200)
-y_steps_DS_glass = [-100, 0, 100]
+y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
 
 # for interp
 phi_steps_interp = [(i/8.0)*np.pi for i in range(0, 8)]
@@ -390,8 +393,6 @@ cfg_params_GA05_DS_seg_trk_mod1       = cfg_params(ns=6, ms=35, cns=10, cms=15, 
 cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, Reff=7000,
                                                    func_version=9)
 
-cfg_params_Glass_DS_Cyl               = cfg_params(ns=3, ms=70, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
 
 ###################
 # the pickle cfgs #
@@ -530,16 +531,29 @@ cfg_pickle_Mau_800mm_interp_v3      = cfg_pickle(use_pickle=True, save_pickle=Tr
                                                  load_name='Mau10_800mm_interp_v3',
                                                  save_name='Mau10_800mm_interp_v3', recreate=False)
 
-cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=True, save_pickle=True,
+cfg_params_Glass_DS_Cyl               = cfg_params(ns=1, ms=60, cns=0, cms=0, Reff=7000,
+                                                   func_version=5)
+cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cyl_Only',
                                                  save_name='Cyl_Only', recreate=False)
 
-cfg_params_Glass_DS_Bus             = cfg_params(ns=5, ms=5, cns=0, cms=0, Reff=10000,
-                                                 func_version=22)
-
+cfg_params_Glass_DS_Bus             = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=4000,
+                                                 func_version=30)
 cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Bus_Only',
                                                  save_name='Bus_Only', recreate=False)
+
+cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=10, cms=10, Reff=7000,
+                                                 func_version=6)
+cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=True, save_pickle=True,
+                                                 load_name='Combo',
+                                                 save_name='Combo', recreate=False)
+
+cfg_params_Glass_DS_Cyl_bad         = cfg_params(ns=6, ms=50, cns=0, cms=0, Reff=7000,
+                                                 func_version=5)
+cfg_pickle_Glass_Combo_Cyl          = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Combo_Cyl',
+                                                 save_name='Combo_Cyl', recreate=False)
 
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
@@ -787,6 +801,14 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl,
     #                              cfg_pickle_Glass_Cyl, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Bus_Only', cfg_data_DS_Glass_Bus,
-                                 cfg_geom_bus_glass, cfg_params_Glass_DS_Bus,
-                                 cfg_pickle_Glass_Bus, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Bus_Only', cfg_data_DS_Glass_Bus,
+    #                              cfg_geom_bus_glass, cfg_params_Glass_DS_Bus,
+    #                              cfg_pickle_Glass_Bus, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Glass_Combo_cyl_only_fit', cfg_data_DS_Glass_Combo,
+    #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl_bad,
+    #                              cfg_pickle_Glass_Combo_Cyl, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Combo', cfg_data_DS_Glass_Combo,
+                                 cfg_geom_cyl_glass, cfg_params_Glass_DS_Combo,
+                                 cfg_pickle_Glass_Combo, cfg_plot_mpl)

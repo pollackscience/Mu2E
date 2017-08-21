@@ -276,7 +276,7 @@ class FieldFitter:
                 if 'D_{0}'.format(n) not in self.params:
                     self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5)
                 else:
-                    self.params['D_{0}'.format(n)].vary = True
+                    self.params['D_{0}'.format(n)].vary = False
             # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
             else:
                 if 'C_{0}'.format(n) not in self.params:
@@ -292,11 +292,11 @@ class FieldFitter:
                 if 'A_{0}_{1}'.format(n, m) not in self.params:
                     self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                 else:
-                    self.params['A_{0}_{1}'.format(n, m)].vary = True
+                    self.params['A_{0}_{1}'.format(n, m)].vary = False
                 if 'B_{0}_{1}'.format(n, m) not in self.params:
                     self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
                 else:
-                    self.params['B_{0}_{1}'.format(n, m)].vary = True
+                    self.params['B_{0}_{1}'.format(n, m)].vary = False
                 # Additional terms used in func version 3
                 if func_version == 3:
                     if 'E_{0}_{1}'.format(n, m) not in self.params:
@@ -321,21 +321,24 @@ class FieldFitter:
                 self.params.add('cms', value=cms, vary=False)
             else:
                 self.params['cms'].value = cms
-            for cn in range(1, cns+1):
-                for cm in range(1, cms+1):
-                    if 'C_{0}'.format(cm-1+(cn-1)*cms) not in self.params:
-                        self.params.add('C_{0}'.format(cm-1+(cn-1)*cms), value=0, vary=True)
+            for cn in range(cns):
+                for cm in range(cms):
+                    if 'E_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('E_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
                     else:
-                        self.params['C_{0}'.format(cm-1+(cn-1)*cms)].vary = True
-
-            if 'e1' not in self.params:
-                self.params.add('e1'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=True)
-            else:
-                self.params['e1'].vary = True
-            if 'e2' not in self.params:
-                self.params.add('e2'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=True)
-            else:
-                self.params['e2'].vary = True
+                        self.params['E_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'F_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('F_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
+                    else:
+                        self.params['F_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'G_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('G_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
+                    else:
+                        self.params['G_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'H_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('H_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
+                    else:
+                        self.params['H_{0}_{1}'.format(cn, cm)].vary = True
 
         if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
@@ -405,15 +408,14 @@ class FieldFitter:
             elif cfg_pickle.use_pickle:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                           weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 7000})
+                                           method='leastsq', fit_kws={'maxfev': 20000})
             else:
+                print 'fitting phase ext'
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                           weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 2000})
+                                           method='leastsq', fit_kws={'maxfev': 40000})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:
@@ -452,6 +454,8 @@ class FieldFitter:
         Reff         = cfg_params.Reff
         ns           = cfg_params.ns
         ms           = cfg_params.ms
+        cns          = cfg_params.cns
+        cms          = cfg_params.cms
         func_version = cfg_params.func_version
         Bx           = []
         By           = []
@@ -491,6 +495,22 @@ class FieldFitter:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v2(XX, YY, ZZ, Reff, ns, ms)
         elif func_version == 22:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v3(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 23:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v4(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 24:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v5(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 25:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v6(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 26:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v7(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 27:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v8(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 28:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v9(XX, YY, ZZ, Reff, ns, ms, cns, cms)
+        elif func_version == 29:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v10(XX, YY, ZZ, Reff, ns, ms, cns, cms)
+        elif func_version == 30:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v11(XX, YY, ZZ, Reff, ns, ms)
         self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
@@ -513,25 +533,57 @@ class FieldFitter:
         for n in range(ns):
             for m in range(ms):
                 if 'A_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('A_{0}_{1}'.format(n, m), value=1, vary=True)
+                    self.params.add('A_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                 else:
                     self.params['A_{0}_{1}'.format(n, m)].vary = True
-                if 'B_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('B_{0}_{1}'.format(n, m), value=1, vary=True)
-                else:
-                    self.params['B_{0}_{1}'.format(n, m)].vary = True
-                if func_version == 22:
+                if func_version not in [27, 28, 29]:
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=1e-2, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [22, 23, 24, 25, 30]:
                     if 'C_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('C_{0}_{1}'.format(n, m), value=1, vary=True)
+                        self.params.add('C_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['C_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [22, 23, 24, 25]:
                     if 'D_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('D_{0}_{1}'.format(n, m), value=1, vary=True)
+                        self.params.add('D_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['D_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [25]:
+                    if 'E_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('E_{0}_{1}'.format(n, m), value=1e-2, vary=True)
+                    else:
+                        self.params['E_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [25]:
+                    if 'F_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('F_{0}_{1}'.format(n, m), value=1e-2, vary=True)
+                    else:
+                        self.params['F_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [30]:
+                    if 'D_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('D_{0}_{1}'.format(n, m), value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5)
+                    else:
+                        self.params['D_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [26]:
+                    if 'C_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('C_{0}_{1}'.format(n, m), value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5)
+                    else:
+                        self.params['C_{0}_{1}'.format(n, m)].vary = True
+
+        if func_version in [28, 29]:
+            for cn in range(cns):
+                for cm in range(cms):
+                    if 'B_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(cn, cm), value=1e-2, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(cn, cm)].vary = True
 
         if not cfg_pickle.recreate:
-            print 'fitting with n={0}, m={1}'.format(ns, ms)
+            print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms)
         else:
             print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns, ms,
                                                                              cfg_pickle.load_name)
@@ -547,18 +599,17 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='least_squares', fit_kws={
-                                           'max_nfev': 200, 'loss': 'soft_l1', 'verbose': 2})
-                                       # method='leastsq', fit_kws={'maxfev': 7000})
+                                       # method='least_squares', fit_kws={
+                                       #     'max_nfev': 200, 'loss': 'soft_l1', 'verbose': 2})
+                                       method='leastsq', fit_kws={'maxfev': 10000})
         else:
             # mag = 1/np.sqrt(Bx**2+By**2+Bz**2)
             self.result = self.mod.fit(np.concatenate([Bx, By, Bz]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        x=XX, y=YY, z=ZZ, params=self.params,
-                                       method='least_squares', fit_kws={
-                                           'max_nfev': 1000, 'loss': 'linear',
-                                           'method': 'lm', 'verbose': 2})
-                                       # method='leastsq', fit_kws={'maxfev': 3000})
+                                       # method='least_squares', fit_kws={
+                                       #     'max_nfev': 1000, 'loss': 'soft_l1', 'verbose': 2})
+                                       method='leastsq', fit_kws={'maxfev': 20000})
 
         self.params = self.result.params
         end_time = time()
