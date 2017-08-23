@@ -511,6 +511,14 @@ class FieldFitter:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v10(XX, YY, ZZ, Reff, ns, ms, cns, cms)
         elif func_version == 30:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v11(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 31:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v12(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 32:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v13(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 33:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v14(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 34:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v15(XX, YY, ZZ, Reff, ns, ms)
         self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
@@ -536,12 +544,12 @@ class FieldFitter:
                     self.params.add('A_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                 else:
                     self.params['A_{0}_{1}'.format(n, m)].vary = True
-                if func_version not in [27, 28, 29]:
+                if func_version not in [26, 27, 29]:
                     if 'B_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('B_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [22, 23, 24, 25, 30]:
+                if func_version in [22, 23, 24, 25, 30, 34]:
                     if 'C_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('C_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
@@ -561,26 +569,92 @@ class FieldFitter:
                         self.params.add('F_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['F_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [30]:
+                if func_version in [30, 31, 34]:
                     if 'D_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('D_{0}_{1}'.format(n, m), value=0, min=-np.pi*0.5,
                                         max=np.pi*0.5)
                     else:
                         self.params['D_{0}_{1}'.format(n, m)].vary = True
                 if func_version in [26]:
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5)
+                    else:
+                        self.params['C_{0}_{1}'.format(n, m)].vary = True
+                if func_version in [26, 31]:
                     if 'C_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('C_{0}_{1}'.format(n, m), value=0, min=-np.pi*0.5,
                                         max=np.pi*0.5)
                     else:
                         self.params['C_{0}_{1}'.format(n, m)].vary = True
 
-        if func_version in [28, 29]:
+        if func_version in [29]:
             for cn in range(cns):
                 for cm in range(cms):
                     if 'B_{0}_{1}'.format(cn, cm) not in self.params:
                         self.params.add('B_{0}_{1}'.format(cn, cm), value=1e-2, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(cn, cm)].vary = True
+
+        if func_version in [28]:
+            for cn in range(cns):
+                for cm in range(cms):
+                    if 'C_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('C_{0}_{1}'.format(cn, cm), value=1e-2, vary=True)
+                    else:
+                        self.params['C_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'D_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('D_{0}_{1}'.format(cn, cm), value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5)
+                    else:
+                        self.params['D_{0}_{1}'.format(cn, cm)].vary = True
+                    if 'E_{0}_{1}'.format(cn, cm) not in self.params:
+                        self.params.add('E_{0}_{1}'.format(cn, cm), value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5)
+                    else:
+                        self.params['E_{0}_{1}'.format(cn, cm)].vary = True
+
+        if func_version in [32]:
+            if 'k1' not in self.params:
+                self.params.add('k1', value=0, vary=True)
+            else:
+                self.params['k1'].vary = True
+            if 'k2' not in self.params:
+                self.params.add('k2', value=0, vary=True)
+            else:
+                self.params['k2'].vary = True
+            if 'k3' not in self.params:
+                self.params.add('k3', value=0, vary=True)
+            else:
+                self.params['k3'].vary = True
+            if 'k4' not in self.params:
+                self.params.add('k4', value=0, vary=True)
+            else:
+                self.params['k4'].vary = True
+            if 'k5' not in self.params:
+                self.params.add('k5', value=0, vary=True)
+            else:
+                self.params['k5'].vary = True
+            if 'k6' not in self.params:
+                self.params.add('k6', value=0, vary=True)
+            else:
+                self.params['k6'].vary = True
+            if 'k7' not in self.params:
+                self.params.add('k7', value=0, vary=True)
+            else:
+                self.params['k7'].vary = True
+            if 'k8' not in self.params:
+                self.params.add('k8', value=0, vary=True)
+            else:
+                self.params['k8'].vary = True
+            if 'k9' not in self.params:
+                self.params.add('k9', value=0, vary=True)
+            else:
+                self.params['k9'].vary = True
+            if 'k10' not in self.params:
+                self.params.add('k10', value=0, vary=True)
+            else:
+                self.params['k10'].vary = True
 
         if not cfg_pickle.recreate:
             print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms)
