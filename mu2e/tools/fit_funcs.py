@@ -470,23 +470,25 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
             model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
                 (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:])"],
-                 '(m), (m), (m), (m), (), (), (), (), (), (), () ->(m), (m), (m)',
+                 '(m), (m), (m), (m), (), (), (), (), () ->(m), (m), (m)',
                  nopython=True, target='parallel')
-    def calc_b_fields_cart(x, y, z, phi, E, F, G, H, alpha, beta, gamma, model_r, model_phi,
+    def calc_b_fields_cart(x, y, z, phi, E, F, alpha, beta, gamma, model_r, model_phi,
                            model_z):
         for i in range(z.shape[0]):
-            model_x = alpha[0]*(E[0]*np.cosh(alpha[0]*x[i]) + F[0]*np.sinh(alpha[0]*x[i])) * \
-                np.exp(beta[0]*y[i])*(G[0]*np.sin(gamma[0]*y[i])+H[0]*np.cos(gamma[0]*z[i]))
+            model_x = alpha[0]*np.exp(alpha[0]*x[i]) * \
+                np.exp(beta[0]*y[i]) * \
+                (E[0]*np.sin(gamma[0]*y[i]) + F[0]*np.cos(gamma[0]*z[i]))
 
-            model_y = (E[0]*np.sinh(alpha[0]*x[i]) + F[0]*np.cosh(alpha[0]*x[i])) * \
-                beta[0]*np.exp(beta[0]*y[i])*(G[0]*np.sin(gamma[0]*y[i])+H[0]*np.cos(gamma[0]*z[i]))
+            model_y = np.exp(alpha[0]*x[i]) * \
+                beta[0]*np.exp(beta[0]*y[i]) * \
+                (E[0]*np.sin(gamma[0]*y[i]) + F[0]*np.cos(gamma[0]*z[i]))
 
-            model_z[i] += (E[0]*np.sinh(alpha[0]*x[i]) + F[0]*np.cosh(alpha[0]*x[i])) * \
-                np.exp(beta[0]*y[i])*gamma[0]*(G[0]*np.cos(gamma[0]*y[i]) -
-                                               H[0]*np.sin(gamma[0]*z[i]))
+            model_z[i] += np.exp(alpha[0]*x[i]) * \
+                np.exp(beta[0]*y[i]) * \
+                gamma[0]*(E[0]*np.cos(gamma[0]*y[i]) - F[0]*np.sin(gamma[0]*z[i]))
 
             model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
             model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
@@ -503,8 +505,7 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                                             x.split('_')[0])))
         Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-        EFGHs = sorted({k: v for (k, v) in AB_params.iteritems() if
-                        ('E' in k or 'F' in k or 'G' in k or 'H' in k)})
+        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)})
 
         for n, d in enumerate(Ds):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
@@ -520,16 +521,14 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                                   model_phi)
 
         for cn in range(cns):
-            for cm, efgh in enumerate(quadwise(EFGHs[cn*cms*4:(cn+1)*cms*4])):
+            for cm, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
 
                 _alpha = np.array(alpha[cn][cm], dtype=np.float64)
                 _beta = np.array(beta[cn][cm], dtype=np.float64)
                 _gamma = np.array(gamma[cn][cm], dtype=np.float64)
-                E = np.array([AB_params[efgh[0]]], dtype=np.float64)
-                F = np.array([AB_params[efgh[1]]], dtype=np.float64)
-                G = np.array([AB_params[efgh[2]]], dtype=np.float64)
-                H = np.array([AB_params[efgh[3]]], dtype=np.float64)
-                calc_b_fields_cart(x, y, z, phi, E, F, G, H, _alpha, _beta, _gamma, model_r,
+                E = np.array([AB_params[ef[0]]], dtype=np.float64)
+                F = np.array([AB_params[ef[1]]], dtype=np.float64)
+                calc_b_fields_cart(x, y, z, phi, E, F, _alpha, _beta, _gamma, model_r,
                                    model_phi, model_z)
 
         model_phi[np.isinf(model_phi)] = 0
@@ -1184,6 +1183,7 @@ def brzphi_3d_producer_profile(z, r, phi, R, ns, ms):
         model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast
+
 
 #######################################
 #######################################

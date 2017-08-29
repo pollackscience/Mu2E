@@ -246,9 +246,9 @@ class FieldFitter:
             raise KeyError('func version '+func_version+' does not exist')
 
         # Generate an lmfit Model
-        if func_version == 6:
+        if func_version in [6]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
-        elif func_version in [8, 9]:
+        elif func_version in [8, 9, 10]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
         else:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
@@ -415,7 +415,7 @@ class FieldFitter:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 40000})
+                                           method='leastsq', fit_kws={'maxfev': 10000})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:
