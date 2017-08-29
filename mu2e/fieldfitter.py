@@ -519,6 +519,10 @@ class FieldFitter:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v14(XX, YY, ZZ, Reff, ns, ms)
         elif func_version == 34:
             bxyz_3d_fast = ff.bxyz_3d_producer_cart_v15(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 35:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v16(XX, YY, ZZ, Reff, ns, ms)
+        elif func_version == 36:
+            bxyz_3d_fast = ff.bxyz_3d_producer_cart_v17(XX, YY, ZZ, Reff, ns, ms)
         self.mod = Model(bxyz_3d_fast, independent_vars=['x', 'y', 'z'])
 
         # Load pre-defined starting valyes for parameters, or make a new set
@@ -549,22 +553,22 @@ class FieldFitter:
                         self.params.add('B_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [22, 23, 24, 25, 30, 34]:
+                if func_version in [22, 23, 24, 25, 30, 34, 35]:
                     if 'C_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('C_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['C_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [22, 23, 24, 25]:
+                if func_version in [22, 23, 24, 25, 35]:
                     if 'D_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('D_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['D_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [25]:
+                if func_version in [25, 35]:
                     if 'E_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('E_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
                         self.params['E_{0}_{1}'.format(n, m)].vary = True
-                if func_version in [25]:
+                if func_version in [25, 35]:
                     if 'F_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('F_{0}_{1}'.format(n, m), value=1e-2, vary=True)
                     else:
@@ -614,7 +618,7 @@ class FieldFitter:
                     else:
                         self.params['E_{0}_{1}'.format(cn, cm)].vary = True
 
-        if func_version in [32]:
+        if func_version in [32, 33, 36]:
             if 'k1' not in self.params:
                 self.params.add('k1', value=0, vary=True)
             else:
@@ -627,6 +631,7 @@ class FieldFitter:
                 self.params.add('k3', value=0, vary=True)
             else:
                 self.params['k3'].vary = True
+        if func_version in [32, 33]:
             if 'k4' not in self.params:
                 self.params.add('k4', value=0, vary=True)
             else:
@@ -635,6 +640,7 @@ class FieldFitter:
                 self.params.add('k5', value=0, vary=True)
             else:
                 self.params['k5'].vary = True
+        if func_version in [32]:
             if 'k6' not in self.params:
                 self.params.add('k6', value=0, vary=True)
             else:

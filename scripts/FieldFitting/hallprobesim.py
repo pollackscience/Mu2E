@@ -68,12 +68,12 @@ cfg_data_DS_GA05_seg_trk2 = cfg_data('GA05', 'DS', path_DS_GA05,
 cfg_data_DS_Glass_Cyl     = cfg_data('Glass', 'DS', path_DS_Cyl_Only_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
 cfg_data_DS_Glass_Bus     = cfg_data('Glass', 'DS', path_DS_Bus_Only_Glass,
-                                     ('Z>9000', 'Z<13100'))
+                                     ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
 
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
-                                     ('Z>9000', 'Z<13100'))
+                                     ('Z>4000', 'Z<13500'))
 
 #################
 # the geom cfgs #
@@ -168,7 +168,7 @@ z_steps_DS_fullsim2 = range(4221, 13921, 25)
 z_steps_PS = range(-7879, -4004, 50)
 z_steps_DS_seg_trk = range(8371, 12621, 50)
 z_steps_DS_seg_trk2 = range(9921, 11371, 50)
-z_steps_DS_glass = range(9021, 13021, 50)
+z_steps_DS_glass = range(4021, 13521, 100)
 
 x_steps_DS_glass = range(-800, 801, 200)
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -551,7 +551,7 @@ cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  save_name='Cyl_Only', recreate=False)
 
 cfg_params_Glass_DS_Bus             = cfg_params(ns=8, ms=8, cns=0, cms=0, Reff=5000,
-                                                 func_version=32)
+                                                 func_version=33)
 cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Bus_Only_redo',
                                                  save_name='Bus_Only_redo', recreate=False)
@@ -569,7 +569,7 @@ cfg_pickle_Glass_Combo_Cyl          = cfg_pickle(use_pickle=False, save_pickle=T
                                                  save_name='Combo_Cyl', recreate=False)
 
 cfg_params_Glass_DS_Bus_Rot         = cfg_params(ns=20, ms=5, cns=0, cms=0, Reff=5000,
-                                                 func_version=32)
+                                                 func_version=33)
 cfg_pickle_Glass_Bus_Rot            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Bus_Rot',
                                                  save_name='Bus_Rot', recreate=False)
