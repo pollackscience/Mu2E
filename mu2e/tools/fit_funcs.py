@@ -480,15 +480,15 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
         for i in range(z.shape[0]):
             model_x = alpha[0]*np.exp(alpha[0]*x[i]) * \
                 np.exp(beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*y[i]) + F[0]*np.cos(gamma[0]*z[i]))
+                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
 
             model_y = np.exp(alpha[0]*x[i]) * \
                 beta[0]*np.exp(beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*y[i]) + F[0]*np.cos(gamma[0]*z[i]))
+                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
 
             model_z[i] += np.exp(alpha[0]*x[i]) * \
                 np.exp(beta[0]*y[i]) * \
-                gamma[0]*(E[0]*np.cos(gamma[0]*y[i]) - F[0]*np.sin(gamma[0]*z[i]))
+                gamma[0]*(E[0]*np.cos(gamma[0]*z[i]) - F[0]*np.sin(gamma[0]*z[i]))
 
             model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
             model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])

@@ -276,7 +276,7 @@ class FieldFitter:
                 if 'D_{0}'.format(n) not in self.params:
                     self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5)
                 else:
-                    self.params['D_{0}'.format(n)].vary = False
+                    self.params['D_{0}'.format(n)].vary = True
             # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
             else:
                 if 'C_{0}'.format(n) not in self.params:
@@ -292,11 +292,11 @@ class FieldFitter:
                 if 'A_{0}_{1}'.format(n, m) not in self.params:
                     self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                 else:
-                    self.params['A_{0}_{1}'.format(n, m)].vary = False
+                    self.params['A_{0}_{1}'.format(n, m)].vary = True
                 if 'B_{0}_{1}'.format(n, m) not in self.params:
                     self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
                 else:
-                    self.params['B_{0}_{1}'.format(n, m)].vary = False
+                    self.params['B_{0}_{1}'.format(n, m)].vary = True
                 # Additional terms used in func version 3
                 if func_version == 3:
                     if 'E_{0}_{1}'.format(n, m) not in self.params:
@@ -331,14 +331,6 @@ class FieldFitter:
                         self.params.add('F_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
                     else:
                         self.params['F_{0}_{1}'.format(cn, cm)].vary = True
-                    if 'G_{0}_{1}'.format(cn, cm) not in self.params:
-                        self.params.add('G_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
-                    else:
-                        self.params['G_{0}_{1}'.format(cn, cm)].vary = True
-                    if 'H_{0}_{1}'.format(cn, cm) not in self.params:
-                        self.params.add('H_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
-                    else:
-                        self.params['H_{0}_{1}'.format(cn, cm)].vary = True
 
         if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
@@ -415,7 +407,7 @@ class FieldFitter:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 10000})
+                                           method='leastsq', fit_kws={'maxfev': 40000})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:

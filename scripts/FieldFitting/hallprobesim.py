@@ -567,7 +567,7 @@ cfg_pickle_Glass_Bus_Rot            = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Bus_Rot',
                                                  save_name='Bus_Rot', recreate=False)
 
-cfg_params_GA05_DS_800mm            = cfg_params(ns=3, ms=50, cns=5, cms=5, Reff=7000,
+cfg_params_GA05_DS_800mm            = cfg_params(ns=2, ms=60, cns=10, cms=10, Reff=7000,
                                                  func_version=6)
 cfg_pickle_GA05_800mm               = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='GA05_BusTest', save_name='GA05_BusTest',
