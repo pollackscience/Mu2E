@@ -274,9 +274,10 @@ class FieldFitter:
             # If function version 5, `D` parameter is a delta offset for phi
             if func_version in [5, 6, 7, 8, 9]:
                 if 'D_{0}'.format(n) not in self.params:
-                    self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5)
+                    self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5,
+                                    vary=False)
                 else:
-                    self.params['D_{0}'.format(n)].vary = True
+                    self.params['D_{0}'.format(n)].vary = False
             # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
             else:
                 if 'C_{0}'.format(n) not in self.params:

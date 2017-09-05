@@ -31,7 +31,7 @@ path_DS_GA02        = mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0'
 path_DS_Cyl_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_fullmap'
 path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap'
 path_DS_Bus_Rot_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_rot'
-path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_combo_fullmap'
+path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_buswork_GA'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -549,9 +549,9 @@ cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Bus_Only_redo',
                                                  save_name='Bus_Only_redo', recreate=False)
 
-cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=10, cms=10, Reff=7000,
+cfg_params_Glass_DS_Combo           = cfg_params(ns=2, ms=60, cns=10, cms=10, Reff=7000,
                                                  func_version=6)
-cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=True, save_pickle=True,
+cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Combo',
                                                  save_name='Combo', recreate=False)
 
@@ -759,9 +759,9 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_800mm_grad, cfg_params_GA05_DS_800mm,
     #                              cfg_pickle_GA05_800mm, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_GA05_800mm', cfg_data_DS_GA05, cfg_geom_cyl_800mm_long,
-                                 cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
-                                 cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_GA05_800mm', cfg_data_DS_GA05, cfg_geom_cyl_800mm_long,
+    #                              cfg_params_GA05_DS_800mm, cfg_pickle_GA05_800mm,
+    #                              cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_GA05_seg_trk_no_mod', cfg_data_DS_GA05_seg_trk,
     #                              cfg_geom_cyl_seg_trk, cfg_params_GA05_DS_seg_trk_no_mod,
@@ -827,9 +827,9 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl_bad,
     #                              cfg_pickle_Glass_Combo_Cyl, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Glass_Combo', cfg_data_DS_Glass_Combo,
-    #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Combo,
-    #                              cfg_pickle_Glass_Combo, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Glass_Combo', cfg_data_DS_Glass_Combo,
+                                 cfg_geom_cyl_glass, cfg_params_Glass_DS_Combo,
+                                 cfg_pickle_Glass_Combo, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Glass_Bus_Rot', cfg_data_DS_Glass_Bus_Rot,
     #                              cfg_geom_bus_rot_glass, cfg_params_Glass_DS_Bus_Rot,
