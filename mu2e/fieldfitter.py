@@ -275,7 +275,7 @@ class FieldFitter:
             if func_version in [5, 6, 7, 8, 9]:
                 if 'D_{0}'.format(n) not in self.params:
                     self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5,
-                                    vary=False)
+                                    vary=True)
                 else:
                     self.params['D_{0}'.format(n)].vary = False
             # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
@@ -332,6 +332,46 @@ class FieldFitter:
                         self.params.add('F_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
                     else:
                         self.params['F_{0}_{1}'.format(cn, cm)].vary = True
+            if 'k1' not in self.params:
+                self.params.add('k1', value=0, vary=True)
+            else:
+                self.params['k1'].vary = True
+            if 'k2' not in self.params:
+                self.params.add('k2', value=0, vary=True)
+            else:
+                self.params['k2'].vary = True
+            if 'k3' not in self.params:
+                self.params.add('k3', value=0, vary=True)
+            else:
+                self.params['k3'].vary = True
+            if 'k4' not in self.params:
+                self.params.add('k4', value=0, vary=True)
+            else:
+                self.params['k4'].vary = True
+            if 'k5' not in self.params:
+                self.params.add('k5', value=0, vary=True)
+            else:
+                self.params['k5'].vary = True
+            if 'k6' not in self.params:
+                self.params.add('k6', value=0, vary=True)
+            else:
+                self.params['k6'].vary = True
+            if 'k7' not in self.params:
+                self.params.add('k7', value=0, vary=True)
+            else:
+                self.params['k7'].vary = True
+            if 'k8' not in self.params:
+                self.params.add('k8', value=0, vary=True)
+            else:
+                self.params['k8'].vary = True
+            if 'k9' not in self.params:
+                self.params.add('k9', value=0, vary=True)
+            else:
+                self.params['k9'].vary = True
+            if 'k10' not in self.params:
+                self.params.add('k10', value=0, vary=True)
+            else:
+                self.params['k10'].vary = True
 
         if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
@@ -399,16 +439,14 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 1})
             elif cfg_pickle.use_pickle:
-                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 20000})
             else:
                 print 'fitting phase ext'
-                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 40000})
+                                           method='leastsq', fit_kws={'maxfev': 10000})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:

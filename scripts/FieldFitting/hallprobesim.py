@@ -31,7 +31,7 @@ path_DS_GA02        = mu2e_ext_path+'datafiles/FieldMapsGA02/Mu2e_DS_GA0'
 path_DS_Cyl_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_fullmap'
 path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap'
 path_DS_Bus_Rot_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_rot'
-path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_buswork_GA'
+path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -549,7 +549,7 @@ cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Bus_Only_redo',
                                                  save_name='Bus_Only_redo', recreate=False)
 
-cfg_params_Glass_DS_Combo           = cfg_params(ns=2, ms=60, cns=10, cms=10, Reff=7000,
+cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=8, cms=8, Reff=7000,
                                                  func_version=6)
 cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Combo',

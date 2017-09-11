@@ -425,8 +425,8 @@ if __name__ == "__main__":
     # data_maker.do_basic_modifications(-3896)
 
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_buswork_GA',
-        use_pickle=False, field_map_version='Ideal_w_Bus_3D')
+        mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus',
+        use_pickle=False, field_map_version='Ideal_w_LongBus_3D')
     data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
