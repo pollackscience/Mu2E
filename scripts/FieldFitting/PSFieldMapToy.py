@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
-import cPickle as pkl
+import six.moves.cPickle as pkl
 import os
 from math import *
 from datetime import datetime
@@ -44,13 +46,13 @@ else:
 
 #data_file.info()
 
-print data_file.head(10)
+print(data_file.head(10))
 zvals = data_file.Z.value_counts()[data_file.Z[0]]
 
-print datetime.now() - startTime
+print(datetime.now() - startTime)
 
-print data_file.head(10)
-print data_file['Bz'].max(), data_file['Bz'].min()
+print(data_file.head(10))
+print(data_file['Bz'].max(), data_file['Bz'].min())
 
 init_num = 200
 #data_file.plot()
@@ -63,10 +65,10 @@ data_file_z0 = dfs[(zvals*init_num):zvals*(init_num+1)]
 #ind = np.digitize(data_file_z0['R'],bins)
 #print data_file_z0[222:257]
 data_file_z0_constR = data_file_z0[800:820]
-print data_file_z0_constR.head()
+print(data_file_z0_constR.head())
 #raw_input()
 #data_file_z0_constR = data_file_z0
-print data_file_z0_constR['X'].mean()
+print(data_file_z0_constR['X'].mean())
 #raw_input()
 #raw_input()
 #dfs_z0 = data_file_z0
@@ -130,7 +132,7 @@ def update_quiver(num, data_file, quiv):
 
 dfs = data_file.sort(['X','Y','Z'])
 dfs = dfs.query('X == 0 and Y==0')
-print dfs.head()
+print(dfs.head())
 
 
 plt.figure(3)

@@ -14,21 +14,16 @@ import time
 import webbrowser
 
 import plotly
-from plotly import tools, utils
+from plotly import optional_imports, tools, utils
 from plotly.exceptions import PlotlyError
 
-try:
-    import IPython
-    from IPython.display import HTML, display
-    _ipython_imported = True
-except ImportError:
-    _ipython_imported = False
+ipython = optional_imports.get_module('IPython')
+ipython_display = optional_imports.get_module('IPython.display')
+matplotlib = optional_imports.get_module('matplotlib')
 
-try:
-    import matplotlib
-    _matplotlib_imported = True
-except ImportError:
-    _matplotlib_imported = False
+__PLOTLY_OFFLINE_INITIALIZED = False
+
+__IMAGE_FORMATS = ['jpeg', 'png', 'webp', 'svg']
 
 __PLOTLY_OFFLINE_INITIALIZED = False
 
@@ -114,7 +109,7 @@ def init_notebook_mode(connected=False):
     your notebook, resulting in much larger notebook sizes compared to the case
     where `connected=True`.
     """
-    if not _ipython_imported:
+    if ipython:
         raise ImportError('`iplot` can only run inside an IPython Notebook.')
 
     global __PLOTLY_OFFLINE_INITIALIZED

@@ -25,36 +25,38 @@ brianleepollack@gmail.com
 """
 
 from __future__ import division
+from __future__ import absolute_import
 from scipy import special
 import numpy as np
 import numexpr as ne
 from numba import guvectorize
 from math import cos, sin
-from itertools import izip
+import six
+from six.moves import range, zip
 
 
 def pairwise(iterable):
     """s -> (s0,s1), (s2,s3), (s4, s5), ..."""
     a = iter(iterable)
-    return izip(a, a)
+    return zip(a, a)
 
 
 def tripwise(iterable):
     """s -> (s0,s1, s2), (s3, s4, s5), ..."""
     a = iter(iterable)
-    return izip(a, a, a)
+    return zip(a, a, a)
 
 
 def quadwise(iterable):
     """s -> (s0,s1,s2,s3), (s4,s5,s6,s7), ..."""
     a = iter(iterable)
-    return izip(a, a, a, a)
+    return zip(a, a, a, a)
 
 
 def hexwise(iterable):
     """s -> (s0,s1,s2,s3,s4,s5), (s6,s7,s8,s9,s10,s11), ..."""
     a = iter(iterable)
-    return izip(a, a, a, a, a, a)
+    return zip(a, a, a, a, a, a)
 
 
 def brzphi_3d_producer(z, r, phi, R, ns, ms):
@@ -85,7 +87,7 @@ def brzphi_3d_producer(z, r, phi, R, ns, ms):
         model_z = 0.0
         model_phi = 0.0
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
 
@@ -137,7 +139,7 @@ def b_external_3d_producer(a, b, c, x, y, z, cns, cms):
         model_x = 0.0
         model_y = 0.0
         model_z = 0.0
-        Cs = sorted({k: v for (k, v) in AB_params.iteritems() if 'C' in k})
+        Cs = sorted({k: v for (k, v) in six.iteritems(AB_params) if 'C' in k})
 
         for cn in range(1, cns+1):
             for cm in range(1, cms+1):
@@ -213,10 +215,10 @@ def b_full_3d_producer(a, b, c, R, z, r, phi, ns, ms, cns, cms):
         model_z = 0.0
         model_phi = 0.0
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
-        Cs = sorted({k: v for (k, v) in AB_params.iteritems() if 'C' in k})
+        Cs = sorted({k: v for (k, v) in six.iteritems(AB_params) if 'C' in k})
 
         for n in range(ns):
             for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
@@ -274,10 +276,10 @@ def brzphi_3d_producer_v2(z, r, phi, R, ns, ms):
         model_z = 0.0
         model_phi = 0.0
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k)},
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, cd in enumerate(pairwise(CDs)):
@@ -340,10 +342,10 @@ def brzphi_3d_producer_modbessel(z, r, phi, L, ns, ms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k)},
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, cd in enumerate(pairwise(CDs)):
@@ -405,10 +407,10 @@ def brzphi_3d_producer_modbessel_phase(z, r, phi, L, ns, ms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
@@ -439,9 +441,9 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
 
     for cn in range(1, cns+1):
         for cm in range(1, cms+1):
-            alpha[cn-1][cm-1] = cn/3000
-            beta[cn-1][cm-1] = cm/3000
-            gamma[cn-1][cm-1] = np.sqrt(alpha[cn-1][cm-1]**2+beta[cn-1][cm-1]**2)
+            alpha[cn-1][cm-1] = cn/(4500*cns+1)
+            gamma[cn-1][cm-1] = cm/4500
+            beta[cn-1][cm-1] = np.sqrt(gamma[cn-1][cm-1]**2-alpha[cn-1][cm-1]**2)
 
     kms = []
     for n in range(ns):
@@ -471,30 +473,31 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                 (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:])"],
-                 '(m), (m), (m), (m), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()->(m), (m), (m)',
+                 '(m), (m), (m), (m), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()->(m), (m), (m)',
                  nopython=True, target='parallel')
-    def calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+    def calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
                            alpha, beta, gamma, model_r, model_phi, model_z):
         for i in range(z.shape[0]):
             model_x = -alpha[0]*np.exp(-alpha[0]*x[i]) * \
                 np.exp(-beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i])) + \
-                k1[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
-            #    k2[0]*(x[i]+400)/((x[i]+400)**2 + (y[i]-1125)**2)
+                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
+                #k11[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
+                # k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
 
             model_y = np.exp(-alpha[0]*x[i]) * \
                 -beta[0]*np.exp(-beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i])) + \
-                k1[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
-            #    k2[0]*(y[i]-1125)/((x[i]+400)**2 + (y[i]-1125)**2)
+                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
+                #k11[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
+                # k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
 
             model_z[i] += np.exp(-alpha[0]*x[i]) * \
                 np.exp(-beta[0]*y[i]) * \
                 gamma[0]*(E[0]*np.cos(gamma[0]*z[i]) - F[0]*np.sin(gamma[0]*z[i]))
+                # k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
 
             # model_x = alpha[0]*(E[0]*np.exp(alpha[0]*x[i]) - F[0]*np.exp(-alpha[0]*x[i])) * \
             #     np.exp(beta[0]*y[i]) * \
@@ -534,12 +537,12 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)})
+        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)})
 
         for n, d in enumerate(Ds):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
@@ -572,7 +575,8 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                 k8 = np.array(AB_params['k8'], dtype=np.float64)
                 k9 = np.array(AB_params['k9'], dtype=np.float64)
                 k10 = np.array(AB_params['k10'], dtype=np.float64)
-                calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                k11 = np.array(AB_params['k11'], dtype=np.float64)
+                calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
                                    _alpha, _beta, _gamma, model_r, model_phi, model_z)
 
         model_phi[np.isinf(model_phi)] = 0
@@ -645,16 +649,16 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
         model_r = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+        Gs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('G' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
@@ -755,16 +759,16 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp(z, r, phi, rp, phip, L, ns, m
         model_r = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+        Gs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('G' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
@@ -853,16 +857,16 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp2(z, r, phi, rp, phip, L, ns, 
         model_r = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+        Gs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('G' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
@@ -956,16 +960,16 @@ def brzphi_3d_producer_modbessel_phase_hybrid_disp3(z, r, phi, rp, phip, L, ns, 
         model_r = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Ds = sorted({k: v for (k, v) in AB_params.iteritems() if ('D' in k)}, key=lambda x:
+        Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
-        EFs = sorted({k: v for (k, v) in AB_params.iteritems() if ('E' in k or 'F' in k)},
+        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
-        Gs = sorted({k: v for (k, v) in AB_params.iteritems() if ('G' in k)}, key=lambda x:
+        Gs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('G' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
@@ -1035,10 +1039,10 @@ def brzphi_3d_producer_bessel(z, r, phi, R, ns, ms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                               x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k)},
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, cd in enumerate(pairwise(CDs)):
@@ -1121,10 +1125,10 @@ def brzphi_3d_producer_bessel_hybrid(z, r, phi, R, ns, ms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                               x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k)},
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, cd in enumerate(pairwise(CDs)):
@@ -1200,10 +1204,10 @@ def brzphi_3d_producer_profile(z, r, phi, R, ns, ms):
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
         R = R
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                               x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k)},
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k)},
                      key=lambda x: ', '.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, cd in enumerate(pairwise(CDs)):
@@ -1277,11 +1281,11 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1345,11 +1349,11 @@ def bxyz_3d_producer_cart_v2(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1415,11 +1419,11 @@ def bxyz_3d_producer_cart_v3(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1484,11 +1488,11 @@ def bxyz_3d_producer_cart_v4(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1551,12 +1555,12 @@ def bxyz_3d_producer_cart_v5(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5),
                                              x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1616,11 +1620,11 @@ def bxyz_3d_producer_cart_v6(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(hexwise(ABs[n*ms*6:(n+1)*ms*6])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1685,11 +1689,11 @@ def bxyz_3d_producer_cart_v7(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()}, key=lambda x:
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)}, key=lambda x:
                      ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(tripwise(ABs[n*ms*3:(n+1)*ms*3])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1754,11 +1758,11 @@ def bxyz_3d_producer_cart_v8(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        As = sorted({k: v for (k, v) in AB_params.iteritems()}, key=lambda x:
+        As = sorted({k: v for (k, v) in six.iteritems(AB_params)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                               x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, a in enumerate(As[n*ms:(n+1)*ms]):
 
                 A = np.array([AB_params[a]], dtype=np.float64)
@@ -1846,15 +1850,15 @@ def bxyz_3d_producer_cart_v9(x, y, z, L, ns, ms, cns, cms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
-        CDs = sorted({k: v for (k, v) in AB_params.iteritems() if ('C' in k or 'D' in k or 'E' in
+        CDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('C' in k or 'D' in k or 'E' in
                                                                    k)}, key=lambda x:
                      ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -1866,7 +1870,7 @@ def bxyz_3d_producer_cart_v9(x, y, z, L, ns, ms, cns, cms):
                 calc_b_fields_cart1(x, y, z, A, B, _alpha1, _beta1, _gamma1, model_x,
                                     model_y, model_z)
 
-        for cn in xrange(cns):
+        for cn in range(cns):
             for cm, cd in enumerate(tripwise(CDs[cn*cms*3:(cn+1)*cms*3])):
 
                 C = np.array([AB_params[cd[0]]], dtype=np.float64)
@@ -1931,14 +1935,14 @@ def bxyz_3d_producer_cart_v10(x, y, z, L, ns, ms, cns, cms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        As = sorted({k: v for (k, v) in AB_params.iteritems() if 'A' in k}, key=lambda x:
+        As = sorted({k: v for (k, v) in six.iteritems(AB_params) if 'A' in k}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                               x.split('_')[0])))
-        Bs = sorted({k: v for (k, v) in AB_params.iteritems() if 'B' in k}, key=lambda x:
+        Bs = sorted({k: v for (k, v) in six.iteritems(AB_params) if 'B' in k}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                               x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, a in enumerate(As[n*ms:(n+1)*ms]):
 
                 A = np.array([AB_params[a]], dtype=np.float64)
@@ -1949,7 +1953,7 @@ def bxyz_3d_producer_cart_v10(x, y, z, L, ns, ms, cns, cms):
                 calc_b_fields_cart1(x, y, z, A, _alpha1, _beta1, _gamma1, model_x,
                                     model_y, model_z)
 
-        for cn in xrange(cns):
+        for cn in range(cns):
             for cm, b in enumerate(Bs[cn*cms:(cn+1)*cms]):
 
                 B = np.array([AB_params[b]], dtype=np.float64)
@@ -2007,11 +2011,11 @@ def bxyz_3d_producer_cart_v11(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2073,12 +2077,12 @@ def bxyz_3d_producer_cart_v12(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5),
                                              x.split('_')[2].zfill(5),
                                              x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2142,11 +2146,11 @@ def bxyz_3d_producer_cart_v13(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2234,11 +2238,11 @@ def bxyz_3d_producer_cart_v14(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2300,11 +2304,11 @@ def bxyz_3d_producer_cart_v15(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2371,11 +2375,11 @@ def bxyz_3d_producer_cart_v16(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems()},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(hexwise(ABs[n*ms*6:(n+1)*ms*6])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
@@ -2437,11 +2441,11 @@ def bxyz_3d_producer_cart_v17(x, y, z, L, ns, ms):
         model_x = np.zeros(z.shape, dtype=np.float64)
         model_y = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
-        ABs = sorted({k: v for (k, v) in AB_params.iteritems() if ('A' in k or 'B' in k)},
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
-        for n in xrange(ns):
+        for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)

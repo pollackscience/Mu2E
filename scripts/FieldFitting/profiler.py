@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
 import matplotlib.pyplot as plt
 import numpy as np
 from hallprobesim import *
 from mu2e.tools.fit_funcs import *
 from pyprof2calltree import convert, visualize
+from six.moves import range
 
 
 #use for profiling and optimizing the fitting procedure.

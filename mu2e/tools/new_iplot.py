@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from plotly import session, tools, utils
 import uuid
 import json

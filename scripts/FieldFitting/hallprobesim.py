@@ -1,9 +1,11 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
 from mu2e.hallprober import field_map_analysis
 from collections import namedtuple
 import numpy as np
 from mu2e import mu2e_ext_path
+from six.moves import range
 
 ############################
 # defining the cfg structs #
@@ -151,26 +153,26 @@ r_steps_fullsim_trunc = (pi2r_fullsim800, pi8r_fullsim800, pi4r_fullsim800, pi8r
 
 phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444, 3*np.pi/4, 2.677945)
 
-z_steps_DS = range(5021, 13021, 50)
-z_steps_DS_long = range(4221, 13921, 100)
-z_steps_DS_grad = range(4221, 6921, 100)
-z_steps_DS_interp = range(4220, 13900, 100)
-z_steps_DS_interp_fullsim = range(4200, 14000, 25)
-z_steps_DS_interp_v2 = range(4200, 8400, 50)+range(8400, 14000, 100)
-z_steps_DS_less = range(9021, 11021, 50)
-z_steps_DS_20cm = range(5021, 13021, 200)
-z_steps_DS_30cm = range(5021, 13021, 300)
-z_steps_DS_40cm = range(5021, 13021, 400)
-z_steps_DS_50cm = range(5021, 13021, 500)
-z_steps_DS2 = range(4171, 13921, 50)
-z_steps_DS_fullsim = range(5021, 13021, 25)
-z_steps_DS_fullsim2 = range(4221, 13921, 25)
-z_steps_PS = range(-7879, -4004, 50)
-z_steps_DS_seg_trk = range(8371, 12621, 50)
-z_steps_DS_seg_trk2 = range(9921, 11371, 50)
-z_steps_DS_glass = range(4021, 13521, 100)
+z_steps_DS = list(range(5021, 13021, 50))
+z_steps_DS_long = list(range(4221, 13921, 100))
+z_steps_DS_grad = list(range(4221, 6921, 100))
+z_steps_DS_interp = list(range(4220, 13900, 100))
+z_steps_DS_interp_fullsim = list(range(4200, 14000, 25))
+z_steps_DS_interp_v2 = list(range(4200, 8400, 50))+list(range(8400, 14000, 100))
+z_steps_DS_less = list(range(9021, 11021, 50))
+z_steps_DS_20cm = list(range(5021, 13021, 200))
+z_steps_DS_30cm = list(range(5021, 13021, 300))
+z_steps_DS_40cm = list(range(5021, 13021, 400))
+z_steps_DS_50cm = list(range(5021, 13021, 500))
+z_steps_DS2 = list(range(4171, 13921, 50))
+z_steps_DS_fullsim = list(range(5021, 13021, 25))
+z_steps_DS_fullsim2 = list(range(4221, 13921, 25))
+z_steps_PS = list(range(-7879, -4004, 50))
+z_steps_DS_seg_trk = list(range(8371, 12621, 50))
+z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
+z_steps_DS_glass = list(range(4021, 13521, 100))
 
-x_steps_DS_glass = range(-800, 801, 200)
+x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
 
 x_steps_DS_glass_rot = [-795.495129, -583.363094, -406.586399, -194.454365, -17.67767, 17.67767,
@@ -549,11 +551,11 @@ cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Bus_Only_redo',
                                                  save_name='Bus_Only_redo', recreate=False)
 
-cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=8, cms=8, Reff=7000,
+cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=10, cms=10, Reff=7000,
                                                  func_version=6)
 cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Combo',
-                                                 save_name='Combo', recreate=False)
+                                                 save_name='Combo', recreate=True)
 
 cfg_params_Glass_DS_Cyl_bad         = cfg_params(ns=6, ms=50, cns=0, cms=0, Reff=7000,
                                                  func_version=5)

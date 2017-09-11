@@ -34,6 +34,10 @@ from matplotlib.colors import Normalize, colorConverter, LightSource
 from mpl_toolkits.mplot3d import art3d
 from mpl_toolkits.mplot3d import proj3d
 from mpl_toolkits.mplot3d import axis3d
+from six.moves import map
+from six.moves import range
+from six.moves import zip
+from functools import reduce
 
 def unit_bbox():
     box = Bbox(np.array([[0, 0], [1, 1]]))
@@ -590,7 +594,7 @@ class Axes3D(Axes):
         if 'xmax' in kw:
             right = kw.pop('xmax')
         if kw:
-            raise ValueError("unrecognized kwargs: %s" % kw.keys())
+            raise ValueError("unrecognized kwargs: %s" % list(kw.keys()))
 
         if right is None and cbook.iterable(left):
             left, right = left
@@ -645,7 +649,7 @@ class Axes3D(Axes):
         if 'ymax' in kw:
             top = kw.pop('ymax')
         if kw:
-            raise ValueError("unrecognized kwargs: %s" % kw.keys())
+            raise ValueError("unrecognized kwargs: %s" % list(kw.keys()))
 
         if top is None and cbook.iterable(bottom):
             bottom, top = bottom
@@ -699,7 +703,7 @@ class Axes3D(Axes):
         if 'zmax' in kw:
             top = kw.pop('zmax')
         if kw:
-            raise ValueError("unrecognized kwargs: %s" % kw.keys())
+            raise ValueError("unrecognized kwargs: %s" % list(kw.keys()))
 
         if top is None and cbook.iterable(bottom):
             bottom, top = bottom
@@ -1620,8 +1624,8 @@ class Axes3D(Axes):
 
         #colset contains the data for coloring: either average z or the facecolor
         colset = []
-        for rs in xrange(0, rows-1, rstride):
-            for cs in xrange(0, cols-1, cstride):
+        for rs in range(0, rows-1, rstride):
+            for cs in range(0, cols-1, cstride):
                 ps = []
                 for a in (X, Y, Z) :
                     ztop = a[rs,cs:min(cols, cs+cstride+1)]
@@ -1636,7 +1640,7 @@ class Axes3D(Axes):
                 # are removed here.
                 ps = list(zip(*ps))
                 lastp = np.array([])
-                ps2 = [ps[0]] + [ps[i] for i in xrange(1, len(ps)) if ps[i] != ps[i-1]]
+                ps2 = [ps[0]] + [ps[i] for i in range(1, len(ps)) if ps[i] != ps[i-1]]
                 avgzsum = sum(p[2] for p in ps2)
                 polys.append(ps2)
 
@@ -1766,14 +1770,14 @@ class Axes3D(Axes):
         tX, tY, tZ = np.transpose(X), np.transpose(Y), np.transpose(Z)
 
         if rstride:
-            rii = list(xrange(0, rows, rstride))
+            rii = list(range(0, rows, rstride))
             # Add the last index only if needed
             if rows > 0 and rii[-1] != (rows - 1) :
                 rii += [rows-1]
         else:
             rii = []
         if cstride:
-            cii = list(xrange(0, cols, cstride))
+            cii = list(range(0, cols, cstride))
             # Add the last index only if needed
             if cols > 0 and cii[-1] != (cols - 1) :
                 cii += [cols-1]
@@ -1894,7 +1898,7 @@ class Axes3D(Axes):
             which_pt = 0
 
         colset = []
-        for i in xrange(len(verts)):
+        for i in range(len(verts)):
             avgzsum = verts[i,0,2] + verts[i,1,2] + verts[i,2,2]
             colset.append(avgzsum / 3.0)
 

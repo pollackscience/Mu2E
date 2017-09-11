@@ -7,7 +7,7 @@ from libc.math cimport M_PI
 cimport numpy as np
 import numpy as np
 
-#usage: makecython RowTransformations.pyx "" "-I`python -c 'import numpy; print(numpy.get_include())'`"
+#usage: makecython3 RowTransformations.pyx "" "-I`python -c 'import numpy; print(numpy.get_include())'`"
 
 
 cdef double make_zeta(double z, double theta, double pitch):

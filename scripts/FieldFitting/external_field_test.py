@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
 import matplotlib.pyplot as plt
 import numpy as np
 from mu2e.datafileprod import DataFileMaker
 from mu2e.hallprober import HallProbeGenerator
 from mu2e.fieldfitter import FieldFitter
 from mu2e.plotter import Plotter
+from six.moves import range
 
 
 def external_field_sim(magnet = 'DS',A='Y',B='Z',nparams=10,fullsim=False,suffix='halltoy',
@@ -41,6 +43,6 @@ if __name__ == "__main__":
     pi4r = [35.35533906,   70.71067812,  141.42135624, 176.7766953 ,  212.13203436, 282.84271247,
           353.55339059,  424.26406871, 494.97474683,  530.33008589,601.04076401,  671.75144213]
     phi_steps = (0, np.pi/4, np.pi/2, 3*np.pi/4)
-    r_steps = (range(25,625,50), pi4r, range(25,625,50), pi4r)
+    r_steps = (list(range(25,625,50)), pi4r, list(range(25,625,50)), pi4r)
     data_maker,hpg,plot_maker,ff = external_field_sim(magnet = 'DS',A='R',B='Z',nparams=60,fullsim=False,suffix='halltoy3d_test',
           r_steps = r_steps, phi_steps = phi_steps, z_steps = 'all', conditions = ('Z>8000','Z<13000','R!=0'))

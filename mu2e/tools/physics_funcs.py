@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import mu2e
 import numpy as np
@@ -27,7 +29,7 @@ def calc_scalar_field(df,z_low_cond,z_high_cond,*other_conds):
 
     #ready the y-values
     y_conds = conditions+('Z=={}'.format(z_val),'X==0')
-    print y_conds
+    print(y_conds)
     df_y = df.query(' and '.join(y_conds)).sort_values('Y')
     neg_y = df_y[df_y.Y<=0].sort_values('Y', ascending=False).By.cumsum()[::-1]
     pos_y = df_y[df_y.Y>=0].sort_values('Y').By.cumsum()

@@ -40,13 +40,16 @@ brianleepollack@gmail.com
 """
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 from time import time
 import numpy as np
-import cPickle as pkl
+import six.moves.cPickle as pkl
 import pandas as pd
 from lmfit import Model, Parameters, report_fit
 from mu2e import mu2e_ext_path
-import tools.fit_funcs as ff
+from mu2e.tools import fit_funcs as ff
 # import tools.fit_func_class as ffc
 
 
@@ -159,7 +162,7 @@ class FieldFitter:
                 (np.isclose(self.input_data.Phi, phi)) | (np.isclose(self.input_data.Phi, nphi))
             ]
             # make radial values negative for negative phis to prevent degeneracy
-            input_data_phi.ix[np.isclose(input_data_phi.Phi, nphi), 'R'] *= -1
+            input_data_phi.loc[np.isclose(input_data_phi.Phi, nphi), 'R'] *= -1
 
             # convert B field components into 2D arrays
             # print input_data_phi
@@ -255,7 +258,12 @@ class FieldFitter:
 
         # Load pre-defined starting valyes for parameters, or make a new set
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
-            self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p', "rb"))
+            try:
+                self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
+                                            "rb"))
+            except UnicodeDecodeError:
+                self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
+                                            "rb"), encoding='latin1')
         else:
             self.params = Parameters()
 
@@ -372,6 +380,10 @@ class FieldFitter:
                 self.params.add('k10', value=0, vary=True)
             else:
                 self.params['k10'].vary = True
+            if 'k11' not in self.params:
+                self.params.add('k11', value=0, vary=True)
+            else:
+                self.params['k10'].vary = True
 
         if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
@@ -407,10 +419,10 @@ class FieldFitter:
                     self.params.add('Y', value=0, vary=True)
 
         if not cfg_pickle.recreate:
-            print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms)
+            print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
         else:
-            print 'recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
-                ns, ms, cns, cms, cfg_pickle.load_name)
+            print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
+                ns, ms, cns, cms, cfg_pickle.load_name))
         start_time = time()
         if func_version not in [6, 8, 9]:
             if cfg_pickle.recreate:
@@ -443,7 +455,7 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 20000})
             else:
-                print 'fitting phase ext'
+                print('fitting phase ext')
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 10000})
@@ -470,7 +482,7 @@ class FieldFitter:
 
         self.params = self.result.params
         end_time = time()
-        print("Elapsed time was %g seconds" % (end_time - start_time))
+        print(("Elapsed time was %g seconds" % (end_time - start_time)))
         report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
@@ -694,10 +706,10 @@ class FieldFitter:
                 self.params['k10'].vary = True
 
         if not cfg_pickle.recreate:
-            print 'fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms)
+            print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
         else:
-            print 'recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns, ms,
-                                                                             cfg_pickle.load_name)
+            print('recreating fit with n={0}, m={1}, pickle_file={2}'.format(ns, ms,
+                                                                             cfg_pickle.load_name))
         start_time = time()
         if cfg_pickle.recreate:
             for param in self.params:
@@ -724,7 +736,7 @@ class FieldFitter:
 
         self.params = self.result.params
         end_time = time()
-        print("Elapsed time was %g seconds" % (end_time - start_time))
+        print(("Elapsed time was %g seconds" % (end_time - start_time)))
         report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)

@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
 from mu2e.hallprober import field_map_analysis
 from collections import namedtuple
 import numpy as np
 from mu2e import mu2e_ext_path
-import cPickle as pkl
+import six.moves.cPickle as pkl
+from six.moves import range
 
 
 cfg_data   = namedtuple('cfg_data', 'datatype magnet path conditions')
@@ -19,7 +21,7 @@ syst_set = 20
 path_DS_Mau10          = mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap'
 cfg_data_DS_Mau10_long = cfg_data('Mau10', 'DS', path_DS_Mau10, ('Z>4200', 'Z<13900', 'R!=0'))
 
-z_steps_DS_fullsim    = range(4221, 13921, 25)
+z_steps_DS_fullsim    = list(range(4221, 13921, 25))
 pi8r_fullsim800       = [55.90169944, 111.80339887, 167.70509831, 223.60679775, 279.50849719,
                          335.41019663, 391.31189606, 447.2135955, 503.11529494, 559.01699437,
                          614.91869381, 670.82039325, 726.72209269, 782.62379213]

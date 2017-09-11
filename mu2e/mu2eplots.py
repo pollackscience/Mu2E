@@ -47,6 +47,8 @@ Todo:
 brianleepollack@gmail.com
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
 import numpy as np
@@ -58,7 +60,9 @@ from mpldatacursor import datacursor
 import ipywidgets as widgets
 from IPython.display import display
 from plotly.widgets import GraphWidget
-from offline import init_notebook_mode, iplot, plot
+from plotly.offline import init_notebook_mode, iplot, plot
+from six.moves import range
+from six.moves import zip
 
 
 def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, ax=None,
@@ -100,7 +104,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
     ax = df.plot(x, y, ax=ax, kind='line', label=leg_label, legend=True, linewidth=2)
     ax.grid(True)
     plt.ylabel(y)
-    plt.title(' '.join(filter(lambda x: x, [x, 'v', y, conditions])))
+    plt.title(' '.join([x for x in [x, 'v', y, conditions] if x]))
 
     if 'plotly' in mode:
         fig = ax.get_figure()
@@ -255,7 +259,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             cb.set_label('Data-Fit (G)', fontsize=18)
             ax2.set_xlabel(x+' (mm)', fontsize=18)
             ax2.set_ylabel(y+' (mm)', fontsize=18)
-            datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
+            # datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
             if save_dir:
                 plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
 
@@ -792,7 +796,7 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
 def xray_maker(df_xray, scat_plots):
     '''Helper function to generate the x-ray visualization for particle trapping plots.'''
 
-    print 'binning...'
+    print('binning...')
     xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
     df_xray.query(xray_query, inplace=True)
 
@@ -804,7 +808,7 @@ def xray_maker(df_xray, scat_plots):
     df_binned = pd.DataFrame(dict(x=cx.flatten(), y=cy.flatten(), z=cz.flatten(), h=hadj))
     df_binned = df_binned.query('h>0')
     df_binned['cats'] = pd.cut(df_binned.h, 200)
-    print 'binned'
+    print('binned')
     groups = np.sort(df_binned.cats.unique())
     for i, group in enumerate(groups[0:]):
         df_tmp = df_binned[df_binned.cats == group]
@@ -859,7 +863,7 @@ def conditions_parser(df, conditions):
         else:
             nphi = phi-np.pi
         df = df[(isc(phi, df.Phi)) | (isc(nphi, df.Phi))]
-        df.ix[isc(nphi, df.Phi), 'R'] *= -1
+        df.loc[isc(nphi, df.Phi), 'R'] *= -1
 
     conditions_title = conditions_nophi.replace(' and ', ', ')
     conditions_title = conditions_title.replace('R!=0', '')

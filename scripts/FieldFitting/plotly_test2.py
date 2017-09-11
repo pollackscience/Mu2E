@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 
+from __future__ import absolute_import
 from plotly import tools
 import plotly.plotly as py
 import plotly.graph_objs as go
 from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
 import numpy as np
+from six.moves import zip
 
 init_notebook_mode()
 

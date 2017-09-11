@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from mu2e.datafileprod import DataFileMaker
 from collections import OrderedDict
@@ -25,7 +27,7 @@ ga_curl_xy = OrderedDict()
 ga_curl_xz = OrderedDict()
 ga_curl_yz = OrderedDict()
 for x in np.sort(dfm.X.unique())[:-2]:
-    print x
+    print(x)
     df_x = df_combo.query('{0}<=X<={1}'.format(x,x+50))
     for y in np.sort(df_x.Y.unique())[:-2]:
         df_xy = df_x.query('{0}<=Y<={1}'.format(y,y+50))
@@ -86,7 +88,7 @@ for x in np.sort(dfm.X.unique())[:-2]:
             btotm_curl_xz = bxm_curl_xz+bzm_curl_xz
             btotm_curl_yz = bzm_curl_yz+bym_curl_yz
             mau_div['x{0}_y{1}_z{2}'.format(x,y,z)]=btotm_div
-            print 'x{0}_y{1}_z{2}'.format(x,y,z)
+            print('x{0}_y{1}_z{2}'.format(x,y,z))
             mau_curl_xy['x{0}_y{1}_z{2}'.format(x,y,z)]=btotm_curl_xy
             mau_curl_xz['x{0}_y{1}_z{2}'.format(x,y,z)]=btotm_curl_xz
             mau_curl_yz['x{0}_y{1}_z{2}'.format(x,y,z)]=btotm_curl_yz
@@ -103,7 +105,7 @@ for x in np.sort(dfm.X.unique())[:-2]:
 df_maxwell = pd.DataFrame({'mau_div':mau_div, 'ga_div':ga_div,
     'mau_curl_xy':mau_curl_xy, 'ga_curl_xy':ga_curl_xy,
     'mau_curl_xz':mau_curl_xz, 'ga_curl_xz':ga_curl_xz,
-    'mau_curl_yz':mau_curl_yz, 'ga_curl_yz':ga_curl_yz},index=mau_div.keys())
+    'mau_curl_yz':mau_curl_yz, 'ga_curl_yz':ga_curl_yz},index=list(mau_div.keys()))
 
 df_maxwell['mau_minus_ga_div']=np.abs(df_maxwell.mau_div)-np.abs(df_maxwell.ga_div)
 df_maxwell['mau_minus_ga_curl_xy']=np.abs(df_maxwell.mau_curl_xy)-np.abs(df_maxwell.ga_curl_xy)
