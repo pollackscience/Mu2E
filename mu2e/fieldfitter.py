@@ -661,6 +661,16 @@ class FieldFitter:
                     else:
                         self.params['E_{0}_{1}'.format(cn, cm)].vary = True
 
+        if func_version in [20]:
+            if 'k1' not in self.params:
+                self.params.add('k1', value=5000, vary=True, min=1000, max=10000)
+            else:
+                self.params['k1'].vary = False
+            if 'k2' not in self.params:
+                self.params.add('k2', value=5000, vary=True, min=1000, max=10000)
+            else:
+                self.params['k2'].vary = False
+
         if func_version in [32, 33, 36]:
             if 'k1' not in self.params:
                 self.params.add('k1', value=0, vary=True)

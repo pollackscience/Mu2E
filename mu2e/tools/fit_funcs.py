@@ -441,9 +441,9 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
 
     for cn in range(1, cns+1):
         for cm in range(1, cms+1):
-            alpha[cn-1][cm-1] = cn/(4500*cns+1)
-            gamma[cn-1][cm-1] = cm/4500
-            beta[cn-1][cm-1] = np.sqrt(gamma[cn-1][cm-1]**2-alpha[cn-1][cm-1]**2)
+            alpha[cn-1][cm-1] = cn/4000
+            beta[cn-1][cm-1] = cm/4000
+            gamma[cn-1][cm-1] = np.sqrt(beta[cn-1][cm-1]**2+alpha[cn-1][cm-1]**2)
 
     kms = []
     for n in range(ns):
@@ -1290,18 +1290,17 @@ def bxyz_3d_producer_cart(x, y, z, L, ns, ms):
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
                 B = np.array([AB_params[ab[1]]], dtype=np.float64)
-                _alpha = np.array(alpha[n][m], dtype=np.float64)
-                _beta = np.array(beta[n][m], dtype=np.float64)
-                _gamma = np.array(gamma[n][m], dtype=np.float64)
+                # _alpha = np.array(alpha[n][m], dtype=np.float64)
+                # _beta = np.array(beta[n][m], dtype=np.float64)
+                # _gamma = np.array(gamma[n][m], dtype=np.float64)
+                # k1 = np.array(AB_params['k1'], dtype=np.float64)
+                # k2 = np.array(AB_params['k2'], dtype=np.float64)
+                _alpha = np.array(m/AB_params['k1'], dtype=np.float64)
+                _beta = np.array(n/AB_params['k2'], dtype=np.float64)
+                _gamma = np.array(np.sqrt(_alpha**2+_beta**2), dtype=np.float64)
 
                 calc_b_fields_cart(x, y, z, A, B, _alpha, _beta, _gamma, model_x, model_y,
                                    model_z)
-        # print 'model_x'
-        # print model_x
-        # print 'model_y'
-        # print model_y
-        # print 'model_z'
-        # print model_z
 
         return np.concatenate([model_x, model_y, model_z]).ravel()
     return brzphi_3d_fast
