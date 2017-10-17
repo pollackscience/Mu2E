@@ -5,6 +5,7 @@ from mu2e.hallprober import field_map_analysis
 from collections import namedtuple
 import numpy as np
 from mu2e import mu2e_ext_path
+from mu2e.src.make_csv import make_csv
 from six.moves import range
 
 ############################
@@ -154,7 +155,7 @@ r_steps_fullsim_trunc = (pi2r_fullsim800, pi8r_fullsim800, pi4r_fullsim800, pi8r
 phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444, 3*np.pi/4, 2.677945)
 
 z_steps_DS = list(range(5021, 13021, 50))
-z_steps_DS_long = list(range(4221, 13921, 100))
+z_steps_DS_long = list(range(4221, 13921, 50))
 z_steps_DS_grad = list(range(4221, 6921, 100))
 z_steps_DS_interp = list(range(4220, 13900, 100))
 z_steps_DS_interp_fullsim = list(range(4200, 14000, 25))
@@ -379,8 +380,6 @@ cfg_params_Mau_DS_825mm_v2            = cfg_params(ns=3, ms=80, cns=0, cms=0, Re
                                                    func_version=1)
 cfg_params_Mau_DS_800mm               = cfg_params(ns=3, ms=50, cns=0, cms=0, Reff=7000,
                                                    func_version=5)
-cfg_params_Mau_DS_800mm_long          = cfg_params(ns=3, ms=60, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
 cfg_params_Mau_DS_800mm_bessel        = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
                                                    func_version=2)
 cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
@@ -438,9 +437,6 @@ cfg_pickle_GA05_offset             = cfg_pickle(use_pickle=False, save_pickle=Tr
                                                 load_name='GA05_offset', save_name='GA05_offset',
                                                 recreate=False)
 
-cfg_pickle_Mau_800mm_long          = cfg_pickle(use_pickle=True, save_pickle=True,
-                                                load_name='Mau10_800mm_long',
-                                                save_name='Mau10_800mm_long', recreate=True)
 cfg_pickle_Mau_800mm               = cfg_pickle(use_pickle=False, save_pickle=True,
                                                 load_name='Mau10_800mm', save_name='Mau10_800mm',
                                                 recreate=False)
@@ -574,6 +570,12 @@ cfg_params_GA05_DS_800mm            = cfg_params(ns=2, ms=60, cns=10, cms=10, Re
 cfg_pickle_GA05_800mm               = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='GA05_BusTest', save_name='GA05_BusTest',
                                                  recreate=True)
+
+cfg_params_Mau_DS_800mm_long        = cfg_params(ns=2, ms=100, cns=0, cms=0, Reff=7000,
+                                                 func_version=5)
+cfg_pickle_Mau_800mm_long           = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Mau10_800mm_long',
+                                                 save_name='Mau10_800mm_long', recreate=False)
 
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
@@ -732,9 +734,10 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm,
     #                              cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
-    #                              cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
-    #                              cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
+                                 cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
+                                 cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
+    make_csv(ff.params.valuesdict())
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_interp', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_800mm_interp, cfg_params_Mau_DS_800mm_long,
@@ -821,9 +824,9 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl,
     #                              cfg_pickle_Glass_Cyl, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Bus_Only', cfg_data_DS_Glass_Bus,
-                                 cfg_geom_bus_glass, cfg_params_Glass_DS_Bus,
-                                 cfg_pickle_Glass_Bus, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Bus_Only', cfg_data_DS_Glass_Bus,
+    #                              cfg_geom_bus_glass, cfg_params_Glass_DS_Bus,
+    #                              cfg_pickle_Glass_Bus, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Glass_Combo_cyl_only_fit', cfg_data_DS_Glass_Combo,
     #                              cfg_geom_cyl_glass, cfg_params_Glass_DS_Cyl_bad,

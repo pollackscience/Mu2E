@@ -281,9 +281,10 @@ class FieldFitter:
         for n in range(ns):
             # If function version 5, `D` parameter is a delta offset for phi
             if func_version in [5, 6, 7, 8, 9]:
+                d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ns)
                 if 'D_{0}'.format(n) not in self.params:
-                    self.params.add('D_{0}'.format(n), value=0, min=-np.pi*0.5, max=np.pi*0.5,
-                                    vary=True)
+                    self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
+                                    max=np.pi*0.5, vary=True)
                 else:
                     self.params['D_{0}'.format(n)].vary = False
             # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
@@ -436,13 +437,13 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 7000})
+                                           method='leastsq', fit_kws={'maxfev': 10000})
             else:
                 mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 3000})
+                                           method='leastsq', fit_kws={'maxfev': 10000})
         elif func_version == 6:
             if cfg_pickle.recreate:
                 for param in self.params:

@@ -225,7 +225,7 @@ class DataFrameMaker(object):
                 ('MAX' in self.file_name) or
                 ('Only' in self.field_map_version) or
                 ('Glass' in self.field_map_version) or
-                ('Mau11' in self.field_map_version) or
+                ('Mau11' in self.field_map_version and '5096' not in self.file_name) or
                 ('Ideal' in self.field_map_version)):
 
             self.data_frame.eval('X = X*1000', inplace=True)
@@ -418,8 +418,9 @@ if __name__ == "__main__":
     #                            use_pickle=False, field_map_version='GA05')
     # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=False,
     #                            field_map_version='Mau10')
-    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
-    #                            use_pickle=False, field_map_version='Mau10')
+    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
+                                use_pickle=False, field_map_version='Mau10')
+    data_maker.do_basic_modifications()
     # data_maker = DataFrameMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle=False,
     #                            field_map_version='Mau10')
     # data_maker = DataFrameMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle=False,
@@ -471,12 +472,17 @@ if __name__ == "__main__":
     #     use_pickle=False, field_map_version='Glass_Helix_v2')
     # data_maker.do_basic_modifications(-3904)
 
-    data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_v11',
-        use_pickle=False, field_map_version='Mau11')
-    data_maker.do_basic_modifications(-3904)
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_v11',
+    #     use_pickle=False, field_map_version='Mau11')
+    # data_maker.do_basic_modifications(-3904)
 
-    data_maker.make_dump()
-    # data_maker.make_dump('_8mmOffset')
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_5096_v11',
+    #     use_pickle=False, field_map_version='Mau11')
+    # data_maker.do_basic_modifications(-3896)
+
+    # data_maker.make_dump()
+    data_maker.make_dump('_noOffset')
     print(data_maker.data_frame.head())
     print(data_maker.data_frame.tail())
