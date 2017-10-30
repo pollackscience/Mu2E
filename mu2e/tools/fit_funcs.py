@@ -2471,24 +2471,19 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
 
     P = L/(2*np.pi)
 
-    iv1 = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    iv2 = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    ivp1 = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    ivp2 = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    iv2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
     for n in range(ns):
         for m in range(ms):
-            if n > m:
-                iv1[n][m] = np.zeros(r.shape)
-                iv2[n][m] = np.zeros(r.shape)
-                ivp1[n][m] = np.zeros(r.shape)
-                ivp2[n][m] = np.zeros(r.shape)
-            else:
+            if n <= m:
                 iv1[n][m] = special.iv(m-n, (n/P)*np.abs(r))
                 iv1[n][m] = special.iv(m+n, (n/P)*np.abs(r))
                 ivp1[n][m] = special.ivp(m-n, (n/P)*np.abs(r))
-                ivp2[n][m] = special.ivp(m-n, (n/P)*np.abs(r))
+                ivp2[n][m] = special.ivp(m+n, (n/P)*np.abs(r))
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], int64[:], int64[:],"
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
                   "float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:], float64[:],"
                   "float64[:], float64[:], float64[:])"],
@@ -2512,6 +2507,8 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
                                       B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
                  (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
                                      D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+            # print(model_r[i], n[0], m[0], P[0], ivp1[i], ivp2[i], A[0], B[0], C[0], D[0], z[i],
+            #       phi[i])
 
     def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
@@ -2519,13 +2516,18 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
         model_r = np.zeros(z.shape, dtype=np.float64)
         model_z = np.zeros(z.shape, dtype=np.float64)
         model_phi = np.zeros(z.shape, dtype=np.float64)
-        P = np.asarray([R/(2*np.pi)])
+        _P = np.asarray([R/(2*np.pi)])
         ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
 
         for n in range(ns):
+            # print('n', n)
+            # print(np.any(np.isnan(model_r)))
+            # print(np.any(np.isnan(model_z)))
+            # print(np.any(np.isnan(model_phi)))
             for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*ms*4])):
+                # print('m', m)
 
                 A = np.array([AB_params[ab[0]]], dtype=np.float64)
                 B = np.array([AB_params[ab[1]]], dtype=np.float64)
@@ -2537,7 +2539,7 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
                 _ivp2 = ivp2[n][m]
                 _n = np.array([n])
                 _m = np.array([m])
-                calc_b_fields(z, phi, r, P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
+                calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
                               model_r, model_z, model_phi)
 
         model_phi[np.isinf(model_phi)] = 0

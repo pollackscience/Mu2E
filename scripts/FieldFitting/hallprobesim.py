@@ -590,11 +590,11 @@ cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Hel',
                                                  save_name='Glass_Hel', recreate=True)
 
-cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=6, ms=30, cns=0, cms=0, Reff=7.53,
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=5, ms=5, cns=0, cms=0, Reff=700,
                                                  func_version=100)
 cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Pel',
-                                                 save_name='Glass_Hel_Pel', recreate=True)
+                                                 save_name='Glass_Hel_Pel', recreate=False)
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
 #               load_name='Mau10_800mm_interp',
