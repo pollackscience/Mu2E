@@ -35,6 +35,7 @@ path_DS_Cyl_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_TS5_ideal_
 path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_longbus_nocoils'
 path_DS_Bus_Rot_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_rot'
 path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus'
+path_DS_Hel_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -74,9 +75,10 @@ cfg_data_DS_Glass_Bus     = cfg_data('Glass', 'DS', path_DS_Bus_Only_Glass,
                                      ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
                                      ('Z>4500', 'Z<13500', 'R!=0'))
-
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
                                      ('Z>4000', 'Z<13500'))
+cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
+                                     ('Z>8000', 'Z<10000', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -172,6 +174,7 @@ z_steps_PS = list(range(-7879, -4004, 50))
 z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
+z_steps_DS_glass_hel = list(range(8021, 10021, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -342,6 +345,10 @@ cfg_geom_cyl_seg_trk2           = cfg_geom('cyl', z_steps_DS_seg_trk2, r_steps_8
                                            bad_calibration=[False, False, False], interpolate=False)
 
 cfg_geom_cyl_glass              = cfg_geom('cyl', z_steps_DS_glass, r_steps_800mm, phi_steps_8,
+                                           x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False)
+
+cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_800mm, phi_steps_8,
                                            x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
@@ -573,10 +580,21 @@ cfg_pickle_GA05_800mm               = cfg_pickle(use_pickle=True, save_pickle=Tr
 
 cfg_params_Mau_DS_800mm_long        = cfg_params(ns=2, ms=100, cns=0, cms=0, Reff=7000,
                                                  func_version=5)
-cfg_pickle_Mau_800mm_long           = cfg_pickle(use_pickle=False, save_pickle=True,
+cfg_pickle_Mau_800mm_long           = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Mau10_800mm_long',
                                                  save_name='Mau10_800mm_long', recreate=False)
 
+cfg_params_Glass_DS_Hel             = cfg_params(ns=6, ms=30, cns=0, cms=0, Reff=7000,
+                                                 func_version=5)
+cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Glass_Hel',
+                                                 save_name='Glass_Hel', recreate=True)
+
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=6, ms=30, cns=0, cms=0, Reff=7.53,
+                                                 func_version=100)
+cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Glass_Hel_Pel',
+                                                 save_name='Glass_Hel_Pel', recreate=True)
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
 #               load_name='Mau10_800mm_interp',
@@ -734,10 +752,10 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm', cfg_data_DS_Mau10, cfg_geom_cyl_800mm,
     #                              cfg_params_Mau_DS_800mm, cfg_pickle_Mau_800mm, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
-                                 cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
-                                 cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
-    make_csv(ff.params.valuesdict())
+    # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_long', cfg_data_DS_Mau10_long,
+    #                              cfg_geom_cyl_800mm_long, cfg_params_Mau_DS_800mm_long,
+    #                              cfg_pickle_Mau_800mm_long, cfg_plot_mpl)
+    # make_csv(ff.params.valuesdict())
 
     # hmd, ff = field_map_analysis('halltoy_Mau10_800mm_interp', cfg_data_DS_Mau10_long,
     #                             cfg_geom_cyl_800mm_interp, cfg_params_Mau_DS_800mm_long,
@@ -839,3 +857,11 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_Glass_Bus_Rot', cfg_data_DS_Glass_Bus_Rot,
     #                              cfg_geom_bus_rot_glass, cfg_params_Glass_DS_Bus_Rot,
     #                              cfg_pickle_Glass_Bus_Rot, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel', cfg_data_DS_Glass_Hel,
+    #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel,
+    #                              cfg_pickle_Glass_Hel, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
+                                 cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
+                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)

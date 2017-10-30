@@ -245,6 +245,8 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid_disp3(ZZ, RR, PP, RRP,
                                                                                 PPP, Reff, ns, ms,
                                                                                 cns, cms)
+        elif func_version == 100:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v0(ZZ, RR, PP, Reff, ns, ms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
@@ -278,48 +280,79 @@ class FieldFitter:
         else:
             self.params['ms'].value = ms
 
-        for n in range(ns):
-            # If function version 5, `D` parameter is a delta offset for phi
-            if func_version in [5, 6, 7, 8, 9]:
-                d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ns)
-                if 'D_{0}'.format(n) not in self.params:
-                    self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
-                                    max=np.pi*0.5, vary=True)
+        if func_version < 100:
+            for n in range(ns):
+                # If function version 5, `D` parameter is a delta offset for phi
+                if func_version in [5, 6, 7, 8, 9]:
+                    d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ns)
+                    if 'D_{0}'.format(n) not in self.params:
+                        self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
+                                        max=np.pi*0.5, vary=True)
+                    else:
+                        self.params['D_{0}'.format(n)].vary = False
+                # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
                 else:
-                    self.params['D_{0}'.format(n)].vary = False
-            # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
-            else:
-                if 'C_{0}'.format(n) not in self.params:
-                    self.params.add('C_{0}'.format(n), value=1)
-                else:
-                    self.params['C_{0}'.format(n)].vary = True
-                if 'D_{0}'.format(n) not in self.params:
-                    self.params.add('D_{0}'.format(n), value=0.001)
-                else:
-                    self.params['D_{0}'.format(n)].vary = True
+                    if 'C_{0}'.format(n) not in self.params:
+                        self.params.add('C_{0}'.format(n), value=1)
+                    else:
+                        self.params['C_{0}'.format(n)].vary = True
+                    if 'D_{0}'.format(n) not in self.params:
+                        self.params.add('D_{0}'.format(n), value=0.001)
+                    else:
+                        self.params['D_{0}'.format(n)].vary = True
 
-            for m in range(ms):
-                if 'A_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                else:
-                    self.params['A_{0}_{1}'.format(n, m)].vary = True
-                if 'B_{0}_{1}'.format(n, m) not in self.params:
-                    self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                else:
-                    self.params['B_{0}_{1}'.format(n, m)].vary = True
-                # Additional terms used in func version 3
-                if func_version == 3:
-                    if 'E_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('E_{0}_{1}'.format(n, m), value=0, vary=True)
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                     else:
-                        self.params['E_{0}_{1}'.format(n, m)].vary = True
-                    if 'F_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('F_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
                     else:
-                        self.params['F_{0}_{1}'.format(n, m)].vary = True
-                    if m > 3:
-                        self.params['E_{0}_{1}'.format(n, m)].vary = False
-                        self.params['F_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+                    # Additional terms used in func version 3
+                    if func_version == 3:
+                        if 'E_{0}_{1}'.format(n, m) not in self.params:
+                            self.params.add('E_{0}_{1}'.format(n, m), value=0, vary=True)
+                        else:
+                            self.params['E_{0}_{1}'.format(n, m)].vary = True
+                        if 'F_{0}_{1}'.format(n, m) not in self.params:
+                            self.params.add('F_{0}_{1}'.format(n, m), value=0, vary=True)
+                        else:
+                            self.params['F_{0}_{1}'.format(n, m)].vary = True
+                        if m > 3:
+                            self.params['E_{0}_{1}'.format(n, m)].vary = False
+                            self.params['F_{0}_{1}'.format(n, m)].vary = False
+
+        else:
+            for n in range(ns):
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+                    if 'C_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['C_{0}_{1}'.format(n, m)].vary = True
+                    if 'D_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['D_{0}_{1}'.format(n, m)].vary = True
+
+                    if n > m:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+                        self.params['B_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].value = 0
+                        self.params['C_{0}_{1}'.format(n, m)].vary = False
+                        self.params['C_{0}_{1}'.format(n, m)].value = 0
+                        self.params['D_{0}_{1}'.format(n, m)].vary = False
+                        self.params['D_{0}_{1}'.format(n, m)].value = 0
 
         if func_version == 6:
 
@@ -425,7 +458,7 @@ class FieldFitter:
             print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
                 ns, ms, cns, cms, cfg_pickle.load_name))
         start_time = time()
-        if func_version not in [6, 8, 9]:
+        if func_version not in [6, 8, 9] and func_version < 100:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -480,6 +513,25 @@ class FieldFitter:
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, rp=RRP, phip=PPP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 2000})
+        elif func_version >= 100:
+            if cfg_pickle.recreate:
+                for param in self.params:
+                    self.params[param].vary = False
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 1})
+            elif cfg_pickle.use_pickle:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 10000})
+            else:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 10000})
 
         self.params = self.result.params
         end_time = time()

@@ -206,7 +206,7 @@ class DataFrameMaker(object):
             helix (boolean, optional): If True, calculate helical coordinates in addition to other
                 modifications.
             pitch (float, optional): If helix is True, pitch must be specified in order to create
-                helical coordinates. Expect units of mm.
+                helical coordinates. Expect units of mm.  7.53mm for DS8-9-10. 5.27 for DS1-7,11
 
         Returns:
             Nothing. Operations are performed in place, and modify the internal `data_frame`.
@@ -418,9 +418,9 @@ if __name__ == "__main__":
     #                            use_pickle=False, field_map_version='GA05')
     # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=False,
     #                            field_map_version='Mau10')
-    data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
-                                use_pickle=False, field_map_version='Mau10')
-    data_maker.do_basic_modifications()
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
+    #                             use_pickle=False, field_map_version='Mau10')
+    # data_maker.do_basic_modifications()
     # data_maker = DataFrameMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle=False,
     #                            field_map_version='Mau10')
     # data_maker = DataFrameMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle=False,
@@ -453,10 +453,10 @@ if __name__ == "__main__":
     #     use_pickle=False, field_map_version='Glass_longbus_only')
     # data_maker.do_basic_modifications(-3904)
 
-    # data_maker = DataFrameMaker(
-    #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads',
-    #     use_pickle=False, field_map_version='Glass_Helix_v1')
-    # data_maker.do_basic_modifications(-3904)
+    data_maker = DataFrameMaker(
+        mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads',
+        use_pickle=False, field_map_version='Glass_Helix_v1')
+    data_maker.do_basic_modifications(-3904, helix=True, pitch=7.53)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads_TOL1e-5',
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     #     use_pickle=False, field_map_version='Mau11')
     # data_maker.do_basic_modifications(-3896)
 
-    # data_maker.make_dump()
-    data_maker.make_dump('_noOffset')
+    data_maker.make_dump()
+    # data_maker.make_dump('_noOffset')
     print(data_maker.data_frame.head())
     print(data_maker.data_frame.tail())
