@@ -578,19 +578,25 @@ cfg_pickle_GA05_800mm               = cfg_pickle(use_pickle=True, save_pickle=Tr
                                                  load_name='GA05_BusTest', save_name='GA05_BusTest',
                                                  recreate=True)
 
+cfg_params_GA05_DS_HelTest          = cfg_params(ns=15, ms=15, cns=10, cms=10, Reff=7000,
+                                                 func_version=100)
+cfg_pickle_GA05_HelTest             = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='GA05_HelTest', save_name='GA05_HelTest',
+                                                 recreate=False)
+
 cfg_params_Mau_DS_800mm_long        = cfg_params(ns=2, ms=100, cns=0, cms=0, Reff=7000,
                                                  func_version=5)
 cfg_pickle_Mau_800mm_long           = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Mau10_800mm_long',
                                                  save_name='Mau10_800mm_long', recreate=False)
 
-cfg_params_Glass_DS_Hel             = cfg_params(ns=6, ms=30, cns=0, cms=0, Reff=7000,
+cfg_params_Glass_DS_Hel             = cfg_params(ns=7, ms=30, cns=0, cms=0, Reff=7000,
                                                  func_version=5)
 cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel',
-                                                 save_name='Glass_Hel', recreate=True)
+                                                 save_name='Glass_Hel', recreate=False)
 
-cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=5, ms=5, cns=0, cms=0, Reff=700,
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=7000,
                                                  func_version=100)
 cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Pel',
@@ -865,3 +871,7 @@ if __name__ == "__main__":
     hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
                                  cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
                                  cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
+    #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,
+    #                              cfg_pickle_GA05_HelTest, cfg_plot_mpl)

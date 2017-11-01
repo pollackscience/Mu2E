@@ -247,6 +247,10 @@ class FieldFitter:
                                                                                 cns, cms)
         elif func_version == 100:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v0(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 101:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v1(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 102:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v2(ZZ, RR, PP, Reff, ns, ms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
@@ -328,19 +332,22 @@ class FieldFitter:
             for n in range(ns):
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0.0, vary=True)
                     else:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
+
                     if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0.0, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
+
                     if 'C_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params.add('C_{0}_{1}'.format(n, m), value=0.0, vary=True)
                     else:
                         self.params['C_{0}_{1}'.format(n, m)].vary = True
+
                     if 'D_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params.add('D_{0}_{1}'.format(n, m), value=0.0, vary=True)
                     else:
                         self.params['D_{0}_{1}'.format(n, m)].vary = True
 
@@ -353,6 +360,11 @@ class FieldFitter:
                         self.params['C_{0}_{1}'.format(n, m)].value = 0
                         self.params['D_{0}_{1}'.format(n, m)].vary = False
                         self.params['D_{0}_{1}'.format(n, m)].value = 0
+        if func_version == 102:
+            if 'E' not in self.params:
+                self.params.add('E', value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=True)
+            else:
+                self.params['E'].vary = False
 
         if func_version == 6:
 
