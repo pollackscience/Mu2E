@@ -78,7 +78,7 @@ cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
                                      ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
-                                     ('Z>8000', 'Z<10000', 'R!=0'))
+                                     ('Z>7000', 'Z<11000', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -174,7 +174,7 @@ z_steps_PS = list(range(-7879, -4004, 50))
 z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
-z_steps_DS_glass_hel = list(range(8021, 10021, 25))
+z_steps_DS_glass_hel = list(range(7021, 11021, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -594,13 +594,13 @@ cfg_params_Glass_DS_Hel             = cfg_params(ns=7, ms=30, cns=0, cms=0, Reff
                                                  func_version=5)
 cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel',
-                                                 save_name='Glass_Hel', recreate=False)
+                                                 save_name='Glass_Hel', recreate=True)
 
-cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=7000,
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=13, ms=13, cns=0, cms=0, Reff=7000,
                                                  func_version=100)
 cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Pel',
-                                                 save_name='Glass_Hel_Pel', recreate=False)
+                                                 save_name='Glass_Hel_Pel', recreate=True)
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
 #               load_name='Mau10_800mm_interp',
@@ -617,7 +617,7 @@ cfg_pickle_set_Mau_bad_m            = [
 # the plot cfgs #
 #################
 cfg_plot_mpl = cfg_plot('mpl', [-2, 2], 'html', None)
-cfg_plot_mpl_high_lim = cfg_plot('mpl', [-5, 5], 'html', None)
+cfg_plot_mpl_high_lim = cfg_plot('mpl', [-10, 10], 'html', None)
 cfg_plot_plotly_img = cfg_plot('plotly_html_img', [-2, 2], 'html', None)
 cfg_plot_plotly_html = cfg_plot('plotly_html', [-2, 2], 'html', None)
 cfg_plot_plotly_high_lim = cfg_plot('plotly', [-10, 10], 'html', None)
@@ -870,7 +870,7 @@ if __name__ == "__main__":
 
     hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
                                  cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
-                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
+                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_img)
 
     # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
     #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,

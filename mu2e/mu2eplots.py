@@ -129,7 +129,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
 
 def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
-                df_fit=None, ptype='3D', aspect='square'):
+                df_fit=None, ptype='3d', aspect='square'):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -242,18 +242,18 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             max_val = np.max(data_fit_diff)
             min_val = np.min(data_fit_diff)
             abs_max_val = max(abs(max_val), abs(min_val))
-            if (abs_max_val) > 2:
-                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, vmin=-1, vmax=1,
-                                      cmap=plt.get_cmap('viridis'))
-                cb = plt.colorbar(heat, aspect=7)
-                cb_ticks = cb.ax.get_yticklabels()
-                cb_ticks[0] = '< -2'
-                cb_ticks[-1] = '> 2'
-                cb_ticks = cb.ax.set_yticklabels(cb_ticks)
-            else:
-                heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'),
-                                      vmin=-abs_max_val, vmax=abs_max_val)
-                cb = plt.colorbar(heat, aspect=7)
+            # if (abs_max_val) > 2:
+            #     heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, vmin=-1, vmax=1,
+            #                           cmap=plt.get_cmap('viridis'))
+            #     cb = plt.colorbar(heat, aspect=7)
+            #     cb_ticks = cb.ax.get_yticklabels()
+            #     cb_ticks[0] = '< -2'
+            #     cb_ticks[-1] = '> 2'
+            #     cb_ticks = cb.ax.set_yticklabels(cb_ticks)
+            # else:
+            heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'),
+                                  vmin=-abs_max_val, vmax=abs_max_val)
+            cb = plt.colorbar(heat, aspect=7)
             plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
                       fontsize=20)
             cb.set_label('Data-Fit (G)', fontsize=18)
@@ -418,7 +418,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 plot(fig)
         elif mode == 'plotly_html':
             if save_dir:
-                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=True)
+                plot(fig, filename=save_dir+'/'+save_name+'.html', auto_open=False)
             else:
                 plot(fig)
 
