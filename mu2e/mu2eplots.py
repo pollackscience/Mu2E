@@ -873,3 +873,155 @@ def conditions_parser(df, conditions):
         conditions_title += ', Phi=={0:.2f}'.format(phi)
 
     return df, conditions_title
+
+
+def xray_maker_2(df_xray, bz=50, bx=15, by=15):
+    '''Helper function to generate the x-ray visualization for particle trapping plots.'''
+
+    print('binning...')
+    init_notebook_mode()
+    xray_query = 'xstop<1000 and tstop< 200 and sqrt(xstop*xstop+ystop*ystop)<900'
+    df_xray.query(xray_query, inplace=True)
+
+    h, e = np.histogramdd(np.asarray([df_xray.zstop, df_xray.xstop, df_xray.ystop]).T,
+                          bins=(bz, bx, by), range=[(3500, 15000), (-900, 900), (-900, 900)])
+    h_adj = h/h.max()
+
+    cube_list = []
+    for i in range(bz):
+        for j in range(bx):
+            for k in range(by):
+                if h_adj[i][j][k] == 0:
+                    continue
+                cube_list.append(
+                    go.Mesh3d(
+                        x=[e[0][i], e[0][i], e[0][i+1], e[0][i+1], e[0][i], e[0][i], e[0][i+1], e[0][i+1]],
+                        y=[e[1][j], e[1][j+1], e[1][j+1], e[1][j], e[1][j], e[1][j+1], e[1][j+1], e[1][j]],
+                        z=[e[2][k], e[2][k], e[2][k], e[2][k], e[2][k+1], e[2][k+1], e[2][k+1], e[2][k+1]],
+                        i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+                        j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+                        k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+                        color='00FFFF',
+                        opacity=h_adj[i][j][k]*0.5
+                    )
+                )
+
+    layout = ptrap_layout(title='test xray')
+    fig = go.Figure(data=go.Data(cube_list), layout=layout)
+    iplot(fig)
+
+
+def mu2e_plot3d_ptrap_anim_2(df, x, y, z, df_xray):
+    """Generate 3D scatter plots, with a slider widget typically for visualizing 3D positions of
+    charged particles.
+
+    Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
+    that are typically plotted, :mod:`matplotlib` is not supported. A slider widget is generated,
+    corresponding to the evolution in time.
+
+    Notes:
+        * Currently many options are hard-coded.
+        * Use `g.plot(fig)` after executing this function.
+    Args:
+        df_group1 (pandas.DataFrame): The input DF, must contain columns with labels corresponding
+        to the 'x', 'y', and 'z' args.
+        x (str): Name of the first variable.
+        y (str): Name of the second variable.
+        z (str): Name of the third variable.
+        df_xray: (:class:`pandas.DataFrame`): A seperate DF, representing the geometry of the
+            material that is typically included during particle simulation.
+        df_group2: (:class:`pandas.DataFrame`, optional): A seperate DF, representing the geometry
+            of the material that is typically included during particle simulation.
+        color (optional): Being implemented...
+        title (str, optional): Title.
+
+    Returns:
+        (g, fig) for plotting.
+    """
+    init_notebook_mode()
+    sids = np.sort(df.sid.unique())
+    layout = ptrap_layout(title='anim test')
+    figure = {
+        'data': [],
+        'layout': layout,
+        'frames': [],
+    }
+
+    # figure['layout']['sliders'] = [{
+    #     'args': [
+    #         'transition', {
+    #             'duration': 400,
+    #             'easing': 'cubic-in-out'
+    #         }
+    #     ],
+    #     'initialValue': '0',
+    #     'plotlycommand': 'animate',
+    #     'values': sids,
+    #     'visible': True
+    # }]
+    figure['layout']['updatemenus'] = [{'type': 'buttons',
+                              'buttons': [{'label': 'Play',
+                                           'method': 'animate',
+                                           'args': [None]},
+                                          {'args': [[None], {'frame': {'duration': 0, 'redraw':
+                                                                       False, 'easing':
+                                                                       'quadratic-in-out'}, 'mode': 'immediate',
+                                                             'transition': {'duration': 0}}],
+                                           'label': 'Pause',
+                                           'method': 'animate'}
+                                          ]}]
+
+    sliders_dict = {
+            'active': 0,
+            'yanchor': 'top',
+            'xanchor': 'left',
+            'currentvalue': {
+                        'font': {'size': 20},
+                        'prefix': 'SID:',
+                        'visible': True,
+                        'xanchor': 'right'
+                    },
+            'transition': {'duration': 100, 'easing': 'cubic-in-out'},
+            'pad': {'b': 10, 't': 50},
+            'len': 0.9,
+            'x': 0.1,
+            'y': 0,
+            'steps': []
+    }
+    scats = []
+    xray_maker(df_xray, scats)
+
+    for sid in sids:
+        slider_step = {'args': [
+            [sid],
+            {'frame': {'duration': 300, 'redraw': True},
+             'mode': 'immediate',
+             'transition': {'duration': 300}}
+        ],
+                       'label': sid,
+                       'method': 'animate'}
+        sliders_dict['steps'].append(slider_step)
+
+    # init_scat = dict(
+    #     x=df[df.sid == sids[0]][x],
+    #     y=df[df.sid == sids[0]][y],
+    #     z=df[df.sid == sids[0]][z],
+    #     mode='markers',
+    #     type='scatter3d'
+    # )
+    # scats.append(init_scat)
+    frames=[dict(data=[dict(
+        x=df[df.sid==sids[k]][x],
+        y=df[df.sid==sids[k]][y],
+        z=df[df.sid==sids[k]][z],
+        mode='markers',
+        type='scatter3d',
+        marker=dict(color='red', size=10, symbol='circle', opacity=0.5)
+    )
+                       ]) for k in range(len(sids))]
+
+    figure['layout']['sliders'] = [sliders_dict]
+    figure['data'] = scats
+    figure['frames'] = frames
+    # fig = go.Figure(data=scats, layout=layout, frames=frames)
+    iplot(figure)

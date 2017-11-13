@@ -347,12 +347,12 @@ class FieldFitter:
 
                     if func_version != 103:
                         if 'C_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('C_{0}_{1}'.format(n, m), value=0.0, vary=False)
+                            self.params.add('C_{0}_{1}'.format(n, m), value=0.0, vary=True)
                         else:
                             self.params['C_{0}_{1}'.format(n, m)].vary = True
 
                         if 'D_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('D_{0}_{1}'.format(n, m), value=0.0, vary=False)
+                            self.params.add('D_{0}_{1}'.format(n, m), value=0.0, vary=True)
                         else:
                             self.params['D_{0}_{1}'.format(n, m)].vary = True
 

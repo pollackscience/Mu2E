@@ -78,7 +78,7 @@ cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
                                      ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
-                                     ('Z>7000', 'Z<11000', 'R!=0'))
+                                     ('Z>8000', 'Z<9600', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -174,7 +174,7 @@ z_steps_PS = list(range(-7879, -4004, 50))
 z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
-z_steps_DS_glass_hel = list(range(7021, 11021, 25))
+z_steps_DS_glass_hel = list(range(8021, 9621, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -870,7 +870,7 @@ if __name__ == "__main__":
 
     hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
                                  cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
-                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_img)
+                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
     #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,
