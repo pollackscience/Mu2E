@@ -224,7 +224,7 @@ class DataFrameMaker(object):
                 ('MIN' in self.file_name) or
                 ('MAX' in self.file_name) or
                 ('Only' in self.field_map_version) or
-                ('Glass' in self.field_map_version) or
+                ('Glass' in self.field_map_version and 'v3' not in self.field_map_version) or
                 ('Mau11' in self.field_map_version and '5096' not in self.file_name) or
                 ('Ideal' in self.field_map_version)):
 
@@ -454,8 +454,8 @@ if __name__ == "__main__":
     # data_maker.do_basic_modifications(-3904)
 
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads',
-        use_pickle=False, field_map_version='Glass_Helix_v1')
+        mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads',
+        use_pickle=False, field_map_version='Glass_Helix_v3')
     data_maker.do_basic_modifications(-3904, helix=True, pitch=7.53)
 
     # data_maker = DataFrameMaker(

@@ -36,6 +36,7 @@ path_DS_Bus_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_longbus_no
 path_DS_Bus_Rot_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_rot'
 path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus'
 path_DS_Hel_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads'
+path_DS_Hel_Only_Glass_2    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -78,7 +79,9 @@ cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
                                      ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
-                                     ('Z>8000', 'Z<9600', 'R!=0'))
+                                     ('Z>8400', 'Z<9200', 'R!=0'))
+cfg_data_DS_Glass_Hel_2     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_2,
+                                       ('Z>8400', 'Z<9200', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -174,7 +177,8 @@ z_steps_PS = list(range(-7879, -4004, 50))
 z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
-z_steps_DS_glass_hel = list(range(8021, 9621, 25))
+# z_steps_DS_glass_hel = list(range(8021, 9621, 25))
+z_steps_DS_glass_hel = list(range(8421, 9221, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -348,8 +352,8 @@ cfg_geom_cyl_glass              = cfg_geom('cyl', z_steps_DS_glass, r_steps_800m
                                            x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
-cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_800mm, phi_steps_8,
-                                           x_steps=None, y_steps=None,
+cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_fullsim_trunc[0:1],
+                                           phi_steps_8[0:1], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
 cfg_geom_bus_glass              = cfg_geom('cart', z_steps_DS_glass, r_steps=None, phi_steps=None,
@@ -596,11 +600,11 @@ cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Hel',
                                                  save_name='Glass_Hel', recreate=True)
 
-cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=13, ms=13, cns=1, cms=1, Reff=7000,
-                                                 func_version=105)
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=7000,
+                                                 func_version=100)
 cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Pel',
-                                                 save_name='Glass_Hel_Pel', recreate=False)
+                                                 save_name='Glass_Hel_Pel', recreate=True)
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
 #               load_name='Mau10_800mm_interp',
@@ -868,9 +872,13 @@ if __name__ == "__main__":
     #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel,
     #                              cfg_pickle_Glass_Hel, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel', cfg_data_DS_Glass_Hel,
+    #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
+    #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_html)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel_2', cfg_data_DS_Glass_Hel_2,
                                  cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
-                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
+                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_html)
 
     # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
     #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,

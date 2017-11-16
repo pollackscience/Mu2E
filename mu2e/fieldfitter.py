@@ -338,23 +338,23 @@ class FieldFitter:
             for n in range(ns):
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0.0, vary=True)
+                        self.params.add('A_{0}_{1}'.format(n, m), value=1, vary=True)
                     else:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
 
                     if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0.0, vary=True)
+                        self.params.add('B_{0}_{1}'.format(n, m), value=1, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
 
                     if func_version != 103:
                         if 'C_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('C_{0}_{1}'.format(n, m), value=0.0, vary=True)
+                            self.params.add('C_{0}_{1}'.format(n, m), value=1, vary=True)
                         else:
                             self.params['C_{0}_{1}'.format(n, m)].vary = True
 
                         if 'D_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('D_{0}_{1}'.format(n, m), value=0.0, vary=True)
+                            self.params.add('D_{0}_{1}'.format(n, m), value=1, vary=True)
                         else:
                             self.params['D_{0}_{1}'.format(n, m)].vary = True
 

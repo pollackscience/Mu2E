@@ -2478,10 +2478,12 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
     for n in range(ns):
         for m in range(ms):
             # if n <= m:
-                iv1[n][m] = special.iv(m-n, ((n)/P)*np.abs(r))
-                iv2[n][m] = special.iv(m+n, ((n)/P)*np.abs(r))
-                ivp1[n][m] = special.ivp(m-n, ((n)/P)*np.abs(r))
-                ivp2[n][m] = special.ivp(m+n, ((n)/P)*np.abs(r))
+                iv1[n][m] = special.iv(m-n, (n/P)*np.abs(r))
+                iv2[n][m] = special.iv(m+n, (n/P)*np.abs(r))
+                ivp1[n][m] = 0.5*(special.iv(-1+m-n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m-n, (n/P)*np.abs(r)))
+                ivp2[n][m] = 0.5*(special.iv(-1+m+n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m+n, (n/P)*np.abs(r)))
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
                   "float64[:], float64[:], float64[:], float64[:],"
@@ -2492,21 +2494,21 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
     def calc_b_fields(z, phi, r, P, m, n, A, B, C, D,
                       iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
         for i in range(z.shape[0]):
-            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]) +
-                                                B[0]*np.sin(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) +
-                                       ivp2[i]*(C[0]*np.cos(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]) -
-                                                D[0]*np.sin(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])))
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                                       ivp2[i]*(C[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) -
+                                                D[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
 
-            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]) +
-                                               B[0]*np.cos(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) -
-                                       iv2[i]*(C[0]*np.sin(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]) +
-                                               D[0]*np.cos(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])))
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) -
+                                       iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                               D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
 
             model_phi[i] += (1.0/np.abs(r[i])) * \
-                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]) -
-                                      B[0]*np.cos(n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) +
-                 (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]) +
-                                     D[0]*np.cos(n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])))
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]-(m[0]-n[0])*phi[i]) -
+                                      B[0]*np.cos(n[0]*z[i]/P[0]-(m[0]-n[0])*phi[i])) +
+                 (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                     D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
             # print(model_r[i], n[0], m[0], P[0], ivp1[i], ivp2[i], A[0], B[0], C[0], D[0], z[i],
             #       phi[i])
 
