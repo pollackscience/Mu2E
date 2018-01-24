@@ -14,7 +14,7 @@ from six.moves import range
 cfg_data   = namedtuple('cfg_data', 'datatype magnet path conditions')
 cfg_geom   = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps x_steps y_steps '
                         'bad_calibration interpolate')
-cfg_params = namedtuple('cfg_params', 'ns ms cns cms Reff func_version')
+cfg_params = namedtuple('cfg_params', 'ns ms cns cms nms Reff n_scale m_scale func_version')
 cfg_pickle = namedtuple('cfg_pickle', 'use_pickle save_pickle load_name save_name recreate')
 cfg_plot   = namedtuple('cfg_plot', 'plot_type zlims save_loc sub_dir')
 
@@ -37,6 +37,7 @@ path_DS_Bus_Rot_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_onl
 path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus'
 path_DS_Hel_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads'
 path_DS_Hel_Only_Glass_2    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads'
+path_DS_Hel_Only_Glass_3    = mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -79,9 +80,14 @@ cfg_data_DS_Glass_Combo   = cfg_data('Glass', 'DS', path_DS_Combo_Glass,
 cfg_data_DS_Glass_Bus_Rot = cfg_data('Glass', 'DS', path_DS_Bus_Rot_Glass,
                                      ('Z>4000', 'Z<13500'))
 cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
-                                     ('Z>8400', 'Z<9200', 'R!=0'))
-cfg_data_DS_Glass_Hel_2     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_2,
-                                       ('Z>8400', 'Z<9200', 'R!=0'))
+                                     ('Z>8100', 'Z<9500', 'R!=0'))
+cfg_data_DS_Glass_Hel_2   = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_2,
+                                     ('Z>8100', 'Z<9500', 'R!=0'))
+cfg_data_DS_Glass_Hel_3   = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
+                                     ('Z>-3500', 'Z<3500', 'R!=0'))
+cfg_data_DS_Glass_Hel_3L  = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
+                                     ('Z>-4500', 'Z<4500', 'R!=0'))
+# ('Z>6400', 'Z<11200', 'R!=0'))
 
 #################
 # the geom cfgs #
@@ -177,8 +183,9 @@ z_steps_PS = list(range(-7879, -4004, 50))
 z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
-# z_steps_DS_glass_hel = list(range(8021, 9621, 25))
-z_steps_DS_glass_hel = list(range(8421, 9221, 25))
+z_steps_DS_glass_hel = list(range(8121, 9521, 25))
+z_steps_DS_glass_test = list(range(-3500, 3500, 50))
+# z_steps_DS_glass_hel = list(range(6421, 11221, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
 y_steps_DS_glass = [-300, -150, -50, 0, 50, 150, 300]
@@ -352,7 +359,11 @@ cfg_geom_cyl_glass              = cfg_geom('cyl', z_steps_DS_glass, r_steps_800m
                                            x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
-cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_fullsim_trunc[0:1],
+cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_fullsim_trunc,
+                                           phi_steps_8, x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False)
+
+cfg_geom_hel_glass_test         = cfg_geom('cyl', z_steps_DS_glass_test, r_steps_800mm[0:1],
                                            phi_steps_8[0:1], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
@@ -383,37 +394,37 @@ cfg_geom_set_cyl_800mm   = [
 ###################
 # the params cfgs #
 ###################
-cfg_params_Mau_DS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_Mau_DS_825mm_v1            = cfg_params(ns=3, ms=80, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_Mau_DS_825mm_v2            = cfg_params(ns=3, ms=80, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_Mau_DS_800mm               = cfg_params(ns=3, ms=50, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
-cfg_params_Mau_DS_800mm_bessel        = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
-                                                   func_version=2)
-cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
-                                                   func_version=3)
-cfg_params_Mau_DS_700                 = cfg_params(ns=3, ms=70, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_Mau_DS_bad                 = cfg_params(ns=3, ms=80, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_GA05_DS_offset             = cfg_params(ns=4, ms=50, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
-cfg_params_Mau10_DS_offset            = cfg_params(ns=3, ms=50, cns=0, cms=0, Reff=7000,
-                                                   func_version=1)
-cfg_params_Mau_PS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, Reff=9000,
-                                                   func_version=1)
+cfg_params_Mau_DS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_Mau_DS_825mm_v1            = cfg_params(ns=3, ms=80, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_Mau_DS_825mm_v2            = cfg_params(ns=3, ms=80, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_Mau_DS_800mm               = cfg_params(ns=3, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=5)
+cfg_params_Mau_DS_800mm_bessel        = cfg_params(ns=4, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=2)
+cfg_params_Mau_DS_800mm_bessel_hybrid = cfg_params(ns=4, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=3)
+cfg_params_Mau_DS_700                 = cfg_params(ns=3, ms=70, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_Mau_DS_bad                 = cfg_params(ns=3, ms=80, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_GA05_DS_offset             = cfg_params(ns=4, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=5)
+cfg_params_Mau10_DS_offset            = cfg_params(ns=3, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=1)
+cfg_params_Mau_PS_opt                 = cfg_params(ns=3, ms=40, cns=0, cms=0, nms=0, Reff=9000,
+                                                   n_scale=1, m_scale=1, func_version=1)
 
-cfg_params_GA05_DS_seg_trk_no_mod     = cfg_params(ns=10, ms=35, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
+cfg_params_GA05_DS_seg_trk_no_mod     = cfg_params(ns=10, ms=35, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=5)
 
-cfg_params_GA05_DS_seg_trk_mod1       = cfg_params(ns=6, ms=35, cns=10, cms=15, Reff=7000,
-                                                   func_version=8)
+cfg_params_GA05_DS_seg_trk_mod1       = cfg_params(ns=6, ms=35, cns=10, cms=15, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=8)
 
-cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, Reff=7000,
-                                                   func_version=9)
+cfg_params_GA05_DS_seg_trk_mod2       = cfg_params(ns=6, ms=35, cns=10, cms=15, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=9)
 
 
 ###################
@@ -546,65 +557,112 @@ cfg_pickle_Mau_800mm_interp_v3      = cfg_pickle(use_pickle=True, save_pickle=Tr
                                                  load_name='Mau10_800mm_interp_v3',
                                                  save_name='Mau10_800mm_interp_v3', recreate=False)
 
-cfg_params_Glass_DS_Cyl               = cfg_params(ns=1, ms=60, cns=0, cms=0, Reff=7000,
-                                                   func_version=5)
+cfg_params_Glass_DS_Cyl               = cfg_params(ns=1, ms=60, cns=0, cms=0, nms=0, Reff=7000,
+                                                   n_scale=1, m_scale=1, func_version=5)
 cfg_pickle_Glass_Cyl                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cyl_Only',
                                                  save_name='Cyl_Only', recreate=False)
 
-cfg_params_Glass_DS_Bus             = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=5000,
-                                                 func_version=20)
+cfg_params_Glass_DS_Bus             = cfg_params(ns=10, ms=10, cns=0, cms=0, nms=0, Reff=5000,
+                                                 n_scale=1, m_scale=1, func_version=20)
 cfg_pickle_Glass_Bus                = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Bus_Only_long',
                                                  save_name='Bus_Only_long', recreate=True)
 
-cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=10, cms=10, Reff=7000,
-                                                 func_version=6)
+cfg_params_Glass_DS_Combo           = cfg_params(ns=1, ms=60, cns=10, cms=10, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=6)
 cfg_pickle_Glass_Combo              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Combo',
                                                  save_name='Combo', recreate=True)
 
-cfg_params_Glass_DS_Cyl_bad         = cfg_params(ns=6, ms=50, cns=0, cms=0, Reff=7000,
-                                                 func_version=5)
+cfg_params_Glass_DS_Cyl_bad         = cfg_params(ns=6, ms=50, cns=0, cms=0, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=5)
 cfg_pickle_Glass_Combo_Cyl          = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Combo_Cyl',
                                                  save_name='Combo_Cyl', recreate=False)
 
-cfg_params_Glass_DS_Bus_Rot         = cfg_params(ns=20, ms=5, cns=0, cms=0, Reff=5000,
-                                                 func_version=33)
+cfg_params_Glass_DS_Bus_Rot         = cfg_params(ns=20, ms=5, cns=0, cms=0, nms=0, Reff=5000,
+                                                 n_scale=1, m_scale=1, func_version=33)
 cfg_pickle_Glass_Bus_Rot            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Bus_Rot',
                                                  save_name='Bus_Rot', recreate=False)
 
-cfg_params_GA05_DS_800mm            = cfg_params(ns=2, ms=60, cns=10, cms=10, Reff=7000,
-                                                 func_version=6)
+cfg_params_GA05_DS_800mm            = cfg_params(ns=2, ms=60, cns=10, cms=10, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=6)
 cfg_pickle_GA05_800mm               = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='GA05_BusTest', save_name='GA05_BusTest',
                                                  recreate=True)
 
-cfg_params_GA05_DS_HelTest          = cfg_params(ns=15, ms=15, cns=10, cms=10, Reff=7000,
-                                                 func_version=100)
+cfg_params_GA05_DS_HelTest          = cfg_params(ns=15, ms=15, cns=10, cms=10, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=100)
 cfg_pickle_GA05_HelTest             = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='GA05_HelTest', save_name='GA05_HelTest',
                                                  recreate=False)
 
-cfg_params_Mau_DS_800mm_long        = cfg_params(ns=2, ms=100, cns=0, cms=0, Reff=7000,
-                                                 func_version=5)
+cfg_params_Mau_DS_800mm_long        = cfg_params(ns=2, ms=100, cns=0, cms=0, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=5)
 cfg_pickle_Mau_800mm_long           = cfg_pickle(use_pickle=True, save_pickle=True,
                                                  load_name='Mau10_800mm_long',
                                                  save_name='Mau10_800mm_long', recreate=False)
 
-cfg_params_Glass_DS_Hel             = cfg_params(ns=7, ms=30, cns=0, cms=0, Reff=7000,
-                                                 func_version=5)
+cfg_params_Glass_DS_Hel             = cfg_params(ns=7, ms=30, cns=0, cms=0, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=5)
 cfg_pickle_Glass_Hel                = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel',
                                                  save_name='Glass_Hel', recreate=True)
 
-cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=10, ms=10, cns=0, cms=0, Reff=7000,
-                                                 func_version=100)
+cfg_params_Glass_DS_Hel_Pel         = cfg_params(ns=15, ms=15, cns=0, cms=0, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=110)
 cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Pel',
-                                                 save_name='Glass_Hel_Pel', recreate=True)
+                                                 save_name='Glass_Hel_Pel', recreate=False)
+
+cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=20, ms=20, cns=0, cms=0, nms=0, Reff=25000,
+                                                 n_scale=1, m_scale=1, func_version=100)
+cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Glass_Hel_Test',
+                                                 save_name='Glass_Hel_Test', recreate=False)
+
+nms = list(zip(range(1, 20), range(1, 20)))
+nms += list(zip(range(1, 20), range(2, 21)))
+nms += list(zip(range(1, 20), range(6, 27)))
+nms += list(zip(range(1, 20), range(7, 28)))
+nms += list(zip(range(1, 20), range(8, 29)))
+nms += list(zip(range(1, 20), range(9, 30)))
+nms += list(zip(range(1, 20), range(10, 31)))
+nms += list(zip(range(1, 20), range(11, 32)))
+nms += list(zip(range(1, 20), range(12, 33)))
+nms += list(zip(range(1, 20), range(13, 34)))
+nms += list(zip(range(1, 20), range(14, 35)))
+nms += list(zip(range(1, 20), range(15, 36)))
+# nms += list(zip(range(1, 10), range(2, 11)))
+# nms += list(zip(range(1, 10), range(3, 12)))
+# nms += list(zip(range(1, 10), range(4, 13)))
+# nms += list(zip(range(1, 10), range(5, 14)))
+# nms += list(zip(range(1, 10), range(6, 15)))
+# nms += list(zip(range(1, 10), range(7, 16)))
+# nms += list(zip(range(1, 10), range(8, 17)))
+# nms += list(zip(range(1, 10), range(9, 18)))
+# nms += list(zip(range(1, 10), range(10, 19)))
+# nms += list(zip(range(1, 10), range(11, 20)))
+# nms += list(zip(range(1, 10), range(14, 23)))
+# nms += list(zip(range(1, 10), range(15, 24)))
+# nms += list(zip(range(1, 10), range(16, 25)))
+# nms += list(zip(range(1, 6), range(8, 12)))
+# nms += list(zip(range(1, 6), range(9, 13)))
+# nms += list(zip(range(2, 7), range(9, 13)))
+# nms += list(zip(range(2, 7), range(10, 14)))
+# nms += list(zip(range(3, 8), range(10, 14)))
+# nms += list(zip(range(3, 8), range(11, 15)))
+# nms += list(zip(range(4, 9), range(11, 15)))
+# nms += list(zip(range(4, 9), range(12, 16)))
+# nms += list(zip(range(5, 10), range(12, 16)))
+# nms += list(zip(range(5, 10), range(13, 17)))
+cfg_params_Glass_DS_Hel_New         = cfg_params(ns=0, ms=0, cns=0, cms=0, nms=nms, Reff=25000,
+                                                 n_scale=1, m_scale=1, func_version=111)
+cfg_pickle_Glass_Hel_New            = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Glass_Hel_New',
+                                                 save_name='Glass_Hel_New', recreate=False)
 # cfg_pickle_set_Mau_bad_m            = [
 #    cfg_pickle(use_pickle=True, save_pickle=True,
 #               load_name='Mau10_800mm_interp',
@@ -876,9 +934,17 @@ if __name__ == "__main__":
     #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
     #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_html)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel_2', cfg_data_DS_Glass_Hel_2,
-                                 cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
-                                 cfg_pickle_Glass_Hel_Pel, cfg_plot_plotly_html)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Pel_4', cfg_data_DS_Glass_Hel,
+    #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
+    #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
+    #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
+    #                              cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Hel_New', cfg_data_DS_Glass_Hel_3,
+                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_New,
+                                 cfg_pickle_Glass_Hel_New, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
     #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,

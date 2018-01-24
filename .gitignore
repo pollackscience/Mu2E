@@ -68,6 +68,8 @@ target/
 *.table
 scripts/*.png
 scripts/*.pdf
+scripts/*/*.png
+scripts/*/*.pdf
 
 # MSFT Files
 *.doc*

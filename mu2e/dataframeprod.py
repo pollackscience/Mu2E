@@ -173,6 +173,11 @@ class DataFrameMaker(object):
                 self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
                 skiprows=8)
 
+        elif 'Glass_Helix_v4' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
+                skiprows=4)
+
         elif 'Glass' in self.field_map_version:
             self.data_frame = pd.read_csv(
                 self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
@@ -182,6 +187,11 @@ class DataFrameMaker(object):
             self.data_frame = pd.read_csv(
                 self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
                 skiprows=8)
+
+        elif 'Mau12' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
+                skiprows=4)
 
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
@@ -224,7 +234,8 @@ class DataFrameMaker(object):
                 ('MIN' in self.file_name) or
                 ('MAX' in self.file_name) or
                 ('Only' in self.field_map_version) or
-                ('Glass' in self.field_map_version and 'v3' not in self.field_map_version) or
+                ('Glass' in self.field_map_version and ('v3' not in self.field_map_version and
+                                                        'v4' not in self.field_map_version)) or
                 ('Mau11' in self.field_map_version and '5096' not in self.file_name) or
                 ('Ideal' in self.field_map_version)):
 
@@ -453,10 +464,10 @@ if __name__ == "__main__":
     #     use_pickle=False, field_map_version='Glass_longbus_only')
     # data_maker.do_basic_modifications(-3904)
 
-    data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads',
-        use_pickle=False, field_map_version='Glass_Helix_v3')
-    data_maker.do_basic_modifications(-3904, helix=True, pitch=7.53)
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads',
+    #     use_pickle=False, field_map_version='Glass_Helix_v3')
+    # data_maker.do_basic_modifications(-3904, helix=True, pitch=7.53)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads_TOL1e-5',
@@ -481,6 +492,16 @@ if __name__ == "__main__":
     #     mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_5096_v11',
     #     use_pickle=False, field_map_version='Mau11')
     # data_maker.do_basic_modifications(-3896)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/Mau12/DSMap',
+    #     use_pickle=False, field_map_version='Mau12')
+    # data_maker.do_basic_modifications(-3896)
+
+    data_maker = DataFrameMaker(
+        mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L_detail',
+        use_pickle=False, field_map_version='Glass_Helix_v4')
+    data_maker.do_basic_modifications()
 
     data_maker.make_dump()
     # data_maker.make_dump('_noOffset')

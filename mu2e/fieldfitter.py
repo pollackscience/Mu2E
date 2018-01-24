@@ -129,8 +129,11 @@ class FieldFitter:
             saving is specified.
         """
         Reff         = cfg_params.Reff
+        n_scale      = cfg_params.n_scale
+        m_scale      = cfg_params.m_scale
         ns           = cfg_params.ns
         ms           = cfg_params.ms
+        nms          = cfg_params.nms
         func_version = cfg_params.func_version
         Bz           = []
         Br           = []
@@ -151,6 +154,7 @@ class FieldFitter:
             PPP = []
 
         for phi in self.phi_steps:
+            print(phi)
             # determine phi and negative phi
             if phi == 0:
                 nphi = np.pi
@@ -170,7 +174,7 @@ class FieldFitter:
             piv_br = input_data_phi.pivot('Z', 'R', 'Br')
             piv_bphi = input_data_phi.pivot('Z', 'R', 'Bphi')
             piv_phi = input_data_phi.pivot('Z', 'R', 'Phi')
-            if func_version in [6, 105]:
+            if func_version in [6, 105, 110]:
                 piv_x = input_data_phi.pivot('Z', 'R', 'X')
                 piv_y = input_data_phi.pivot('Z', 'R', 'Y')
             elif func_version in [8, 9]:
@@ -184,9 +188,15 @@ class FieldFitter:
             Br.append(piv_br.values)
             Bphi.append(piv_bphi.values)
             RR_slice, ZZ_slice = np.meshgrid(R, Z)
+            print(RR_slice.shape)
+            print(RR_slice[99][7])
+            print(ZZ_slice[99][7])
+            print(piv_br.values[99][7])
+            print(input_data_phi[(input_data_phi.R == RR_slice[99][7]) &
+                                 (input_data_phi.Z == ZZ_slice[99][7])].Br)
             RR.append(RR_slice)
             ZZ.append(ZZ_slice)
-            if func_version in [6, 105]:
+            if func_version in [6, 105, 110]:
                 XX.append(piv_x.values)
                 YY.append(piv_y.values)
             elif func_version in [8, 9]:
@@ -208,7 +218,7 @@ class FieldFitter:
         Bz = np.concatenate(Bz)
         Br = np.concatenate(Br)
         Bphi = np.concatenate(Bphi)
-        if func_version in [6, 105]:
+        if func_version in [6, 105, 110]:
             XX = np.concatenate(XX)
             YY = np.concatenate(YY)
         if func_version in [8, 9]:
@@ -257,11 +267,25 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v4(ZZ, RR, PP, Reff, ns, ms)
         elif func_version == 105:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v5(ZZ, RR, PP, Reff, ns, ms, cns, cms)
+        elif func_version == 106:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v6(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 107:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v7(ZZ, RR, PP, Reff, ns, ms, n_scale,
+                                                          m_scale)
+        elif func_version == 108:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v7(ZZ, RR, PP, Reff, ns, ms, n_scale,
+                                                          m_scale)
+        elif func_version == 109:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v9(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 110:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v10(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 111:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v11(ZZ, RR, PP, Reff, nms)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
         # Generate an lmfit Model
-        if func_version in [6, 105]:
+        if func_version in [6, 105, 110]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
         elif func_version in [8, 9, 10]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
@@ -334,7 +358,7 @@ class FieldFitter:
                             self.params['E_{0}_{1}'.format(n, m)].vary = False
                             self.params['F_{0}_{1}'.format(n, m)].vary = False
 
-        else:
+        elif func_version < 111:
             for n in range(ns):
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
@@ -343,22 +367,22 @@ class FieldFitter:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
 
                     if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=1, vary=True)
+                        self.params.add('B_{0}_{1}'.format(n, m), value=-1, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
 
                     if func_version != 103:
                         if 'C_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('C_{0}_{1}'.format(n, m), value=1, vary=True)
+                            self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=False)
                         else:
-                            self.params['C_{0}_{1}'.format(n, m)].vary = True
+                            self.params['C_{0}_{1}'.format(n, m)].vary = False
 
                         if 'D_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('D_{0}_{1}'.format(n, m), value=1, vary=True)
+                            self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=False)
                         else:
-                            self.params['D_{0}_{1}'.format(n, m)].vary = True
+                            self.params['D_{0}_{1}'.format(n, m)].vary = False
 
-                    if n > m:
+                    if func_version not in [108, 109] and (n*n_scale > m*m_scale) or n*n_scale == 0:
                         self.params['A_{0}_{1}'.format(n, m)].vary = False
                         self.params['A_{0}_{1}'.format(n, m)].value = 0
                         self.params['B_{0}_{1}'.format(n, m)].vary = False
@@ -367,11 +391,35 @@ class FieldFitter:
                         self.params['C_{0}_{1}'.format(n, m)].value = 0
                         self.params['D_{0}_{1}'.format(n, m)].vary = False
                         self.params['D_{0}_{1}'.format(n, m)].value = 0
+
+                    if func_version == 100 and (m-n == 1):
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+
+        elif func_version == 111:
+            for n, m in nms:
+                if f'A_{n}_{m}' not in self.params:
+                    self.params.add(f'A_{n}_{m}', value=1, vary=True)
+                else:
+                    self.params[f'A_{n}_{m}'].vary = True
+
+                if f'B_{n}_{m}' not in self.params:
+                    self.params.add(f'B_{n}_{m}', value=-1, vary=True)
+                else:
+                    self.params[f'B_{n}_{m}'].vary = True
+
         if func_version == 102:
-            if 'E' not in self.params:
-                self.params.add('E', value=0, min=-np.pi*0.5, max=np.pi*0.5, vary=True)
-            else:
-                self.params['E'].vary = False
+            d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ms)
+            for m in range(ms):
+                # for m in range(ms):
+                if f'E_{m}' not in self.params:
+                    self.params.add(f'E_{m}', value=d_starts[m], min=-np.pi*0.5,
+                                    max=np.pi*0.5, vary=True)
+                else:
+                    self.params[f'E_{m}'].vary = True
+                # if n > m:
+                #     self.params['E_{0}_{1}'.format(n, m)].vary = False
+                #     self.params['E_{0}_{1}'.format(n, m)].value = 0
 
         if func_version in [6, 105]:
 
@@ -437,6 +485,52 @@ class FieldFitter:
                 self.params.add('k11', value=0, vary=True)
             else:
                 self.params['k10'].vary = True
+
+        if func_version in [106]:
+            if 'k1' not in self.params:
+                self.params.add('k1', value=1, vary=True)
+            else:
+                self.params['k1'].vary = True
+
+        if func_version in [110]:
+            if 'k1' not in self.params:
+                self.params.add('k1', value=0, vary=True)
+            else:
+                self.params['k1'].vary = True
+            if 'k2' not in self.params:
+                self.params.add('k2', value=0, vary=True)
+            else:
+                self.params['k2'].vary = True
+            if 'xp1' not in self.params:
+                # self.params.add('xp1', value=-525, vary=True, min=-600, max=-400)
+                self.params.add('xp1', value=1050, vary=False, min=900, max=1200)
+            else:
+                self.params['xp1'].vary = True
+            if 'xp2' not in self.params:
+                # self.params.add('xp2', value=-1100, vary=True, min=-1200, max=-1000)
+                self.params.add('xp2', value=1050, vary=False, min=900, max=1200)
+            else:
+                self.params['xp2'].vary = True
+            if 'yp1' not in self.params:
+                # self.params.add('yp1', value=1100, vary=True, min=1000, max=1200)
+                self.params.add('yp1', value=0, vary=False, min=-100, max=100)
+            else:
+                self.params['yp1'].vary = True
+            if 'yp2' not in self.params:
+                # self.params.add('yp2', value=-400, vary=True, min=-500, max=-300)
+                self.params.add('yp2', value=0, vary=False, min=-100, max=100)
+            else:
+                self.params['yp2'].vary = True
+            if 'zp1' not in self.params:
+                # self.params.add('zp1', value=9696, vary=True, min=9500, max=9700)
+                self.params.add('zp1', value=4575, vary=False, min=4300, max=4700)
+            else:
+                self.params['zp1'].vary = True
+            if 'zp2' not in self.params:
+                # self.params.add('zp2', value=7871, vary=True, min=7700, max=8000)
+                self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
+            else:
+                self.params['zp2'].vary = True
 
         if func_version in [7, 8, 9]:
             if 'cns' not in self.params:
@@ -532,7 +626,7 @@ class FieldFitter:
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, rp=RRP, phip=PPP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 2000})
-        elif 100 <= func_version < 105:
+        elif func_version >= 100 and func_version not in [105, 110, 111]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -550,8 +644,38 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
+                                           # method='leastsq', fit_kws={'maxfev': 10000})
+                                           method='least_squares', fit_kws={'max_nfev': 10000})
+                                           #                                  'tr_solver': 'lsmr'})
+
+                # 'loss': 'soft_l1'})
+                # 'ftol': 1e-11,
+                # 'xtol': 1e-11,
+                # 'gtol': 1e-11}, verbose=True)
+
+        elif func_version == 111:
+            if cfg_pickle.recreate:
+                for param in self.params:
+                    self.params[param].vary = False
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='leastsq', fit_kws={'maxfev': 1})
+            elif cfg_pickle.use_pickle:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 10000})
-        elif func_version == 105:
+            else:
+                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+                self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
+                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           method='least_squares', fit_kws={'max_nfev': 10000,
+                                                                            'loss': 'soft_l1'})
+                # 'xtol': 1e-11,
+                # 'gtol': 1e-11}, verbose=True)
+        elif func_version in [105, 110]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False

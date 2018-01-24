@@ -129,7 +129,8 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
 
 def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
-                df_fit=None, ptype='3d', aspect='square'):
+                df_fit=None, ptype='3d', aspect='square', cmin=None, cmax=None, ax=None,
+                do_title=True):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -197,10 +198,11 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
 
     # Start plotting
     if 'mpl' in mode:
-        if ptype.lower() == '3d':
-            fig = plt.figure().gca(projection='3d')
-        else:
-            fig = plt.figure()
+        if not ax:
+            if ptype.lower() == '3d':
+                fig = plt.figure().gca(projection='3d')
+            else:
+                fig = plt.figure()
 
         if df_fit:
             fig.plot(Xi.ravel(), Yi.ravel(), Z.ravel(), 'ko', markersize=2)
@@ -209,7 +211,10 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
                              linewidth=0, antialiased=False)
         elif ptype.lower() == 'heat':
-            plt.pcolormesh(Xi, Yi, Z, cmap=plt.get_cmap('viridis'))
+            if ax:
+                pcm = ax.pcolormesh(Xi, Yi, Z, cmap=plt.get_cmap('viridis'))
+            else:
+                plt.pcolormesh(Xi, Yi, Z, cmap=plt.get_cmap('viridis'))
         else:
             raise KeyError(ptype+' is an invalid type!, must be "heat" or "3D"')
 
@@ -222,15 +227,19 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             fig.zaxis.set_tick_params(direction='out', pad=10)
             fig.xaxis.labelpad = 20
             fig.yaxis.labelpad = 20
-        else:
-            cb = plt.colorbar()
+        elif do_title:
+            if ax:
+                cb = plt.colorbar(pcm)
+            else:
+                cb = plt.colorbar()
             cb.set_label(z+' (T)', fontsize=18)
-        if info is not None:
-            plt.title('{0} {1} vs {2} and {3} for DS\n{4}'.format(info, z, x, y, conditions_title),
-                      fontsize=20)
-        else:
-            plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
-                      fontsize=20)
+        if do_title:
+            if info is not None:
+                plt.title('{0} {1} vs {2} and {3} for DS\n{4}'.format(info, z, x, y, conditions_title),
+                          fontsize=20)
+            else:
+                plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
+                          fontsize=20)
         if ptype.lower() == '3d':
             fig.view_init(elev=35., azim=30)
         if save_dir:
@@ -401,7 +410,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                                       titlefont=dict(size=18),
                                       tickfont=dict(size=20),
                                   ),
-                                  colorscale='Viridis', showscale=True)
+                                  colorscale='Viridis', showscale=True, zmin=cmin, zmax=cmax)
                 lines = [heat]
 
         fig = go.Figure(data=lines, layout=layout)
@@ -410,6 +419,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         if mode == 'plotly_nb':
             init_notebook_mode()
             iplot(fig)
+            return fig
         elif mode == 'plotly_html_img':
             if save_dir:
                 plot(fig, filename=save_dir+'/'+save_name+'.html', image='jpeg',
@@ -426,7 +436,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
 
 
 def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_range=None,
-                      y_range=None, z_range=None, title=None, symbol='o'):
+                      y_range=None, z_range=None, title=None, symbol='o',
+                      color_min=None, color_max=None):
     """Generate 3D scatter plots, typically for visualizing 3D positions of charged particles.
 
     Generate a 3D scatter plot for a given DF and three columns. Due to the large number of points
@@ -464,12 +475,16 @@ def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_r
     # Plot the actual content
     if isinstance(df, pd.DataFrame):
         if color:
+            if not color_min:
+                color_min = df[color].min()
+            if not color_max:
+                color_max = df[color].max()
             scat_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z], mode='markers',
                     marker=dict(size=4, color=df[color], colorscale='Viridis', opacity=1,
                                 line=dict(color='black', width=1),
-                                showscale=True, cmin=0, cmax=140,
+                                showscale=True, cmin=color_min, cmax=color_max,
                                 symbol=symbol,
                                 colorbar=dict(title='Momentum (MeV)')),
                     text=df[color].astype(int),
@@ -538,15 +553,20 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3
         xray_maker(df_xray, line_plots)
 
     # Plot the actual content
+    try:
+        name = df.name
+    except AttributeError:
+        name = 'Particle'
     if isinstance(df, pd.DataFrame):
             line_plots.append(
                 go.Scatter3d(
                     x=df[x], y=df[y], z=df[z],
-                    marker=dict(size=5, color=c, colorscale='Viridis',
+                    marker=dict(size=0.1, color=c, colorscale='Viridis',
                                 line=dict(color=c, width=5, colorscale='Viridis'),
                                 showscale=True, cmin=c_min, cmax=c_max,
                                 colorbar=dict(title=c_title)),
-                    name=df.name
+                    line=dict(color=c, width=5, colorscale='Viridis'),
+                    name=name
                 )
             )
 
@@ -785,6 +805,8 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
             aspectmode='manual',
             camera=dict(
                 eye=dict(x=1.99, y=-2, z=2)
+                # eye=dict(x=-0.4, y=-2.1, z=0.1),
+                # center=dict(x=-0.4, y=0.1, z=0.1),
             ),
         ),
         showlegend=True,
@@ -820,7 +842,7 @@ def xray_maker(df_xray, scat_plots):
             go.Scatter3d(
                 x=df_tmp.x, y=df_tmp.y, z=df_tmp.z, mode='markers',
                 marker=dict(sizemode='diameter', size=4,
-                            color='black', opacity=0.03*(i+1), symbol='square'),
+                            color='black', opacity=0.02*(i+1), symbol='square'),
                 name='X-ray', showlegend=sl, legendgroup='xray'))
 
     # df_newmat = df_binned.query('12800<x<13000 and sqrt(y**2+z**2)<800')
@@ -895,9 +917,12 @@ def xray_maker_2(df_xray, bz=50, bx=15, by=15):
                     continue
                 cube_list.append(
                     go.Mesh3d(
-                        x=[e[0][i], e[0][i], e[0][i+1], e[0][i+1], e[0][i], e[0][i], e[0][i+1], e[0][i+1]],
-                        y=[e[1][j], e[1][j+1], e[1][j+1], e[1][j], e[1][j], e[1][j+1], e[1][j+1], e[1][j]],
-                        z=[e[2][k], e[2][k], e[2][k], e[2][k], e[2][k+1], e[2][k+1], e[2][k+1], e[2][k+1]],
+                        x=[e[0][i], e[0][i], e[0][i+1], e[0][i+1],
+                           e[0][i], e[0][i], e[0][i+1], e[0][i+1]],
+                        y=[e[1][j], e[1][j+1], e[1][j+1], e[1][j],
+                           e[1][j], e[1][j+1], e[1][j+1], e[1][j]],
+                        z=[e[2][k], e[2][k], e[2][k], e[2][k],
+                           e[2][k+1], e[2][k+1], e[2][k+1], e[2][k+1]],
                         i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
                         j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
                         k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
@@ -959,35 +984,19 @@ def mu2e_plot3d_ptrap_anim_2(df, x, y, z, df_xray):
     #     'values': sids,
     #     'visible': True
     # }]
-    figure['layout']['updatemenus'] = [{'type': 'buttons',
-                              'buttons': [{'label': 'Play',
-                                           'method': 'animate',
-                                           'args': [None]},
-                                          {'args': [[None], {'frame': {'duration': 0, 'redraw':
-                                                                       False, 'easing':
-                                                                       'quadratic-in-out'}, 'mode': 'immediate',
-                                                             'transition': {'duration': 0}}],
-                                           'label': 'Pause',
-                                           'method': 'animate'}
-                                          ]}]
+    figure['layout']['updatemenus'] = [
+        {'type': 'buttons', 'buttons': [{'label': 'Play', 'method': 'animate', 'args': [None]},
+                                        {'args': [[None], {'frame': {'duration': 0, 'redraw': False,
+                                                                     'easing': 'quadratic-in-out'},
+                                                           'mode': 'immediate', 'transition':
+                                                           {'duration': 0}}], 'label': 'Pause',
+                                         'method': 'animate'}]}]
 
     sliders_dict = {
-            'active': 0,
-            'yanchor': 'top',
-            'xanchor': 'left',
-            'currentvalue': {
-                        'font': {'size': 20},
-                        'prefix': 'SID:',
-                        'visible': True,
-                        'xanchor': 'right'
-                    },
-            'transition': {'duration': 100, 'easing': 'cubic-in-out'},
-            'pad': {'b': 10, 't': 50},
-            'len': 0.9,
-            'x': 0.1,
-            'y': 0,
-            'steps': []
-    }
+        'active': 0, 'yanchor': 'top', 'xanchor': 'left',
+        'currentvalue': {'font': {'size': 20}, 'prefix': 'SID:', 'visible': True, 'xanchor':
+                         'right'}, 'transition': {'duration': 100, 'easing': 'cubic-in-out'},
+        'pad': {'b': 10, 't': 50}, 'len': 0.9, 'x': 0.1, 'y': 0, 'steps': []}
     scats = []
     xray_maker(df_xray, scats)
 
@@ -996,10 +1005,7 @@ def mu2e_plot3d_ptrap_anim_2(df, x, y, z, df_xray):
             [sid],
             {'frame': {'duration': 300, 'redraw': True},
              'mode': 'immediate',
-             'transition': {'duration': 300}}
-        ],
-                       'label': sid,
-                       'method': 'animate'}
+             'transition': {'duration': 300}}], 'label': sid, 'method': 'animate'}
         sliders_dict['steps'].append(slider_step)
 
     # init_scat = dict(
@@ -1010,15 +1016,14 @@ def mu2e_plot3d_ptrap_anim_2(df, x, y, z, df_xray):
     #     type='scatter3d'
     # )
     # scats.append(init_scat)
-    frames=[dict(data=[dict(
-        x=df[df.sid==sids[k]][x],
-        y=df[df.sid==sids[k]][y],
-        z=df[df.sid==sids[k]][z],
+    frames = [dict(data=[dict(
+        x=df[df.sid == sids[k]][x],
+        y=df[df.sid == sids[k]][y],
+        z=df[df.sid == sids[k]][z],
         mode='markers',
         type='scatter3d',
         marker=dict(color='red', size=10, symbol='circle', opacity=0.5)
-    )
-                       ]) for k in range(len(sids))]
+    )]) for k in range(len(sids))]
 
     figure['layout']['sliders'] = [sliders_dict]
     figure['data'] = scats

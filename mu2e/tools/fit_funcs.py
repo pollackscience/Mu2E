@@ -31,6 +31,7 @@ import numpy as np
 import numexpr as ne
 from numba import guvectorize
 from math import cos, sin
+import mpmath
 import six
 from six.moves import range, zip
 
@@ -51,6 +52,12 @@ def quadwise(iterable):
     """s -> (s0,s1,s2,s3), (s4,s5,s6,s7), ..."""
     a = iter(iterable)
     return zip(a, a, a, a)
+
+
+def pentwise(iterable):
+    """s -> (s0,s1,s2,s3,s4), (s5,s6,s7,s8,s9), ..."""
+    a = iter(iterable)
+    return zip(a, a, a, a, a)
 
 
 def hexwise(iterable):
@@ -2505,8 +2512,8 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
                                                D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
 
             model_phi[i] += (1.0/np.abs(r[i])) * \
-                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]-(m[0]-n[0])*phi[i]) -
-                                      B[0]*np.cos(n[0]*z[i]/P[0]-(m[0]-n[0])*phi[i])) +
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) -
+                                      B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
                  (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
                                      D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
             # print(model_r[i], n[0], m[0], P[0], ivp1[i], ivp2[i], A[0], B[0], C[0], D[0], z[i],
@@ -2545,7 +2552,7 @@ def brzphi_3d_producer_hel_v0(z, r, phi, L, ns, ms):
                     calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
                                   model_r, model_z, model_phi)
 
-        model_phi[np.isinf(model_phi)] = 0
+        # model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast
 
@@ -2667,15 +2674,15 @@ def brzphi_3d_producer_hel_v2(z, r, phi, L, ns, ms):
     def calc_b_fields(z, phi, r, P, m, n, A, B, C, D, E,
                       iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
         for i in range(z.shape[0]):
-            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*(phi[i]+E[0])) +
-                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*(phi[i]+E[0]))) +
-                                       ivp2[i]*(C[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*(phi[i]+E[0])) -
-                                                D[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*(phi[i]+E[0]))))
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]+E[0]) +
+                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]+E[0])) +
+                                       ivp2[i]*(C[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]+E[0]) -
+                                                D[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]+E[0])))
 
-            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*(phi[i]+E[0])) +
-                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*(phi[i]+E[0]))) -
-                                       iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*(phi[i]+E[0])) +
-                                               D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*(phi[i]+E[0]))))
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]+E[0]) +
+                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]+E[0])) -
+                                       iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]+E[0]) +
+                                               D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]+E[0])))
 
             model_phi[i] += (1/np.abs(r[i])) * \
                 ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*(phi[i] + E[0])) -
@@ -2696,6 +2703,8 @@ def brzphi_3d_producer_hel_v2(z, r, phi, L, ns, ms):
                                                                       k or 'D' in k)},
                      key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
                                             x.split('_')[0])))
+        Es = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k)}, key=lambda x:
+                    ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n in range(ns):
             # print('n', n)
@@ -2710,7 +2719,7 @@ def brzphi_3d_producer_hel_v2(z, r, phi, L, ns, ms):
                     B = np.array([AB_params[ab[1]]], dtype=np.float64)
                     C = np.array([AB_params[ab[2]]], dtype=np.float64)
                     D = np.array([AB_params[ab[3]]], dtype=np.float64)
-                    E = np.array([AB_params['E']], dtype=np.float64)
+                    E = np.array([AB_params[Es[m]]], dtype=np.float64)
                     _iv1 = iv1[n][m]
                     _iv2 = iv2[n][m]
                     _ivp1 = ivp1[n][m]
@@ -2990,8 +2999,8 @@ def brzphi_3d_producer_hel_v5(z, r, phi, L, ns, ms, cns, cms):
         _P = np.asarray([R/(2*np.pi)])
         ABCDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k or 'C'
                                                                         in k or 'D' in k)},
-                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
-                                            x.split('_')[0])))
+                       key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                               x.split('_')[0])))
 
         EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)})
         xp1 = x+1100
@@ -3043,5 +3052,518 @@ def brzphi_3d_producer_hel_v5(z, r, phi, L, ns, ms, cns, cms):
                                    model_phi, model_z)
 
         model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v6(z, r, phi, L, ns, ms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    P = L/(2*np.pi)
+
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    iv2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            # if n <= m:
+                iv1[n][m] = special.iv(m-n, (n/P)*np.abs(r))
+                iv2[n][m] = special.iv(m+n, (n/P)*np.abs(r))
+                ivp1[n][m] = 0.5*(special.iv(-1+m-n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m-n, (n/P)*np.abs(r)))
+                ivp2[n][m] = 0.5*(special.iv(-1+m+n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m+n, (n/P)*np.abs(r)))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
+                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), (), (), (m), (m), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B, C, D, k1,
+                      iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += \
+                (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) +
+                                      B[0]*np.sin((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]))) +
+                             ivp2[i]*(C[0]*np.cos((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])) -
+                                      D[0]*np.sin((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]))))
+
+            model_z[i] += \
+                (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) +
+                                           B[0]*np.cos((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]))) -
+                                   iv2[i]*(C[0]*np.sin((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])) +
+                                           D[0]*np.cos((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]))))
+
+            model_phi[i] += (1.0/np.abs(r[i])) * \
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i])) -
+                                            B[0]*np.cos((n[0]*(z[i])/P[0]+(m[0]-n[0])*phi[i]))) +
+                       (m[0]+n[0])*iv2[i]*(C[0]*np.sin((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i])) +
+                                           D[0]*np.cos((n[0]*(z[i])/P[0]-(m[0]+n[0])*phi[i]))))
+
+    def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+        ABCDs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k or 'C'
+                                                                        in k or 'D' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            for m, ab in enumerate(quadwise(ABCDs[n*ms*4:(n+1)*(ms)*4])):
+                if n <= m:
+                    # print('n', n, 'm', m, ab)
+
+                    A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                    B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                    C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                    D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                    k1 = np.array(AB_params['k1'], dtype=np.float64)
+                    _iv1 = iv1[n][m]
+                    _iv2 = iv2[n][m]
+                    _ivp1 = ivp1[n][m]
+                    _ivp2 = ivp2[n][m]
+                    _n = np.array([n])
+                    _m = np.array([m])
+                    calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, k1, _iv1, _iv2, _ivp1, _ivp2,
+                                  model_r, model_z, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v7(z, r, phi, L, ns, ms, n_scale, m_scale):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    P = L/(2*np.pi)
+    n_scale = n_scale
+    m_scale = m_scale
+
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    iv2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv1[n][m] = special.iv(m*m_scale-n*n_scale, (n*n_scale/P)*np.abs(r))
+            iv2[n][m] = special.iv(m*m_scale+n*n_scale, (n*n_scale/P)*np.abs(r))
+            ivp1[n][m] = special.ivp(m*m_scale-n*n_scale, (n*n_scale/P)*np.abs(r))
+            ivp2[n][m] = special.ivp(m*m_scale+n*n_scale, (n*n_scale/P)*np.abs(r))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), (), (m), (m), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B, C, D,
+                      iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                                       ivp2[i]*(C[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) -
+                                                D[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) -
+                                       iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                               D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+
+            model_phi[i] += (1.0/np.abs(r[i])) * \
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) -
+                                      B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                 (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                     D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+            # print(model_r[i], n[0], m[0], P[0], ivp1[i], ivp2[i], A[0], B[0], C[0], D[0], z[i],
+            #       phi[i])
+
+    def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            # print('n', n)
+            # print(np.any(np.isnan(model_r)))
+            # print(np.any(np.isnan(model_z)))
+            # print(np.any(np.isnan(model_phi)))
+            for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*(ms)*4])):
+                if n*n_scale <= m*m_scale:
+                    # print('n', n, 'm', m, ab)
+
+                    A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                    B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                    C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                    D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                    _iv1 = iv1[n][m]
+                    _iv2 = iv2[n][m]
+                    _ivp1 = ivp1[n][m]
+                    _ivp2 = ivp2[n][m]
+                    _n = np.array([n*n_scale])
+                    _m = np.array([m*m_scale])
+                    calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
+                                  model_r, model_z, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v8(z, r, phi, L, ns, ms, n_scale, m_scale):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    P = L/(2*np.pi)
+    n_scale = n_scale
+    m_scale = m_scale
+
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    iv2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            iv1[n][m] = special.iv(m*m_scale-n*n_scale, (n*n_scale/P)*np.abs(r))
+            iv2[n][m] = special.iv(-(m*m_scale-n*n_scale), (n*n_scale/P)*np.abs(r))
+            ivp1[n][m] = special.ivp(m*m_scale-n*n_scale, (n*n_scale/P)*np.abs(r))
+            ivp2[n][m] = special.ivp(-(m*m_scale-n*n_scale), (n*n_scale/P)*np.abs(r))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), (), (m), (m), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B, C, D,
+                      iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                                       ivp2[i]*(B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) -
+                                       iv2[i]*(B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+            model_phi[i] += (1.0/np.abs(r[i])) * \
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                 (-m[0]+n[0])*iv2[i]*(B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+    def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            # print('n', n)
+            # print(np.any(np.isnan(model_r)))
+            # print(np.any(np.isnan(model_z)))
+            # print(np.any(np.isnan(model_phi)))
+            for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*(ms)*4])):
+                if n*n_scale <= m*m_scale:
+                    # print('n', n, 'm', m, ab)
+
+                    A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                    B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                    C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                    D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                    _iv1 = iv1[n][m]
+                    _iv2 = iv2[n][m]
+                    _ivp1 = ivp1[n][m]
+                    _ivp2 = ivp2[n][m]
+                    _n = np.array([n*n_scale])
+                    _m = np.array([m*m_scale])
+                    calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
+                                  model_r, model_z, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v9(z, r, phi, L, ns, ms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    P = L/(2*np.pi)
+
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        print(f'n={n}')
+        for m in range(ms):
+            print(f'm={m}')
+            for r1 in range(r.shape[0]):
+                for r2 in range(r.shape[1]):
+                    iv1[n][m][r1][r2]  = float(mpmath.besselj(mpmath.mpc(m, n),
+                                                              (n/P)*r[r1][r2]).real)
+                    ivp1[n][m][r1][r2] = float(mpmath.besselj(mpmath.mpc(m, n),
+                                                              (n/P)*r[r1][r2], 1).real)
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), (), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B, C, D,
+                      iv1, ivp1, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (n[0]/P[0])*ivp1[i]*np.cos(m[0]*phi[i]) * \
+                (A[0]*np.sinh(n[0]*(z[i]/P[0] - phi[i])) + B[0]*np.cosh(n[0]*(z[i]/P[0] - phi[i])))
+
+            model_z[i] += (n[0]/P[0])*iv1[i]*np.cos(m[0]*phi[i]) * \
+                (A[0]*np.cosh(n[0]*(z[i]/P[0] - phi[i])) + B[0]*np.sinh(n[0]*(z[i]/P[0] - phi[i])))
+
+            model_phi[i] += (-1.0/np.abs(r[i])) * iv1[i] * \
+                (m[0]*np.sin(m[0]*phi[i])*(A[0]*np.sinh(n[0]*(z[i]/P[0] - phi[i])) +
+                                           B[0]*np.cosh(n[0]*(z[i]/P[0] - phi[i]))) +
+                 n[0]*np.cos(m[0]*phi[i])*(A[0]*np.cosh(n[0]*(z[i]/P[0] - phi[i])) +
+                                           B[0]*np.sinh(n[0]*(z[i]/P[0] - phi[i]))))
+
+    def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            # print('n', n)
+            # print(np.any(np.isnan(model_r)))
+            # print(np.any(np.isnan(model_z)))
+            # print(np.any(np.isnan(model_phi)))
+            for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*(ms)*4])):
+                A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                _iv1 = iv1[n][m]
+                _ivp1 = ivp1[n][m]
+                _n = np.array([n])
+                _m = np.array([m])
+                calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _ivp1,
+                              model_r, model_z, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v10(z, r, phi, L, ns, ms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression/
+    '''
+
+    P = L/(2*np.pi)
+
+    iv1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    iv2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp1 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    ivp2 = np.zeros((ns, ms, r.shape[0], r.shape[1]))
+    for n in range(ns):
+        for m in range(ms):
+            # if n <= m:
+                iv1[n][m] = special.iv(m-n, (n/P)*np.abs(r))
+                iv2[n][m] = special.iv(m+n, (n/P)*np.abs(r))
+                ivp1[n][m] = 0.5*(special.iv(-1+m-n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m-n, (n/P)*np.abs(r)))
+                ivp2[n][m] = 0.5*(special.iv(-1+m+n, (n/P)*np.abs(r)) +
+                                  special.iv(1+m+n, (n/P)*np.abs(r)))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (), (), (m), (m), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B, C, D,
+                      iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                                       ivp2[i]*(C[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) -
+                                                D[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) -
+                                       iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                               D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+
+            model_phi[i] += (1.0/np.abs(r[i])) * \
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) -
+                                      B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])) +
+                 (m[0]+n[0])*iv2[i]*(C[0]*np.sin(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i]) +
+                                     D[0]*np.cos(n[0]*z[i]/P[0]-(m[0]+n[0])*phi[i])))
+            # print(model_r[i], n[0], m[0], P[0], ivp1[i], ivp2[i], A[0], B[0], C[0], D[0], z[i],
+            #       phi[i])
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:])"],
+                 '(m), (m), (m), (m), (), (), (), (), (), (), (), ()->(m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields_cart(x, y, z, phi, xp1, yp1, zp1, xp2, yp2, zp2, k1, k2,
+                           model_r, model_phi):
+        for i in range(z.shape[0]):
+            xd1 = (x[i]-xp1[0])
+            xd2 = (x[i]-xp2[0])
+            yd1 = (y[i]-yp1[0])
+            yd2 = (y[i]-yp2[0])
+            zd1 = (z[i]-zp1[0])
+            zd2 = (z[i]-zp2[0])
+            rs1 = (x[i]-xp1[0])**2+(y[i]-yp1[0])**2+(z[i]-zp1[0])**2
+            rs2 = (x[i]-xp2[0])**2+(y[i]-yp2[0])**2+(z[i]-zp2[0])**2
+            rc1 = (x[i]-xp1[0])**2+(y[i]-yp1[0])**2
+            rc2 = (x[i]-xp2[0])**2+(y[i]-yp2[0])**2
+
+            model_x = k1[0]*yd1*(
+                -(rc1-zd1**2)*np.sqrt(rc1/rs1**2)-zd1/np.sqrt(rs1/rc1))/rc1**(3/2) + \
+                k2[0]*yd2*(
+                    -(rc2-zd2**2)*np.sqrt(rc2/rs2**2)-zd2/np.sqrt(rs2/rc2))/rc2**(3/2)
+
+            model_y = -k1[0]*xd1*(
+                np.sqrt(rc1/rs1**2)*(rs1-2*rc1)-zd1/np.sqrt(rs1/rc1))/rc1**(3/2) - \
+                k2[0]*xd2*(
+                    np.sqrt(rc2/rs2**2)*(rs2-2*rc2)-zd2/np.sqrt(rs2/rc2))/rc2**(3/2)
+
+            model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
+            model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
+
+    def brzphi_3d_fast(z, r, phi, x, y, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k or 'C'
+                                                                      in k or 'D' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            # print('n', n)
+            # print(np.any(np.isnan(model_r)))
+            # print(np.any(np.isnan(model_z)))
+            # print(np.any(np.isnan(model_phi)))
+            for m, ab in enumerate(quadwise(ABs[n*ms*4:(n+1)*(ms)*4])):
+                if n <= m:
+                    # print('n', n, 'm', m, ab)
+
+                    A = np.array([AB_params[ab[0]]], dtype=np.float64)
+                    B = np.array([AB_params[ab[1]]], dtype=np.float64)
+                    C = np.array([AB_params[ab[2]]], dtype=np.float64)
+                    D = np.array([AB_params[ab[3]]], dtype=np.float64)
+                    _iv1 = iv1[n][m]
+                    _iv2 = iv2[n][m]
+                    _ivp1 = ivp1[n][m]
+                    _ivp2 = ivp2[n][m]
+                    _n = np.array([n])
+                    _m = np.array([m])
+                    calc_b_fields(z, phi, r, _P, _m, _n, A, B, C, D, _iv1, _iv2, _ivp1, _ivp2,
+                                  model_r, model_z, model_phi)
+
+        _xp1 = np.array([AB_params['xp1']], dtype=np.float64)
+        _xp2 = np.array([AB_params['xp2']], dtype=np.float64)
+        _yp1 = np.array([AB_params['yp1']], dtype=np.float64)
+        _yp2 = np.array([AB_params['yp2']], dtype=np.float64)
+        _zp1 = np.array([AB_params['zp1']], dtype=np.float64)
+        _zp2 = np.array([AB_params['zp2']], dtype=np.float64)
+        _k1 = np.array([AB_params['k1']], dtype=np.float64)
+        _k2 = np.array([AB_params['k2']], dtype=np.float64)
+        calc_b_fields_cart(x, y, z, phi, _xp1, _yp1, _zp1, _xp2, _yp2, _zp2, _k1, _k2,
+                           model_r, model_phi)
+
+        model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v11(z, r, phi, L, nms):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    The `nms` parameter should be a list of pairs, n and m.
+    '''
+
+    P = L/(2*np.pi)
+
+    iv1 = {}
+    ivp1 = {}
+    for n, m in nms:
+        iv1[(n, m)] = special.iv(m-n, (n/P)*np.abs(r))
+        ivp1[(n, m)] = 0.5*(special.iv(-1+m-n, (n/P)*np.abs(r)) +
+                            special.iv(1+m-n, (n/P)*np.abs(r)))
+
+    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:], int64[:], int64[:],"
+                  "float64[:], float64[:], "
+                  "float64[:], float64[:], "
+                  "float64[:], float64[:], float64[:])"],
+                 '(m), (m), (m), (), (), (), (), (), (m), (m)->(m), (m), (m)',
+                 nopython=True, target='parallel')
+    def calc_b_fields(z, phi, r, P, m, n, A, B,
+                      iv1, ivp1, model_r, model_z, model_phi):
+        for i in range(z.shape[0]):
+            model_r[i] += (n[0]/P[0])*(ivp1[i]*(A[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                                B[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+            model_z[i] += (n[0]/P[0])*(iv1[i]*(-A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) +
+                                               B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+            model_phi[i] += (1.0/np.abs(r[i])) * \
+                ((-m[0]+n[0])*iv1[i]*(A[0]*np.sin(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i]) -
+                                      B[0]*np.cos(n[0]*z[i]/P[0]+(m[0]-n[0])*phi[i])))
+
+    def brzphi_3d_fast(z, r, phi, R, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        _P = np.asarray([R/(2*np.pi)])
+
+        for n, m in nms:
+            A = np.array([AB_params[f'A_{n}_{m}']], dtype=np.float64)
+            B = np.array([AB_params[f'B_{n}_{m}']], dtype=np.float64)
+            _iv1 = iv1[(n, m)]
+            _ivp1 = ivp1[(n, m)]
+            _n = np.array([n])
+            _m = np.array([m])
+            calc_b_fields(z, phi, r, _P, _m, _n, A, B, _iv1, _ivp1,
+                          model_r, model_z, model_phi)
+
+        # model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast
