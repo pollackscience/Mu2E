@@ -193,6 +193,11 @@ class DataFrameMaker(object):
                 self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
                 skiprows=4)
 
+        elif 'Mau13' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
+                skiprows=4)
+
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
@@ -364,17 +369,17 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False,
         if do_part:
             df_ntpart.eval('x = x+3904', inplace=True)
             df_ntpart.eval('xstop = xstop+3904', inplace=True)
-            df_ntpart['runevt'] = (str(cluster)+df_ntpart.subrun.astype(int).astype(str) +
-                                   df_ntpart.evt.astype(int).astype(str)).astype(int)
+            # df_ntpart['runevt'] = (str(cluster)+df_ntpart.subrun.astype(int).astype(str) +
+            #                        df_ntpart.evt.astype(int).astype(str)).astype(int)
         if do_tvd:
             df_nttvd.eval('x = x+3904', inplace=True)
-            df_nttvd['runevt'] = (str(cluster)+df_nttvd.subrun.astype(int).astype(str) +
-                                  df_nttvd.evt.astype(int).astype(str)).astype(int)
+            # df_nttvd['runevt'] = (str(cluster)+df_nttvd.subrun.astype(int).astype(str) +
+            #                       df_nttvd.evt.astype(int).astype(str)).astype(int)
             df_nttvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
         if do_vd:
             df_ntvd.eval('x = x+3904', inplace=True)
-            df_ntvd['runevt'] = (str(cluster)+df_ntvd.subrun.astype(int).astype(str) +
-                                 df_ntvd.evt.astype(int).astype(str)).astype(int)
+            # df_ntvd['runevt'] = (str(cluster)+df_ntvd.subrun.astype(int).astype(str) +
+            #                      df_ntvd.evt.astype(int).astype(str)).astype(int)
             df_ntvd.eval('p = sqrt(px**2+py**2+pz**2)', inplace=True)
 
     if make_pickle:
@@ -499,9 +504,14 @@ if __name__ == "__main__":
     # data_maker.do_basic_modifications(-3896)
 
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L_detail',
-        use_pickle=False, field_map_version='Glass_Helix_v4')
-    data_maker.do_basic_modifications()
+        mu2e_ext_path+'datafiles/Mau13/Mu2e_DSMap_V13',
+        use_pickle=False, field_map_version='Mau13')
+    data_maker.do_basic_modifications(-3896)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L_detail',
+    #     use_pickle=False, field_map_version='Glass_Helix_v4')
+    # data_maker.do_basic_modifications()
 
     data_maker.make_dump()
     # data_maker.make_dump('_noOffset')

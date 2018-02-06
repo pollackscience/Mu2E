@@ -281,6 +281,12 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v10(ZZ, RR, PP, Reff, ns, ms)
         elif func_version == 111:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v11(ZZ, RR, PP, Reff, nms)
+        elif func_version == 112:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v12(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 113:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v13(ZZ, RR, PP, Reff, ns, ms)
+        elif func_version == 114:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v14(ZZ, RR, PP, Reff, ns, ms, n_scale)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
@@ -362,12 +368,12 @@ class FieldFitter:
             for n in range(ns):
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=1, vary=True)
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                     else:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
 
                     if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=-1, vary=True)
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
                     else:
                         self.params['B_{0}_{1}'.format(n, m)].vary = True
 
@@ -407,6 +413,67 @@ class FieldFitter:
                     self.params.add(f'B_{n}_{m}', value=-1, vary=True)
                 else:
                     self.params[f'B_{n}_{m}'].vary = True
+
+        elif func_version in [112, 113]:
+            for n in range(ns):
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+
+                    if 'C_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=True,
+                                        min=-0.999, max=0.999)
+                    else:
+                        self.params['C_{0}_{1}'.format(n, m)].vary = True
+
+                    if func_version == 112:
+                        if 'D_{0}_{1}'.format(n, m) not in self.params:
+                            self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=True)
+                        else:
+                            self.params['D_{0}_{1}'.format(n, m)].vary = True
+
+                    if (n*n_scale > m*m_scale) or n*n_scale == 0:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+                        self.params['B_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].value = 0
+                        self.params['C_{0}_{1}'.format(n, m)].vary = False
+                        self.params['C_{0}_{1}'.format(n, m)].value = 0
+                        if func_version == 112:
+                            self.params['D_{0}_{1}'.format(n, m)].vary = False
+                            self.params['D_{0}_{1}'.format(n, m)].value = 0
+
+        elif func_version == 114:
+            for n in range(ns):
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+
+                    if f'D_{m}' not in self.params:
+                        self.params.add(f'D_{m}', value=0, min=-np.pi*0.5,
+                                        max=np.pi*0.5, vary=False)
+                    else:
+                        self.params[f'D_{m}'].vary = False
+
+                    if n == 0:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+                        self.params['B_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].value = 0
 
         if func_version == 102:
             d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ms)
@@ -640,13 +707,13 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 10000})
             else:
-                mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                           # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                           # weights=np.concatenate(
+                                           #     [np.ones(Br.shape), np.ones(Bz.shape),
+                                           #      np.ones(Bphi.shape)*100000]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
                                            # method='leastsq', fit_kws={'maxfev': 10000})
                                            method='least_squares', fit_kws={'max_nfev': 10000})
-                                           #                                  'tr_solver': 'lsmr'})
 
                 # 'loss': 'soft_l1'})
                 # 'ftol': 1e-11,
