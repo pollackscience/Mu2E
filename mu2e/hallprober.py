@@ -572,7 +572,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     """
 
     plt.close('all')
-    input_data = DataFrameMaker(cfg_data.path, use_pickle=True).data_frame
+    input_data = DataFrameMaker(cfg_data.path, input_type='pkl').data_frame
     input_data.query(' and '.join(cfg_data.conditions))
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,

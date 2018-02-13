@@ -84,36 +84,33 @@ class DataFrameMaker(object):
             GA01/2/3/4/5)
         header_names (:obj:`list` of :obj:`str`, optional): List of headers if default is not valid.
             Default is `['X', 'Y', 'Z', 'Bx', 'By', 'Bz']`.
-        use_pickle (bool, optional): Load data from pickle (instead of csv). Default is
-            False.
+        input_type(str, optional): Load data from different input types. Default is `csv`.
 
     Attributes:
         file_name (str): File path and name, no suffix.
         field_map_version (str, optional): Mau or GA simulation type. Default to 'Mau10'.
         data_frame (pandas.DataFrame): Output DF.
-        input_source (str): Indicator for input, `pickle` or `csv`.
 
 
 
     """
-    def __init__(self, file_name, field_map_version='Mau10', header_names=None, use_pickle=False):
+    def __init__(self, file_name, field_map_version='Mau10', header_names=None, input_type='csv',
+                 input_df=None):
         """The DataFrameMaker initialization process.
 
         """
 
         self.file_name = re.sub('\.\w*$', '', file_name)
         self.field_map_version = field_map_version
-        if use_pickle:
-            self.input_source = 'pickle'
-        else:
-            self.input_source = 'csv'
         if header_names is None:
             header_names = ['X', 'Y', 'Z', 'Bx', 'By', 'Bz']
 
         # Load from pickle (all are identical in format).  Otherwise, load from csv
-        if use_pickle:
+        if input_type == 'pkl':
             # self.data_frame = pkl.load(open(self.file_name+'.p', "rb"), encoding='latin1')
             self.data_frame = pd.read_pickle(self.file_name+'.p')
+        elif input_type == 'df':
+            self.data_frame = input_df
 
         elif 'Mau9' in self.field_map_version:
             self.data_frame = pd.read_csv(
@@ -415,102 +412,107 @@ def g4root_to_df_skim_and_combo(input_name, total_n):
 if __name__ == "__main__":
     from mu2e import mu2e_ext_path
     # for PS
-    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_PSMap',use_pickle = False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_PSMap',input_type = 'csv',
     #                            field_map_version='Mau10')
     # data_maker.do_basic_modifications(3904)
     # data_maker.make_dump()
 
     # for DS
-    # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',use_pickle = False)
-    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',use_pickle = False,
+    # data_maker = DataFrameMaker('../datafiles/FieldMapData_1760_v5/Mu2e_DSMap',input_type = 'csv')
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA01/Mu2e_DS_GA0',input_type = 'csv',
     #                            field_map_version='GA01')
     # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA04/Mu2e_DS_GA04',
-    #                             use_pickle=False, field_map_version='GA04')
-    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',use_pickle = False,
+    #                             input_type='csv', field_map_version='GA04')
+    # data_maker = DataFrameMaker('../datafiles/FieldMapsGA04/Mu2e_DS_GA0',input_type = 'csv',
     #                            field_map_version='GA04')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noPSTS_GA0',
-    #                            use_pickle=False, field_map_version='GA05')
+    #                            input_type='csv', field_map_version='GA05')
     # data_maker = DataFrameMaker('../datafiles/FieldMapsGA_Special/Mu2e_DS_noDS_GA0',
-    #                            use_pickle=False, field_map_version='GA05')
-    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', use_pickle=False,
+    #                            input_type='csv', field_map_version='GA05')
+    # data_maker = DataFrameMaker('../datafiles/Mau10/Standard_Maps/Mu2e_DSMap', input_type='csv',
     #                            field_map_version='Mau10')
     # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_rand1mil',
-    #                             use_pickle=False, field_map_version='Mau10')
+    #                             input_type='csv', field_map_version='Mau10')
     # data_maker.do_basic_modifications()
-    # data_maker = DataFrameMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/TS_and_PS_OFF/Mu2e_DSMap',input_type='csv',
     #                            field_map_version='Mau10')
-    # data_maker = DataFrameMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',use_pickle=False,
+    # data_maker = DataFrameMaker('../datafiles/Mau10/DS_OFF/Mu2e_DSMap',input_type='csv',
     #                            field_map_version='Mau10')
 
     # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsPure/DS8_Bz_xzplane.table',
-    #                             use_pickle=False, field_map_version='Pure_Cyl_2D')
+    #                             input_type='csv', field_map_version='Pure_Cyl_2D')
     # data_maker.do_basic_modifications(helix=True, pitch=7.38)
 
     # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsPure/DS8_HeliCalcfields',
-    #                             use_pickle=False, field_map_version='Pure_Hel_2D')
+    #                             input_type='csv', field_map_version='Pure_Hel_2D')
     # data_maker.do_basic_modifications(helix=True, pitch=7.38)
 
     # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/Mau9/MAX',
-    #                             use_pickle=False, field_map_version='Mau9')
+    #                             input_type='csv', field_map_version='Mau9')
     # data_maker.do_basic_modifications(-3896)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus',
-    #     use_pickle=False, field_map_version='Ideal_w_LongBus_3D')
+    #     input_type='csv', field_map_version='Ideal_w_LongBus_3D')
     # data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS_buswork_only_fullmap',
-    #     use_pickle=False, field_map_version='Bus_Only_3D')
+    #     input_type='csv', field_map_version='Bus_Only_3D')
     # data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS_longbus_nocoils',
-    #     use_pickle=False, field_map_version='Glass_longbus_only')
+    #     input_type='csv', field_map_version='Glass_longbus_only')
     # data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads',
-    #     use_pickle=False, field_map_version='Glass_Helix_v3')
+    #     input_type='csv', field_map_version='Glass_Helix_v3')
     # data_maker.do_basic_modifications(-3904, helix=True, pitch=7.53)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads_TOL1e-5',
-    #     use_pickle=False, field_map_version='Glass_Helix_v2')
+    #     input_type='csv', field_map_version='Glass_Helix_v2')
     # data_maker.do_basic_modifications(-3904)
 
-    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA05/TSdMap', use_pickle=False,
+    # data_maker = DataFrameMaker(mu2e_ext_path+'datafiles/FieldMapsGA05/TSdMap', input_type='csv',
     #                             field_map_version='GA05')
     # data_maker.do_basic_modifications()
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads_TOL1e-5',
-    #     use_pickle=False, field_map_version='Glass_Helix_v2')
+    #     input_type='csv', field_map_version='Glass_Helix_v2')
     # data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_v11',
-    #     use_pickle=False, field_map_version='Mau11')
+    #     input_type='csv', field_map_version='Mau11')
     # data_maker.do_basic_modifications(-3904)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/Mau11/Mu2e_DSMap_5096_v11',
-    #     use_pickle=False, field_map_version='Mau11')
+    #     input_type='csv', field_map_version='Mau11')
     # data_maker.do_basic_modifications(-3896)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/Mau12/DSMap',
-    #     use_pickle=False, field_map_version='Mau12')
+    #     input_type='csv', field_map_version='Mau12')
+    # data_maker.do_basic_modifications(-3896)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/Mau13/Mu2e_DSMap_V13',
+    #     input_type='csv', field_map_version='Mau13')
     # data_maker.do_basic_modifications(-3896)
 
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/Mau13/Mu2e_DSMap_V13',
-        use_pickle=False, field_map_version='Mau13')
+        mu2e_ext_path+'datafiles/Mau13/DSMap_NoBus_V13',
+        input_type='csv', field_map_version='Mau13')
     data_maker.do_basic_modifications(-3896)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L_detail',
-    #     use_pickle=False, field_map_version='Glass_Helix_v4')
+    #     input_type='csv', field_map_version='Glass_Helix_v4')
     # data_maker.do_basic_modifications()
 
     data_maker.make_dump()

@@ -25,6 +25,7 @@ syst_set = 20
 #################
 path_PS_Mau10       = mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_PSMap'
 path_DS_Mau10       = mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap'
+path_DS_Mau13       = mu2e_ext_path+'datafiles/Mau13/Mu2e_DSMap_V13'
 path_DSoffset_Mau10 = mu2e_ext_path+'datafiles/Mau10/Standard_Maps/Mu2e_DSMap_8mmOffset'
 path_DS_GA05        = mu2e_ext_path+'datafiles/FieldMapsGA05/DSMap'
 path_DSoffset_GA05  = mu2e_ext_path+'datafiles/FieldMapsGA05/DSMap_offset8mm'
@@ -38,6 +39,7 @@ path_DS_Combo_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/TS5_DS_longbus'
 path_DS_Hel_Only_Glass    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_with_leads'
 path_DS_Hel_Only_Glass_2    = mu2e_ext_path+'datafiles/FieldMapsPure/DS-8_helix_no_leads'
 path_DS_Hel_Only_Glass_3    = mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L'
+path_synth          = mu2e_ext_path+'datafiles/synth/synth3'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -52,6 +54,9 @@ cfg_data_DS_Mau10_long   = cfg_data('Mau10', 'DS', path_DS_Mau10,
                                     ('Z>4200', 'Z<13900', 'R!=0'))
 cfg_data_DS2_Mau10       = cfg_data('Mau10', 'DS', path_DS_Mau10,
                                     ('Z>4000', 'Z<14000', 'R!=0'))
+# Mau13
+cfg_data_DS_Mau13        = cfg_data('Mau13', 'DS', path_DS_Mau13,
+                                    ('Z>4200', 'Z<13900', 'R!=0'))
 
 # GA05
 cfg_data_DS_GA05_no_ext  = cfg_data('GA05', 'DS', path_DSnoext_GA05,
@@ -84,9 +89,11 @@ cfg_data_DS_Glass_Hel     = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass,
 cfg_data_DS_Glass_Hel_2   = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_2,
                                      ('Z>8100', 'Z<9500', 'R!=0'))
 cfg_data_DS_Glass_Hel_3   = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
-                                     ('Z>-2500', 'Z<2500', 'R!=0'))
+                                     ('Z>-3500', 'Z<3500', 'R!=0'))
 cfg_data_DS_Glass_Hel_3L  = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
                                      ('Z>-4500', 'Z<4500', 'R!=0'))
+cfg_data_synth  = cfg_data('synth', 'DS', path_synth,
+                           ('Z>-3500', 'Z<4500', 'R!=0'))
 # ('Z>6400', 'Z<11200', 'R!=0'))
 
 #################
@@ -184,7 +191,7 @@ z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
 z_steps_DS_glass_hel = list(range(8121, 9521, 25))
-z_steps_DS_glass_test = list(range(-2500, 2500, 50))
+z_steps_DS_glass_test = list(range(-3500, 3500, 50))
 # z_steps_DS_glass_hel = list(range(6421, 11221, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
@@ -374,6 +381,10 @@ cfg_geom_bus_glass              = cfg_geom('cart', z_steps_DS_glass, r_steps=Non
 cfg_geom_bus_rot_glass          = cfg_geom('cart', z_steps_DS_glass, r_steps=None, phi_steps=None,
                                            x_steps=x_steps_DS_glass_rot,
                                            y_steps=y_steps_DS_glass_rot,
+                                           bad_calibration=[False, False, False], interpolate=False)
+
+cfg_geom_synth                  = cfg_geom('cyl', z_steps_DS_glass_test, r_steps_800mm[0:],
+                                           phi_steps_8[0:], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
 # cfg_geom_set_cyl_800mm_interp   = [
@@ -617,11 +628,25 @@ cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Hel_Pel',
                                                  save_name='Glass_Hel_Pel', recreate=False)
 
-cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=20, ms=11, cns=0, cms=0, nms=0, Reff=25000,
-                                                 n_scale=1, m_scale=1, func_version=114)
+cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=15, ms=4, cns=0, cms=0, nms=0, Reff=25000,
+                                                 n_scale=1, m_scale=1, func_version=116)
 cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Test',
                                                  save_name='Glass_Hel_Test', recreate=False)
+# load_name='Glass_Hel_Mau10',
+# save_name='Glass_Hel_Mau10', recreate=False)
+
+cfg_params_Glass_DS_Cyl_Test        = cfg_params(ns=10, ms=8, cns=4, cms=4, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=6)
+cfg_pickle_Glass_Cyl_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Glass_Cyl_Test',
+                                                 save_name='Glass_Cyl_Test', recreate=False)
+
+cfg_params_synth                    = cfg_params(ns=10, ms=10, cns=0, cms=0, nms=0, Reff=25000,
+                                                 n_scale=1, m_scale=1, func_version=114)
+cfg_pickle_synth                    = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='synth',
+                                                 save_name='synth', recreate=False)
 
 nms = list(zip(range(1, 31), range(1, 31)))
 nms += list(zip(range(1, 31), range(2, 32)))
@@ -912,9 +937,21 @@ if __name__ == "__main__":
     #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
     #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
-                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
-                                 cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
+    #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
+    #                              cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Test', cfg_data_DS_Glass_Hel_3,
+                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Cyl_Test,
+                                 cfg_pickle_Glass_Cyl_Test, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_synth', cfg_data_synth,
+    #                              cfg_geom_synth, cfg_params_synth,
+    #                              cfg_pickle_synth, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Mau10_Pel', cfg_data_DS_Mau10, cfg_geom_cyl_800mm,
+    #                              cfg_params_Glass_DS_Hel_Test, cfg_pickle_Glass_Hel_Test,
+    #                              cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Glass_Hel_New', cfg_data_DS_Glass_Hel_3,
     #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_New,
