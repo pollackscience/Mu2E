@@ -188,10 +188,10 @@ class FieldFitter:
             Br.append(piv_br.values)
             Bphi.append(piv_bphi.values)
             RR_slice, ZZ_slice = np.meshgrid(R, Z)
-            print(RR_slice.shape)
-            print(RR_slice)
-            print(input_data_phi[(input_data_phi.R == RR_slice[99][7]) &
-                                 (input_data_phi.Z == ZZ_slice[99][7])].Br)
+            # print(RR_slice.shape)
+            # print(RR_slice)
+            # print(input_data_phi[(input_data_phi.R == RR_slice[99][7]) &
+            #                      (input_data_phi.Z == ZZ_slice[99][7])].Br)
             RR.append(RR_slice)
             ZZ.append(ZZ_slice)
             if func_version in [6, 105, 110, 115, 116]:
@@ -606,16 +606,6 @@ class FieldFitter:
                 self.params.add('cms', value=cms, vary=False)
             else:
                 self.params['cms'].value = cms
-            for cn in range(cns):
-                for cm in range(cms):
-                    if 'E_{0}_{1}'.format(cn, cm) not in self.params:
-                        self.params.add('E_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
-                    else:
-                        self.params['E_{0}_{1}'.format(cn, cm)].vary = True
-                    if 'F_{0}_{1}'.format(cn, cm) not in self.params:
-                        self.params.add('F_{0}_{1}'.format(cn, cm), value=0.01, vary=True)
-                    else:
-                        self.params['F_{0}_{1}'.format(cn, cm)].vary = True
             if 'k1' not in self.params:
                 self.params.add('k1', value=0, vary=True)
             else:
@@ -654,10 +644,6 @@ class FieldFitter:
                 self.params['k9'].vary = True
             if 'k10' not in self.params:
                 self.params.add('k10', value=0, vary=True)
-            else:
-                self.params['k10'].vary = True
-            if 'k11' not in self.params:
-                self.params.add('k11', value=0, vary=True)
             else:
                 self.params['k10'].vary = True
 
@@ -764,7 +750,8 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 10000})
+                                           # method='leastsq', fit_kws={'maxfev': 10000})
+                                           method='least_squares')
         elif func_version == 6:
             if cfg_pickle.recreate:
                 for param in self.params:
@@ -780,7 +767,8 @@ class FieldFitter:
                 print('fitting phase ext')
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='leastsq', fit_kws={'maxfev': 10000})
+                                           # method='leastsq', fit_kws={'maxfev': 10000})
+                                           method='leastsq', fit_kws={'maxfev': 20000})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:
@@ -819,7 +807,7 @@ class FieldFitter:
                                            # weights=np.concatenate(
                                            #     [np.ones(Br.shape), np.ones(Bz.shape),
                                            #      np.ones(Bphi.shape)*100000]).ravel(),
-                                           r=RR, z=ZZ, phi=PP, params=self.params,
+                                           r=np.abs(RR), z=ZZ, phi=PP, params=self.params,
                                            # method='leastsq', fit_kws={'maxfev': 10000})
                                            method='least_squares', fit_kws={'max_nfev': 10000})
 

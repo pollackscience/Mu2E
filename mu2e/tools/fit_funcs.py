@@ -480,31 +480,31 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                 (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
 
     @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:],"
+                  "float64[:], float64[:], float64[:], "
+                  "float64[:], float64[:], float64[:], "
+                  "float64[:], float64[:], float64[:], "
                   "float64[:], float64[:], float64[:], float64[:])"],
-                 '(m), (m), (m), (m), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()->(m), (m), (m)',
+                 '(m), (m), (m), (m), (), (), (), (), (), (), (), (), (), ()->(m), (m), (m)',
                  nopython=True, target='parallel')
-    def calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
-                           alpha, beta, gamma, model_r, model_phi, model_z):
+    def calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                           model_r, model_phi, model_z):
         for i in range(z.shape[0]):
-            model_x = -alpha[0]*np.exp(-alpha[0]*x[i]) * \
-                np.exp(-beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
-                # k11[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
-                # k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
+            # model_x = -alpha[0]*np.exp(-alpha[0]*x[i]) * \
+            #     np.exp(-beta[0]*y[i]) * \
+            #     (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
+            #     # k11[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
+            #     # k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
 
-            model_y = np.exp(-alpha[0]*x[i]) * \
-                -beta[0]*np.exp(-beta[0]*y[i]) * \
-                (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
-                #k11[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
-                # k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
+            # model_y = np.exp(-alpha[0]*x[i]) * \
+            #     -beta[0]*np.exp(-beta[0]*y[i]) * \
+            #     (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
+            #     #k11[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
+            #     # k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
 
-            model_z[i] += np.exp(-alpha[0]*x[i]) * \
-                np.exp(-beta[0]*y[i]) * \
-                gamma[0]*(E[0]*np.cos(gamma[0]*z[i]) - F[0]*np.sin(gamma[0]*z[i]))
-                # k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
+            # model_z[i] += np.exp(-alpha[0]*x[i]) * \
+            #     np.exp(-beta[0]*y[i]) * \
+            #     gamma[0]*(E[0]*np.cos(gamma[0]*z[i]) - F[0]*np.sin(gamma[0]*z[i]))
+            #     # k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
 
             # model_x = alpha[0]*(E[0]*np.exp(alpha[0]*x[i]) - F[0]*np.exp(-alpha[0]*x[i])) * \
             #     np.exp(beta[0]*y[i]) * \
@@ -534,6 +534,12 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
             #     np.sin(beta[0]*y[i]) * \
             #     gamma[0]*(E[0]*np.exp(gamma[0]*z[i]) - F[0]*np.exp(-gamma[0]*z[i]))
 
+            model_x = k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
+
+            model_y = k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
+
+            model_z[i] += k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
+
             model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
             model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
 
@@ -549,7 +555,7 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                                             x.split('_')[0])))
         Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-        EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)})
+        # EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)})
 
         for n, d in enumerate(Ds):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
@@ -564,27 +570,27 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                 calc_b_fields_cyl(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
                                   model_phi)
 
-        for cn in range(cns):
-            for cm, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
+        # for cn in range(cns):
+        #     for cm, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
 
-                _alpha = np.array(alpha[cn][cm], dtype=np.float64)
-                _beta = np.array(beta[cn][cm], dtype=np.float64)
-                _gamma = np.array(gamma[cn][cm], dtype=np.float64)
-                E = np.array([AB_params[ef[0]]], dtype=np.float64)
-                F = np.array([AB_params[ef[1]]], dtype=np.float64)
-                k1 = np.array(AB_params['k1'], dtype=np.float64)
-                k2 = np.array(AB_params['k2'], dtype=np.float64)
-                k3 = np.array(AB_params['k3'], dtype=np.float64)
-                k4 = np.array(AB_params['k4'], dtype=np.float64)
-                k5 = np.array(AB_params['k5'], dtype=np.float64)
-                k6 = np.array(AB_params['k6'], dtype=np.float64)
-                k7 = np.array(AB_params['k7'], dtype=np.float64)
-                k8 = np.array(AB_params['k8'], dtype=np.float64)
-                k9 = np.array(AB_params['k9'], dtype=np.float64)
-                k10 = np.array(AB_params['k10'], dtype=np.float64)
-                k11 = np.array(AB_params['k11'], dtype=np.float64)
-                calc_b_fields_cart(x, y, z, phi, E, F, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
-                                   _alpha, _beta, _gamma, model_r, model_phi, model_z)
+                # _alpha = np.array(alpha[cn][cm], dtype=np.float64)
+                # _beta = np.array(beta[cn][cm], dtype=np.float64)
+                # _gamma = np.array(gamma[cn][cm], dtype=np.float64)
+                # E = np.array([AB_params[ef[0]]], dtype=np.float64)
+                # F = np.array([AB_params[ef[1]]], dtype=np.float64)
+        k1 = np.array(AB_params['k1'], dtype=np.float64)
+        k2 = np.array(AB_params['k2'], dtype=np.float64)
+        k3 = np.array(AB_params['k3'], dtype=np.float64)
+        k4 = np.array(AB_params['k4'], dtype=np.float64)
+        k5 = np.array(AB_params['k5'], dtype=np.float64)
+        k6 = np.array(AB_params['k6'], dtype=np.float64)
+        k7 = np.array(AB_params['k7'], dtype=np.float64)
+        k8 = np.array(AB_params['k8'], dtype=np.float64)
+        k9 = np.array(AB_params['k9'], dtype=np.float64)
+        k10 = np.array(AB_params['k10'], dtype=np.float64)
+                # k11 = np.array(AB_params['k11'], dtype=np.float64)
+        calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                           model_r, model_phi, model_z)
 
         model_phi[np.isinf(model_phi)] = 0
         return np.concatenate([model_r, model_z, model_phi]).ravel()
@@ -3880,7 +3886,7 @@ def brzphi_3d_producer_hel_v15(z, r, phi, L, ns, ms, n_scale):
                 _n = np.array([n])
                 _m = np.array([m])
                 _scale = np.array([scale])
-                calc_b_fields(z, phi, r, _P, _m, _n, _scale, A, B, _iv1, _ivp1,
+                calc_b_fields(z, phi, np.abs(r), _P, _m, _n, _scale, A, B, _iv1, _ivp1,
                               model_r, model_z, model_phi)
 
         k1 = np.array(AB_params['k1'], dtype=np.float64)

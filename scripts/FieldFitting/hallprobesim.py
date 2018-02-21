@@ -628,8 +628,8 @@ cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Hel_Pel',
                                                  save_name='Glass_Hel_Pel', recreate=False)
 
-cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=15, ms=4, cns=0, cms=0, nms=0, Reff=25000,
-                                                 n_scale=1, m_scale=1, func_version=116)
+cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=10, ms=5, cns=0, cms=0, nms=0, Reff=25000,
+                                                 n_scale=1, m_scale=1, func_version=115)
 cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Test',
                                                  save_name='Glass_Hel_Test', recreate=False)
@@ -642,11 +642,17 @@ cfg_pickle_Glass_Cyl_Test           = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Cyl_Test',
                                                  save_name='Glass_Cyl_Test', recreate=False)
 
-cfg_params_synth                    = cfg_params(ns=10, ms=10, cns=0, cms=0, nms=0, Reff=25000,
+cfg_params_synth                    = cfg_params(ns=10, ms=10, cns=0, cms=0, nms=0, Reff=5000,
                                                  n_scale=1, m_scale=1, func_version=114)
 cfg_pickle_synth                    = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='synth',
                                                  save_name='synth', recreate=False)
+
+cfg_params_Mau13_DS                 = cfg_params(ns=5, ms=60, cns=0, cms=0, nms=0, Reff=7000,
+                                                 n_scale=1, m_scale=1, func_version=6)
+cfg_pickle_Mau13                    = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Mau13',
+                                                 save_name='Mau13', recreate=True)
 
 nms = list(zip(range(1, 31), range(1, 31)))
 nms += list(zip(range(1, 31), range(2, 32)))
@@ -937,13 +943,13 @@ if __name__ == "__main__":
     #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
     #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
-    #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
-    #                              cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
+                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
+                                 cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Test', cfg_data_DS_Glass_Hel_3,
-                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Cyl_Test,
-                                 cfg_pickle_Glass_Cyl_Test, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Test', cfg_data_DS_Glass_Hel_3,
+    #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Cyl_Test,
+    #                              cfg_pickle_Glass_Cyl_Test, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_synth', cfg_data_synth,
     #                              cfg_geom_synth, cfg_params_synth,
@@ -960,3 +966,11 @@ if __name__ == "__main__":
     # hmd, ff = field_map_analysis('halltoy_GA05_HelTest', cfg_data_DS_GA05,
     #                              cfg_geom_cyl_800mm_long, cfg_params_GA05_DS_HelTest,
     #                              cfg_pickle_GA05_HelTest, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Mau13', cfg_data_DS_Mau13,
+    #                              cfg_geom_cyl_800mm_long, cfg_params_Mau13_DS,
+    #                              cfg_pickle_Mau13, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Mau13', cfg_data_DS_Mau13,
+    #                              cfg_geom_cyl_fullsim_trunc, cfg_params_Mau13_DS,
+    #                              cfg_pickle_Mau13, cfg_plot_mpl)
