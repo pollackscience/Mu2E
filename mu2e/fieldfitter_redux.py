@@ -49,7 +49,7 @@ import six.moves.cPickle as pkl
 import pandas as pd
 from lmfit import Model, Parameters, report_fit
 from mu2e import mu2e_ext_path
-from mu2e.tools import fit_funcs as ff
+from mu2e.tools import fit_funcs_redux as ff
 # import tools.fit_func_class as ffc
 
 
@@ -153,31 +153,33 @@ class FieldFitter:
             RRP = []
             PPP = []
 
-        phi_nphi_steps = self.phi_steps[:]
+        # phi_nphi_steps = self.phi_steps[:]
 
-        for phi in self.phi_steps:
-            # determine phi and negative phi
-            if phi == 0:
-                phi_nphi_steps.append(np.pi)
-            else:
-                phi_nphi_steps.append(phi-np.pi)
+        # for phi in self.phi_steps:
+        #     # determine phi and negative phi
+        #     if phi == 0:
+        #         phi_nphi_steps.append(np.pi)
+        #     else:
+        #         phi_nphi_steps.append(phi-np.pi)
 
         # complicated indexing
         # (because phi values must be "close", but R and Z can be exact matches)
-        input_data_selection = self.input_data[
-            (np.isclose(self.input_data.Phi.values[:, None], phi_nphi_steps).any(axis=1)) &
-            (self.input_data.R.isin(self.r_steps)) &
-            (self.input_data.Z.isin(self.z_steps))]
+        # input_data_selection = self.input_data[
+        #     (np.isclose(self.input_data.Phi.values[:, None], phi_nphi_steps).any(axis=1)) &
+        #     (self.input_data.R.isin(self.r_steps)) &
+        #     (self.input_data.Z.isin(self.z_steps))]
 
-        ZZ = input_data_selection.Z.values
-        RR = input_data_selection.R.values
-        PP = input_data_selection.Phi.values
-        Bz = input_data_selection.Bz.values
-        Br = input_data_selection.Br.values
-        Bphi = input_data_selection.Bphi.values
+        self.input_data.sort_values(['Z', 'R', 'Phi'], inplace=True)
+
+        ZZ = self.input_data.Z.values
+        RR = self.input_data.R.values
+        PP = self.input_data.Phi.values
+        Bz = self.input_data.Bz.values
+        Br = self.input_data.Br.values
+        Bphi = self.input_data.Bphi.values
         if func_version in [6, 105, 110, 115, 116]:
-            XX = input_data_selection.X.values
-            YY = input_data_selection.Y.values
+            XX = self.input_data.X.values
+            YY = self.input_data.Y.values
         if func_version in [8, 9]:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
         if profile:
@@ -828,70 +830,8 @@ class FieldFitter:
         Adds three columns to input_data: `Br_fit, Bphi_fit, Bz_fit` or `Bx_fit, By_fit, Bz_fit`,
         depending on the geometry.
         """
-        best_fit = self.result.best_fit
+        bf = self.result.best_fit
 
-        df_fit = pd.DataFrame()
-        isc = np.isclose
-
-        if self.geom == 'cyl':
-            for i, phi in enumerate(self.phi_steps):
-                if phi == 0:
-                    nphi = np.pi
-                else:
-                    nphi = phi-np.pi
-                data_frame_phi = self.input_data[
-                    (isc(self.input_data.Phi, phi)) | (isc(self.input_data.Phi, nphi))
-                ]
-
-                # careful sorting of values to match up with fit output bookkeeping
-                df_fit_tmp = data_frame_phi[
-                    isc(data_frame_phi.Phi, nphi)][['Z', 'R', 'Phi']].sort_values(
-                        ['R', 'Phi', 'Z'], ascending=[False, True, True])
-                df_fit_tmp = df_fit_tmp.append(
-                    data_frame_phi[isc(data_frame_phi.Phi, phi)][['Z', 'R', 'Phi']].sort_values(
-                        ['R', 'Phi', 'Z'], ascending=[True, True, True]))
-
-                ll = int(len(best_fit)/3)
-                br = best_fit[:ll]
-                bz = best_fit[ll:int(2*ll)]
-                bphi = best_fit[int(2*ll):]
-                p = len(br)
-                br = br[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
-                bz = bz[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
-                bphi = bphi[(i*p)//len(self.phi_steps):((i+1)*p)//len(self.phi_steps)]
-
-                z_size = len(df_fit_tmp.Z.unique())
-                r_size = 2*len(df_fit_tmp.R.unique())
-                df_fit_tmp['Br_fit'] = np.transpose(br.reshape((z_size, r_size))).flatten()
-                df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, r_size))).flatten()
-                df_fit_tmp['Bphi_fit'] = np.transpose(bphi.reshape((z_size, r_size))).flatten()
-
-                df_fit = df_fit.append(df_fit_tmp)
-
-            self.input_data = pd.merge(self.input_data, df_fit, on=['Z', 'R', 'Phi'])
-
-        elif self.geom == 'cart':
-            for i, y in enumerate(self.y_steps):
-                df_fit_tmp = self.input_data[self.input_data.Y == y][['X', 'Y', 'Z']]
-
-                # careful sorting of values to match up with fit output bookkeeping
-                ll = int(len(best_fit)/3)
-                bx = best_fit[:ll]
-                by = best_fit[ll:int(2*ll)]
-                bz = best_fit[int(2*ll):]
-                p = len(bx)
-                bx = bx[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
-                by = by[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
-                bz = bz[(i*p)//len(self.y_steps):((i+1)*p)//len(self.y_steps)]
-
-                z_size = len(df_fit_tmp.Z.unique())
-                x_size = len(df_fit_tmp.X.unique())
-                df_fit_tmp['Bx_fit'] = np.transpose(bx.reshape((z_size, x_size))).flatten()
-                df_fit_tmp['By_fit'] = np.transpose(by.reshape((z_size, x_size))).flatten()
-                df_fit_tmp['Bz_fit'] = np.transpose(bz.reshape((z_size, x_size))).flatten()
-
-                df_fit = df_fit.append(df_fit_tmp)
-
-            self.input_data = pd.merge(self.input_data, df_fit, on=['X', 'Y', 'Z'])
-        else:
-            raise KeyError('Geom is not specified correctly')
+        self.input_data['Br_fit'] = bf[0:len(bf)//3]
+        self.input_data['Bz_fit'] = bf[len(bf)//3:2*len(bf)//3]
+        self.input_data['Bphi_fit'] = bf[2*len(bf)//3:]

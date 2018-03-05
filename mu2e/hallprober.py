@@ -86,7 +86,7 @@ from tqdm import tqdm
 from scipy.interpolate import Rbf
 import mu2e
 from mu2e.dataframeprod import DataFrameMaker
-from mu2e.fieldfitter import FieldFitter
+from mu2e.fieldfitter_redux import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
 import imp
