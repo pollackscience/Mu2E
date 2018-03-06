@@ -148,33 +148,54 @@ class HallProbeGenerator(object):
             (x1[0, :]*np.sin(x1[1, :])-x2[0, :]*np.sin(x2[1, :]))**2 +
             (x1[2, :]-x2[2, :])**2)
 
-    def __init__(self, input_data, z_steps=15, x_steps=10,
-                 y_steps=10, r_steps=None, phi_steps=(np.pi/2,), interpolate=False):
+    def __init__(self, input_data, z_steps=None, x_steps=None,
+                 y_steps=None, r_steps=None, phi_steps=None, interpolate=False):
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
-        self.phi_steps = phi_steps
         self.z_steps = z_steps
         self.x_steps = x_steps
         self.y_steps = y_steps
+        self.phi_steps = phi_steps
+        if self.phi_steps:
+            self.phi_nphi_steps = list(self.phi_steps[:])
+            for phi in self.phi_steps:
+                # determine phi and negative phi
+                if phi == 0:
+                    self.phi_nphi_steps.append(np.pi)
+                else:
+                    self.phi_nphi_steps.append(phi-np.pi)
+
+        if self.x_steps or self.y_steps:
+            raise NotImplementedError('Oh no! you got lazy during refactoring')
 
         if interpolate is not False:
             self.interpolate_points(interpolate)
         else:
-            self.apply_selection('Z', z_steps)
-            if r_steps:
-                self.apply_selection('R', r_steps)
-                self.apply_selection('Phi', phi_steps)
-                self.phi_steps = phi_steps
-            else:
-                self.apply_selection('X', x_steps)
-                self.apply_selection('Y', y_steps)
+            # complicated indexing
+            # (because phi values must be "close", but R and Z can be exact matches)
+            self.sparse_field = self.sparse_field[
+                (np.isclose(self.sparse_field.Phi.values[:, None],
+                            self.phi_nphi_steps).any(axis=1)) &
+                (np.isclose(self.sparse_field.R.values[:, None],
+                            np.ravel(self.r_steps)).any(axis=1)) &
+                (self.sparse_field.Z.isin(self.z_steps))]
+            self.sparse_field = self.sparse_field.sort_values(['Z', 'R', 'Phi'])
 
-        for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
-            try:
-                self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
-            except:
-                pass
+            # self.apply_selection('Z', z_steps)
+            # if r_steps:
+            #     self.apply_selection('R', r_steps)
+            #     self.apply_selection('Phi', phi_steps)
+            #     self.phi_steps = phi_steps
+            # else:
+            #     self.apply_selection('X', x_steps)
+            #     self.apply_selection('Y', y_steps)
+
+        # for mag in ['Bz', 'Br', 'Bphi', 'Bx', 'By', 'Bz']:
+        #     try:
+        #         self.sparse_field.eval('{0}err = abs(0.0001*{0}+1e-15)'.format(mag), inplace=True)
+        #     except:
+        #         pass
 
     def takespread(self, sequence, num):
         """Return an evenly-spaced sequence of length `num` from the input sequence.
@@ -200,8 +221,7 @@ class HallProbeGenerator(object):
         Args:
             coord (str): Label of the dataframe column that will be queried.  Typically a positional
                 coordinate ('X', 'Y', 'Z', 'R', 'Phi').
-            steps (int or List[numbers]): If int, :func:`mu2e.hallprober.takespread` will be called
-                in order to select evenly spaced values. If a list, those values will be taken
+            steps (List[numbers]): If a list, those values will be taken
                 (along with their respective negative or inverses, if applicable)
 
         Returns:

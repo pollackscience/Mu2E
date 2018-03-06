@@ -153,24 +153,6 @@ class FieldFitter:
             RRP = []
             PPP = []
 
-        # phi_nphi_steps = self.phi_steps[:]
-
-        # for phi in self.phi_steps:
-        #     # determine phi and negative phi
-        #     if phi == 0:
-        #         phi_nphi_steps.append(np.pi)
-        #     else:
-        #         phi_nphi_steps.append(phi-np.pi)
-
-        # complicated indexing
-        # (because phi values must be "close", but R and Z can be exact matches)
-        # input_data_selection = self.input_data[
-        #     (np.isclose(self.input_data.Phi.values[:, None], phi_nphi_steps).any(axis=1)) &
-        #     (self.input_data.R.isin(self.r_steps)) &
-        #     (self.input_data.Z.isin(self.z_steps))]
-
-        self.input_data.sort_values(['Z', 'R', 'Phi'], inplace=True)
-
         ZZ = self.input_data.Z.values
         RR = self.input_data.R.values
         PP = self.input_data.Phi.values
@@ -832,6 +814,6 @@ class FieldFitter:
         """
         bf = self.result.best_fit
 
-        self.input_data['Br_fit'] = bf[0:len(bf)//3]
-        self.input_data['Bz_fit'] = bf[len(bf)//3:2*len(bf)//3]
-        self.input_data['Bphi_fit'] = bf[2*len(bf)//3:]
+        self.input_data.loc[:, 'Br_fit'] = bf[0:len(bf)//3]
+        self.input_data.loc[:, 'Bz_fit'] = bf[len(bf)//3:2*len(bf)//3]
+        self.input_data.loc[:, 'Bphi_fit'] = bf[2*len(bf)//3:]

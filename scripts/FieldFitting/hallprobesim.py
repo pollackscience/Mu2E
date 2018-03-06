@@ -637,7 +637,7 @@ cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=T
 # save_name='Glass_Hel_Mau10', recreate=False)
 
 cfg_params_Glass_DS_Cyl_Test        = cfg_params(ns=10, ms=8, cns=4, cms=4, nms=0, Reff=7000,
-                                                 n_scale=1, m_scale=1, func_version=6)
+                                                 n_scale=1, m_scale=1, func_version=5)
 cfg_pickle_Glass_Cyl_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Cyl_Test',
                                                  save_name='Glass_Cyl_Test', recreate=False)
