@@ -330,11 +330,11 @@ def brzphi_3d_producer_modbessel_phase(z, r, phi, L, ns, ms):
     @njit(parallel=True)
     def calc_b_fields(z, phi, r, n, A, B, D, ivp, iv, kms, model_r, model_z, model_phi):
         for i in prange(z.shape[0]):
-            model_r[i] += np.cos(n*phi[i]-D)*ivp[i]*kms * \
-                (A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
-            model_z[i] += np.cos(n*phi[i]-D)*iv[i]*kms * \
-                (-A*np.sin(kms*z[i]) + B*np.cos(kms*z[i]))
-            model_phi[i] += n*(-np.sin(n*phi[i]-D)) * \
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                ivp[i]*kms*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                iv[i]*kms*(-A*np.sin(kms*z[i]) + B*np.cos(kms*z[i]))
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
                 (1/r[i])*iv[i]*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
 
     def brzphi_3d_fast(z, r, phi, R, ns, ms, **AB_params):
@@ -358,7 +358,7 @@ def brzphi_3d_producer_modbessel_phase(z, r, phi, L, ns, ms):
                 D = AB_params[d]
                 _ivp = ivp[n][m]
                 _iv = iv[n][m]
-                _kms = [kms[n][m]]
+                _kms = kms[n][m]
                 calc_b_fields(z, phi, r, n, A, B, D, _ivp, _iv, _kms, model_r, model_z, model_phi)
 
         model_phi[np.isinf(model_phi)] = 0
@@ -517,7 +517,7 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
         k8 = np.array(AB_params['k8'], dtype=np.float64)
         k9 = np.array(AB_params['k9'], dtype=np.float64)
         k10 = np.array(AB_params['k10'], dtype=np.float64)
-                # k11 = np.array(AB_params['k11'], dtype=np.float64)
+
         calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
                            model_r, model_phi, model_z)
 
@@ -531,18 +531,18 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
     Factory function that readies a potential fit function for a 3D magnetic field.
     This function creates a modified bessel function expression/
     '''
-    R = 15000
+    R = 20000
 
     b_zeros = []
     for cn in range(cns):
         b_zeros.append(special.jn_zeros(cn, cms))
     kms_j = np.asarray([b/R for b in b_zeros])
-    jv = np.empty((cns, cms, r.shape[0], r.shape[1]))
-    jvp = np.empty((cns, cms, r.shape[0], r.shape[1]))
+    jv = np.empty((cns, cms, r.shape[0]))
+    jvp = np.empty((cns, cms, r.shape[0]))
     for cn in range(cns):
         for cm in range(cms):
-            jv[cn][cm] = special.jv(cn, kms_j[cn][cm]*np.abs(r))
-            jvp[cn][cm] = special.jvp(cn, kms_j[cn][cm]*np.abs(r))
+            jv[cn][cm] = special.jv(cn, kms_j[cn][cm]*r)
+            jvp[cn][cm] = special.jvp(cn, kms_j[cn][cm]*r)
 
     kms_i = []
     for n in range(ns):
@@ -550,40 +550,32 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
         for m in range(ms):
             kms_i[-1].append((m+1)*np.pi/L)
     kms_i = np.asarray(kms_i)
-    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    iv = np.empty((ns, ms, r.shape[0]))
+    ivp = np.empty((ns, ms, r.shape[0]))
     for n in range(ns):
         for m in range(ms):
-            iv[n][m] = special.iv(n, kms_i[n][m]*np.abs(r))
-            ivp[n][m] = special.ivp(n, kms_i[n][m]*np.abs(r))
+            iv[n][m] = special.iv(n, kms_i[n][m]*r)
+            ivp[n][m] = special.ivp(n, kms_i[n][m]*r)
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:])"],
-                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
-                 nopython=True, target='parallel')
+    @njit(parallel=True)
     def calc_b_fields_mb(z, phi, r, n, A, B, D, ivp, iv, kms_i, model_r, model_z, model_phi):
-        for i in range(z.shape[0]):
-            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms_i[0] * \
-                (A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
-            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms_i[0] * \
-                (-A[0]*np.sin(kms_i[0]*z[i]) + B[0]*np.cos(kms_i[0]*z[i]))
-            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
-                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms_i[0]*z[i]) + B[0]*np.sin(kms_i[0]*z[i]))
+        for i in prange(z.shape[0]):
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                ivp[i]*kms_i*(A*np.cos(kms_i*z[i]) + B*np.sin(kms_i*z[i]))
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                iv[i]*kms_i*(-A*np.sin(kms_i*z[i]) + B*np.cos(kms_i*z[i]))
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
+                (1/r[i])*iv[i]*(A*np.cos(kms_i*z[i]) + B*np.sin(kms_i*z[i]))
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:])"],
-                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
-                 nopython=True, target='parallel')
+    @njit(parallel=True)
     def calc_b_fields_b(z, phi, r, n, E, F, G, jvp, jv, kms_j, model_r, model_z, model_phi):
         for i in range(z.shape[0]):
-            model_r[i] += np.cos(n[0]*phi[i]-G[0])*jvp[i]*kms_j[0] * \
-                (E[0]*np.sinh(kms_j[0]*z[i]) + F[0]*np.cosh(kms_j[0]*z[i]))
-            model_z[i] += np.cos(n[0]*phi[i]-G[0])*jv[i]*kms_j[0] * \
-                (E[0]*np.cosh(kms_j[0]*z[i]) + F[0]*np.sinh(kms_j[0]*z[i]))
-            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-G[0])) * \
-                (1/np.abs(r[i]))*jv[i]*(E[0]*np.sinh(kms_j[0]*z[i]) + F[0]*np.cosh(kms_j[0]*z[i]))
+            model_r[i] += (G*np.sin(n*phi[i]) + (1-G)*np.cos(n*phi[i])) * \
+                jvp[i]*kms_j *(E*np.sinh(kms_j*z[i]) + F*np.cosh(kms_j*z[i]))
+            model_z[i] += (G*np.sin(n*phi[i]) + (1-G)*np.cos(n*phi[i])) * \
+                jv[i]*kms_j*(E*np.cosh(kms_j*z[i]) + F*np.sinh(kms_j*z[i]))
+            model_phi[i] += n*(G*np.cos(n*phi[i]) - (1-G)*np.sin(n*phi[i])) * \
+                (1/r[i])*jv[i]*(E*np.sinh(kms_j*z[i]) + F*np.cosh(kms_j*z[i]))
 
     def brzphi_3d_fast(z, r, phi, ns, ms, **AB_params):
         """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
@@ -604,29 +596,27 @@ def brzphi_3d_producer_modbessel_phase_hybrid(z, r, phi, L, ns, ms, cns, cms):
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
 
         for n, d in enumerate(Ds):
-            for i, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
+            for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
-                A = np.array([AB_params[ab[0]]], dtype=np.float64)
-                B = np.array([AB_params[ab[1]]], dtype=np.float64)
-                D = np.array([AB_params[d]], dtype=np.float64)
-                _ivp = ivp[n][i]
-                _iv = iv[n][i]
-                _kms = np.array([kms_i[n][i]])
-                _n = np.array([n])
-                calc_b_fields_mb(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
+                A = AB_params[ab[0]]
+                B = AB_params[ab[1]]
+                D = AB_params[d]
+                _ivp = ivp[n][m]
+                _iv = iv[n][m]
+                _kms = kms_i[n][m]
+                calc_b_fields_mb(z, phi, r, n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
                                  model_phi)
 
         for cn, g in enumerate(Gs):
-            for i, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
+            for cm, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
 
-                E = np.array([AB_params[ef[0]]], dtype=np.float64)
-                F = np.array([AB_params[ef[1]]], dtype=np.float64)
-                G = np.array([AB_params[g]], dtype=np.float64)
-                _jvp = jvp[cn][i]
-                _jv = jv[cn][i]
-                _kms = np.array([kms_j[n][i]])
-                _n = np.array([cn])
-                calc_b_fields_b(z, phi, r, _n, E, F, G, _jvp, _jv, _kms, model_r, model_z,
+                E = AB_params[ef[0]]
+                F = AB_params[ef[1]]
+                G = AB_params[g]
+                _jvp = jvp[cn][cm]
+                _jv = jv[cn][cm]
+                _kms = kms_j[cn][cm]
+                calc_b_fields_b(z, phi, r, cn, E, F, G, _jvp, _jv, _kms, model_r, model_z,
                                 model_phi)
 
         model_phi[np.isinf(model_phi)] = 0
@@ -1526,5 +1516,96 @@ def brzphi_3d_producer_hel_v16(z, r, phi, L, ns, ms, n_scale):
                            model_r, model_phi)
 
         # model_phi[np.isinf(model_phi)] = 0
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_hel_v17(z, r, phi, L, ns, ms, n_scale):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function creates a modified bessel function expression.
+    WARNING: N AND M ARE REINTERPRETED IN THIS CASE
+    '''
+
+    P = L/(2*np.pi)
+    scale = n_scale
+
+    iv1 = np.zeros((ns, ms, len(r)))
+    ivp1 = np.zeros((ns, ms, len(r)))
+    iv2 = np.zeros((ns, ms, len(r)))
+    ivp2 = np.zeros((ns, ms, len(r)))
+    for n in range(ns):
+        for m in range(ms):
+                iv1[n][m] = special.iv(m, ((n*scale)/P)*r)
+                ivp1[n][m] = 0.5*(special.iv(-1+m, ((n*scale)/P)*r) +
+                                  special.iv(1+m, ((n*scale)/P)*r))
+                iv2[n][m] = special.iv(m, (-(n*scale)/P)*r)
+                ivp2[n][m] = 0.5*(special.iv(-1+m, (-(n*scale)/P)*r) +
+                                  special.iv(1+m, (-(n*scale)/P)*r))
+
+    @njit(parallel=True)
+    def calc_b_fields(z, phi, r, P, m, n, scale, A, B, D,
+                      iv1, iv2, ivp1, ivp2, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += (n*scale/P) * (D*ivp1[i] - (1-D)*ivp2[i]) * \
+                (A*np.cos((n*scale)*z[i]/P+m*phi[i]) +
+                 B*np.sin((n*scale)*z[i]/P+m*phi[i]))
+
+            model_z[i] += (n*scale/P) * (D*iv1[i] + (1-D)*iv2[i]) * \
+                (-A*np.sin((n*scale)*z[i]/P+m*phi[i]) +
+                 B*np.cos((n*scale)*z[i]/P+m*phi[i]))
+
+            model_phi[i] += (-m/r[i]) * (D*iv1[i] + (1-D)*iv2[i]) * \
+                (A*np.sin((n*scale)*z[i]/P+m*phi[i]) -
+                 B*np.cos((n*scale)*z[i]/P+m*phi[i]))
+
+    @njit(parallel=True)
+    def calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                           model_r, model_phi, model_z):
+        for i in prange(z.shape[0]):
+            model_x = k1 + k4*x[i] + k7*y[i] + k8*z[i] + k10*y[i]*z[i]
+
+            model_y = k2 + k5*y[i] + k7*x[i] + k9*z[i] + k10*x[i]*z[i]
+
+            model_z[i] += k3 + k6*z[i] + k8*x[i] + k9*y[i] + k10*x[i]*y[i]
+
+            model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
+            model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
+
+    def brzphi_3d_fast(z, r, phi, x, y, R, ns, ms, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+        ABs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('A' in k or 'B' in k)},
+                     key=lambda x: ','.join((x.split('_')[1].zfill(5), x.split('_')[2].zfill(5),
+                                            x.split('_')[0])))
+
+        for n in range(ns):
+            for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*(ms)*2])):
+                A = AB_params[ab[0]]
+                B = AB_params[ab[1]]
+                D = AB_params[f'D_{n}']
+                _iv1 = iv1[n][m]
+                _ivp1 = ivp1[n][m]
+                _iv2 = iv2[n][m]
+                _ivp2 = ivp2[n][m]
+                calc_b_fields(z, phi, r, P, m, n, scale, A, B, D, _iv1, _iv2, _ivp1, _ivp2,
+                              model_r, model_z, model_phi)
+
+        k1 = AB_params['k1']
+        k2 = AB_params['k2']
+        k3 = AB_params['k3']
+        k4 = AB_params['k4']
+        k5 = AB_params['k5']
+        k6 = AB_params['k6']
+        k7 = AB_params['k7']
+        k8 = AB_params['k8']
+        k9 = AB_params['k9']
+        k10 = AB_params['k10']
+        calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                           model_r, model_phi, model_z)
+
         return np.concatenate([model_r, model_z, model_phi]).ravel()
     return brzphi_3d_fast

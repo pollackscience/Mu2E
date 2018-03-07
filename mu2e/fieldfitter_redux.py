@@ -159,7 +159,7 @@ class FieldFitter:
         Bz = self.input_data.Bz.values
         Br = self.input_data.Br.values
         Bphi = self.input_data.Bphi.values
-        if func_version in [6, 105, 110, 115, 116]:
+        if func_version in [6, 105, 110, 115, 116, 117]:
             XX = self.input_data.X.values
             YY = self.input_data.Y.values
         if func_version in [8, 9]:
@@ -182,7 +182,8 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_ext(ZZ, RR, PP, Reff, ns, ms,
                                                                        cns, cms)
         elif func_version == 7:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
+            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
+                                                                          cns, cms)
         elif func_version == 8:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
         elif func_version == 9:
@@ -221,11 +222,13 @@ class FieldFitter:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v15(ZZ, RR, PP, Reff, ns, ms, n_scale)
         elif func_version == 116:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
+        elif func_version == 117:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v17(ZZ, RR, PP, Reff, ns, ms, n_scale)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
         # Generate an lmfit Model
-        if func_version in [6, 105, 110, 115, 116]:
+        if func_version in [6, 105, 110, 115, 116, 117]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
         elif func_version in [8, 9, 10]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
@@ -260,8 +263,10 @@ class FieldFitter:
                 if func_version in [5, 6, 7, 8, 9]:
                     d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ns)
                     if 'D_{0}'.format(n) not in self.params:
-                        self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
-                                        max=np.pi*0.5, vary=True)
+                        # self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
+                        #                 max=np.pi*0.5, vary=True)
+                        self.params.add('D_{0}'.format(n), value=0.5, min=0,
+                                        max=1, vary=True)
                     else:
                         self.params['D_{0}'.format(n)].vary = False
                 # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
@@ -403,8 +408,13 @@ class FieldFitter:
                     else:
                         self.params[f'D_{m}'].vary = False
 
-        elif func_version == 115:
+        elif func_version in [115, 117]:
             for n in range(ns):
+                if func_version == 117:
+                    if f'D_{n}' not in self.params:
+                        self.params.add(f'D_{n}', value=0.5, vary=True, min=0, max=1)
+                    else:
+                        self.params[f'D_{n}'].vary = True
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
                         self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
@@ -423,45 +433,45 @@ class FieldFitter:
                         self.params['B_{0}_{1}'.format(n, m)].value = 0
 
             if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=True)
+                self.params.add('k1', value=0, vary=False)
             else:
-                self.params['k1'].vary = True
+                self.params['k1'].vary = False
             if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=True)
+                self.params.add('k2', value=0, vary=False)
             else:
-                self.params['k2'].vary = True
+                self.params['k2'].vary = False
             if 'k3' not in self.params:
-                self.params.add('k3', value=0, vary=True)
+                self.params.add('k3', value=1, vary=True)
             else:
                 self.params['k3'].vary = True
             if 'k4' not in self.params:
-                self.params.add('k4', value=0, vary=True)
+                self.params.add('k4', value=0, vary=False)
             else:
-                self.params['k4'].vary = True
+                self.params['k4'].vary = False
             if 'k5' not in self.params:
-                self.params.add('k5', value=0, vary=True)
+                self.params.add('k5', value=0, vary=False)
             else:
-                self.params['k5'].vary = True
+                self.params['k5'].vary = False
             if 'k6' not in self.params:
-                self.params.add('k6', value=0, vary=True)
+                self.params.add('k6', value=0, vary=False)
             else:
-                self.params['k6'].vary = True
+                self.params['k6'].vary = False
             if 'k7' not in self.params:
-                self.params.add('k7', value=0, vary=True)
+                self.params.add('k7', value=0, vary=False)
             else:
-                self.params['k7'].vary = True
+                self.params['k7'].vary = False
             if 'k8' not in self.params:
-                self.params.add('k8', value=0, vary=True)
+                self.params.add('k8', value=0, vary=False)
             else:
-                self.params['k8'].vary = True
+                self.params['k8'].vary = False
             if 'k9' not in self.params:
-                self.params.add('k9', value=0, vary=True)
+                self.params.add('k9', value=0, vary=False)
             else:
-                self.params['k9'].vary = True
+                self.params['k9'].vary = False
             if 'k10' not in self.params:
-                self.params.add('k10', value=0, vary=True)
+                self.params.add('k10', value=0, vary=False)
             else:
-                self.params['k10'].vary = True
+                self.params['k10'].vary = False
 
         elif func_version == 116:
             for n in range(ns):
@@ -637,7 +647,7 @@ class FieldFitter:
 
             for cn in range(cns):
                 if 'G_{0}'.format(cn) not in self.params:
-                    self.params.add('G_{0}'.format(cn), value=0, min=-np.pi*0.5, max=np.pi*0.5,
+                    self.params.add('G_{0}'.format(cn), value=0, min=0, max=1,
                                     vary=True)
                 else:
                     self.params['G_{0}'.format(cn)].vary = True
@@ -658,12 +668,12 @@ class FieldFitter:
                 if 'Y' not in self.params:
                     self.params.add('Y', value=0, vary=True)
 
-        if not cfg_pickle.recreate:
-            print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
-        else:
-            print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
-                ns, ms, cns, cms, cfg_pickle.load_name))
-        start_time = time()
+        # if not cfg_pickle.recreate:
+        #     print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
+        # else:
+        #     print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
+        #         ns, ms, cns, cms, cfg_pickle.load_name))
+        # start_time = time()
         if func_version not in [6, 8, 9] and func_version < 100:
             if cfg_pickle.recreate:
                 for param in self.params:
@@ -682,8 +692,8 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, params=self.params,
-                                           # method='leastsq', fit_kws={'maxfev': 10000})
-                                           method='least_squares')
+                                           method='leastsq', fit_kws={'maxfev': 10000})
+                # method='least_squares')
         elif func_version == 6:
             if cfg_pickle.recreate:
                 for param in self.params:
@@ -721,7 +731,7 @@ class FieldFitter:
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, rp=RRP, phip=PPP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 2000})
-        elif func_version >= 100 and func_version not in [105, 110, 111, 115, 116]:
+        elif func_version >= 100 and func_version not in [105, 110, 111, 115, 116, 117]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -770,7 +780,7 @@ class FieldFitter:
                                                                             'loss': 'soft_l1'})
                 # 'xtol': 1e-11,
                 # 'gtol': 1e-11}, verbose=True)
-        elif func_version in [105, 110, 115, 116]:
+        elif func_version in [105, 110, 115, 116, 117]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -788,12 +798,15 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='least_squares', fit_kws={'max_nfev': 10000})
+                                           method='least_squares', fit_kws={'verbose': 0,
+                                                                            'gtol': 1e-12,
+                                                                            'ftol': 1e-12,
+                                                                            'xtol': 1e-12})
 
         self.params = self.result.params
-        end_time = time()
-        print(("Elapsed time was %g seconds" % (end_time - start_time)))
-        report_fit(self.result, show_correl=False)
+        # end_time = time()
+        # print(("Elapsed time was %g seconds" % (end_time - start_time)))
+        # report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 

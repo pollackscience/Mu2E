@@ -623,7 +623,8 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
 
     ff.merge_data_fit_res()
 
-    make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
+    if cfg_plot.plot_type != 'none':
+        make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
     return hall_measure_data, ff
 
