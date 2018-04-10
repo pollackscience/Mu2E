@@ -535,37 +535,55 @@ def mu2e_plot3d_ptrap_traj(df, x, y, z, save_name=None, df_xray=None, x_range=(3
                           aspect=aspect)
     line_plots = []
 
-    # Define what color will represent
-    if color_mode == 'time':
-        c = df.time
-        c_title = 'Global Time (ns)'
-        c_min = df.time.min()
-        c_max = df.time.max()
-
-    elif color_mode == 'mom':
-        c = df.p
-        c_title = 'Momentum (MeV)'
-        c_min = df.p.min()
-        c_max = df.p.max()
-
-    # Set the xray image if available
     if isinstance(df_xray, pd.DataFrame):
         xray_maker(df_xray, line_plots)
 
-    # Plot the actual content
-    try:
-        name = df.name
-    except AttributeError:
-        name = 'Particle'
     if isinstance(df, pd.DataFrame):
+        # Define what color will represent
+        if color_mode == 'time':
+            c = df.time
+            c_title = 'Global Time (ns)'
+            c_min = df.time.min()
+            c_max = df.time.max()
+
+        elif color_mode == 'mom':
+            c = df.p
+            c_title = 'Momentum (MeV)'
+            c_min = df.p.min()
+            c_max = df.p.max()
+
+        # Set the xray image if available
+
+        # Plot the actual content
+        try:
+            name = df.name
+        except AttributeError:
+            name = 'Particle'
+
+        line_plots.append(
+            go.Scatter3d(
+                x=df[x], y=df[y], z=df[z],
+                marker=dict(size=0.1, color=c, colorscale='Viridis',
+                            line=dict(color=c, width=5, colorscale='Viridis'),
+                            showscale=True, cmin=c_min, cmax=c_max,
+                            colorbar=dict(title=c_title)),
+                line=dict(color=c, width=5, colorscale='Viridis'),
+                name=name
+            )
+        )
+    elif isinstance(df, list):
+        for d in df:
+            try:
+                name = d.name
+            except AttributeError:
+                name = 'Particle'
+
             line_plots.append(
                 go.Scatter3d(
-                    x=df[x], y=df[y], z=df[z],
-                    marker=dict(size=0.1, color=c, colorscale='Viridis',
-                                line=dict(color=c, width=5, colorscale='Viridis'),
-                                showscale=True, cmin=c_min, cmax=c_max,
-                                colorbar=dict(title=c_title)),
-                    line=dict(color=c, width=5, colorscale='Viridis'),
+                    x=d[x], y=d[y], z=d[z],
+                    marker=dict(size=0.1,
+                                line=dict(width=5)),
+                    line=dict(width=5),
                     name=name
                 )
             )
@@ -759,6 +777,8 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
         ar = dict(x=6, y=1, z=1)
     elif aspect == 'cosmic':
         ar = dict(x=6, y=1, z=4)
+    else:
+        raise ValueError('bad value for `aspect`')
     axis_title_size = 18
     axis_tick_size = 14
     layout = go.Layout(
