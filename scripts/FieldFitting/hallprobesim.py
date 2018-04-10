@@ -92,6 +92,8 @@ cfg_data_DS_Glass_Hel_3   = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
                                      ('Z>-3500', 'Z<3500', 'R!=0'))
 cfg_data_DS_Glass_Hel_3L  = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
                                      ('Z>-4500', 'Z<4500', 'R!=0'))
+cfg_data_DS_Glass_Hel_3S  = cfg_data('Glass', 'DS', path_DS_Hel_Only_Glass_3,
+                                     ('Z>-500', 'Z<500', 'R!=0'))
 cfg_data_synth  = cfg_data('synth', 'DS', path_synth,
                            ('Z>-3500', 'Z<4500', 'R!=0'))
 # ('Z>6400', 'Z<11200', 'R!=0'))
@@ -192,6 +194,7 @@ z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
 z_steps_DS_glass_hel = list(range(8121, 9521, 25))
 z_steps_DS_glass_test = list(range(-3500, 3500, 50))
+z_steps_DS_glass_small = list(range(-500, 500, 50))
 # z_steps_DS_glass_hel = list(range(6421, 11221, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
@@ -371,6 +374,10 @@ cfg_geom_hel_glass              = cfg_geom('cyl', z_steps_DS_glass_hel, r_steps_
                                            bad_calibration=[False, False, False], interpolate=False)
 
 cfg_geom_hel_glass_test         = cfg_geom('cyl', z_steps_DS_glass_test, r_steps_800mm[0:],
+                                           phi_steps_8[0:], x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False)
+
+cfg_geom_hel_glass_small        = cfg_geom('cyl', z_steps_DS_glass_small, r_steps_800mm[0:],
                                            phi_steps_8[0:], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False)
 
@@ -628,7 +635,7 @@ cfg_pickle_Glass_Hel_Pel            = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Glass_Hel_Pel',
                                                  save_name='Glass_Hel_Pel', recreate=False)
 
-cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=10, ms=5, cns=0, cms=0, nms=0, Reff=25000,
+cfg_params_Glass_DS_Hel_Test        = cfg_params(ns=4, ms=4, cns=0, cms=0, nms=0, Reff=13350,
                                                  n_scale=1, m_scale=1, func_version=115)
 cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Hel_Test',
@@ -636,8 +643,8 @@ cfg_pickle_Glass_Hel_Test           = cfg_pickle(use_pickle=False, save_pickle=T
 # load_name='Glass_Hel_Mau10',
 # save_name='Glass_Hel_Mau10', recreate=False)
 
-cfg_params_Glass_DS_Cyl_Test        = cfg_params(ns=10, ms=8, cns=4, cms=4, nms=0, Reff=7000,
-                                                 n_scale=1, m_scale=1, func_version=6)
+cfg_params_Glass_DS_Cyl_Test        = cfg_params(ns=3, ms=30, cns=5, cms=5, nms=0, Reff=15000,
+                                                 n_scale=1, m_scale=1, func_version=7)
 cfg_pickle_Glass_Cyl_Test           = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Glass_Cyl_Test',
                                                  save_name='Glass_Cyl_Test', recreate=False)
@@ -683,6 +690,7 @@ cfg_pickle_set_Mau_bad_m            = [
 #################
 # the plot cfgs #
 #################
+cfg_plot_none = cfg_plot('none', [-2, 2], 'html', None)
 cfg_plot_mpl = cfg_plot('mpl', [-2, 2], 'html', None)
 cfg_plot_mpl_high_lim = cfg_plot('mpl', [-10, 10], 'html', None)
 cfg_plot_plotly_img = cfg_plot('plotly_html_img', [-2, 2], 'html', None)
@@ -691,6 +699,7 @@ cfg_plot_plotly_high_lim = cfg_plot('plotly', [-10, 10], 'html', None)
 
 
 if __name__ == "__main__":
+    # import sys
 
     # do PS stuff
     # field_map_analysis('halltoy_150mm', cfg_data_PS_Mau10, cfg_geom_cyl_150mm,
@@ -943,9 +952,13 @@ if __name__ == "__main__":
     #                              cfg_geom_hel_glass, cfg_params_Glass_DS_Hel_Pel,
     #                              cfg_pickle_Glass_Hel_Pel, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
-                                 cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
-                                 cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Glass_Hel_Test', cfg_data_DS_Glass_Hel_3,
+    #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Hel_Test,
+    #                              cfg_pickle_Glass_Hel_Test, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Glass_Hel_Small', cfg_data_DS_Glass_Hel_3S,
+                                 cfg_geom_hel_glass_small, cfg_params_Glass_DS_Hel_Test,
+                                 cfg_pickle_Glass_Hel_Test, cfg_plot_none)
 
     # hmd, ff = field_map_analysis('halltoy_Glass_Cyl_Test', cfg_data_DS_Glass_Hel_3,
     #                              cfg_geom_hel_glass_test, cfg_params_Glass_DS_Cyl_Test,
