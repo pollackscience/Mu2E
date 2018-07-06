@@ -130,7 +130,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
 def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
                 df_fit=None, ptype='3d', aspect='square', cmin=None, cmax=None, ax=None,
-                do_title=True):
+                do_title=True, title_simp=None, do2pi=False):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -169,7 +169,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         raise ValueError(mode+' not one of: '+', '.join(_modes))
 
     if conditions:
-        df, conditions_title = conditions_parser(df, conditions)
+        df, conditions_title = conditions_parser(df, conditions, do2pi)
 
     # Format the coordinates
     piv = df.pivot(x, y, z)
@@ -234,8 +234,10 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 cb = plt.colorbar()
             cb.set_label(z+' (T)', fontsize=18)
         if do_title:
-            if info is not None:
-                plt.title('{0} {1} vs {2} and {3} for DS\n{4}'.format(info, z, x, y, conditions_title),
+            if title_simp:
+                plt.title(title_simp)
+            elif info is not None:
+                plt.title(f'{info} {z} vs {x} and {y} for DS\n{conditions_title}',
                           fontsize=20)
             else:
                 plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
@@ -279,7 +281,9 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             ar = dict(x=1, y=4, z=1)
         axis_title_size = 20
         axis_tick_size = 16
-        if info is not None:
+        if title_simp:
+            title = title_simp
+        elif info is not None:
             title = '{0} {1} vs {2} and {3} for DS<br>{4}'.format(info, z, x, y, conditions_title)
         else:
             title = '{0} vs {1} and {2} for DS<br>{3}'.format(z, x, y, conditions_title)
@@ -315,6 +319,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                         title='{} (mm)'.format(x),
                         titlefont=dict(size=axis_title_size, family='Arial Black'),
                         tickfont=dict(size=axis_tick_size),
+                        # dtick=400,
                         gridcolor='rgb(255, 255, 255)',
                         zerolinecolor='rgb(255, 255, 255)',
                         showbackground=True,
@@ -339,7 +344,16 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                         backgroundcolor='rgb(230, 230,230)',
                     ),
                     aspectratio=ar,
-                    aspectmode='manual'
+                    aspectmode='manual',
+                    # camera=dict(
+                    #     center=dict(x=0.3418127574641789,
+                    #                 y=0.12671099315843098,
+                    #                 z=-0.586843601396289),
+                    #     eye=dict(x=2.4496546255787175,
+                    #              y=2.4876029142395506,
+                    #              z=1.0875472335683052)
+                    # ),
+
                 ),
                 showlegend=True,
                 legend=dict(x=0.8, y=0.9, font=dict(size=18, family='Overpass')),
@@ -348,8 +362,15 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             scat = go.Scatter3d(
                 x=Xi.ravel(), y=Yi.ravel(), z=Z.ravel(), mode='markers',
                 marker=dict(size=3, color='rgb(0, 0, 0)',
-                            line=dict(color='rgb(0, 0, 0)'), opacity=1),
-                name='Data')
+                            line=dict(color='rgb(0, 0, 0)'), opacity=1,
+                            # colorbar=go.ColorBar(title='Tesla',
+                            #                      titleside='right',
+                            #                      titlefont=dict(size=20),
+                            #                      tickfont=dict(size=18),
+                            #                      ),
+                            ),
+                name='Data',
+            )
             lines = [scat]
             line_marker = dict(color='green', width=2)
             do_leg = True
@@ -369,27 +390,27 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 do_leg = False
 
             # For hovertext
-            z_offset = (np.min(Z)-abs(np.min(Z)*0.3))*np.ones(Z.shape)
-            textz = [['x: '+'{:0.5f}'.format(Xi[i][j])+'<br>y: '+'{:0.5f}'.format(Yi[i][j]) +
-                      '<br>z: ' + '{:0.5f}'.format(data_fit_diff[i][j]) for j in
-                      range(data_fit_diff.shape[1])] for i in range(data_fit_diff.shape[0])]
+            # z_offset = (np.min(Z)-abs(np.min(Z)*0.3))*np.ones(Z.shape)
+            # textz = [['x: '+'{:0.5f}'.format(Xi[i][j])+'<br>y: '+'{:0.5f}'.format(Yi[i][j]) +
+            #           '<br>z: ' + '{:0.5f}'.format(data_fit_diff[i][j]) for j in
+            #           range(data_fit_diff.shape[1])] for i in range(data_fit_diff.shape[0])]
 
             # For heatmap
             # projection in the z-direction
-            def proj_z(x, y, z):
-                return z
-            colorsurfz = proj_z(Xi, Yi, data_fit_diff)
-            tracez = go.Surface(
-                z=z_offset, x=Xi, y=Yi, colorscale='Viridis', zmin=-2, zmax=2, name='residual',
-                showlegend=True, showscale=True, surfacecolor=colorsurfz, text=textz,
-                hoverinfo='text',
-                colorbar=dict(
-                    title='Data-Fit (G)',
-                    titlefont=dict(size=18),
-                    tickfont=dict(size=20),
-                    xanchor='center'),
-            )
-            lines.append(tracez)
+            # def proj_z(x, y, z):
+            #     return z
+            # colorsurfz = proj_z(Xi, Yi, data_fit_diff)
+            # tracez = go.Surface(
+            #     z=z_offset, x=Xi, y=Yi, colorscale='Viridis', zmin=-2, zmax=2, name='residual',
+            #     showlegend=True, showscale=True, surfacecolor=colorsurfz, text=textz,
+            #     hoverinfo='text',
+            #     colorbar=dict(
+            #         title='Data-Fit (G)',
+            #         titlefont=dict(size=18),
+            #         tickfont=dict(size=20),
+            #         xanchor='center'),
+            # )
+            # lines.append(tracez)
 
         else:
             if ptype == '3d':
@@ -875,7 +896,7 @@ def xray_maker(df_xray, scat_plots):
     #             name='X-ray', showlegend=False, legendgroup='xray'))
 
 
-def conditions_parser(df, conditions):
+def conditions_parser(df, conditions, do2pi=False):
     '''Helper function for parsing queries passed to a plotting function.  Special care is taken if
     a 'Phi==X' condition is encountered, in order to select Phi and Pi-Phi'''
 
@@ -900,10 +921,13 @@ def conditions_parser(df, conditions):
     # Make radii negative for negative phi values (for plotting purposes)
     if phi is not None:
         isc = np.isclose
-        if isc(phi, 0):
-            nphi = np.pi
+        if do2pi:
+            nphi = phi+np.pi
         else:
-            nphi = phi-np.pi
+            if isc(phi, 0):
+                nphi = np.pi
+            else:
+                nphi = phi-np.pi
         df = df[(isc(phi, df.Phi)) | (isc(nphi, df.Phi))]
         df.loc[isc(nphi, df.Phi), 'R'] *= -1
 

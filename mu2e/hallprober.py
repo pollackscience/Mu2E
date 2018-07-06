@@ -149,7 +149,7 @@ class HallProbeGenerator(object):
             (x1[2, :]-x2[2, :])**2)
 
     def __init__(self, input_data, z_steps=None, x_steps=None,
-                 y_steps=None, r_steps=None, phi_steps=None, interpolate=False):
+                 y_steps=None, r_steps=None, phi_steps=None, interpolate=False, do2pi=False):
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
@@ -160,11 +160,15 @@ class HallProbeGenerator(object):
         if self.phi_steps:
             self.phi_nphi_steps = list(self.phi_steps[:])
             for phi in self.phi_steps:
-                # determine phi and negative phi
-                if phi == 0:
-                    self.phi_nphi_steps.append(np.pi)
+                if do2pi:
+                    # determine phi and phi+pi
+                    self.phi_nphi_steps.append(phi+np.pi)
                 else:
-                    self.phi_nphi_steps.append(phi-np.pi)
+                    # determine phi and negative phi
+                    if phi == 0:
+                        self.phi_nphi_steps.append(np.pi)
+                    else:
+                        self.phi_nphi_steps.append(phi-np.pi)
 
         if self.x_steps or self.y_steps:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
@@ -181,6 +185,11 @@ class HallProbeGenerator(object):
                             np.ravel(self.r_steps)).any(axis=1)) &
                 (self.sparse_field.Z.isin(self.z_steps))]
             self.sparse_field = self.sparse_field.sort_values(['Z', 'R', 'Phi'])
+            # print(self.z_steps)
+            # print(self.phi_nphi_steps)
+            # print(self.full_field.Phi.unique())
+            # print(self.sparse_field)
+            # input()
 
             # self.apply_selection('Z', z_steps)
             # if r_steps:
@@ -555,7 +564,8 @@ def make_fit_plots(df, cfg_data, cfg_geom, cfg_plot, name):
             else:
                 conditions_str = ' and '.join(conditions+('Y=={}'.format(step),))
             save_name = mu2e_plot3d(df, ABC[0], ABC[1], ABC[2], conditions=conditions_str,
-                                    df_fit=True, mode=plot_type, save_dir=save_dir)
+                                    df_fit=True, mode=plot_type, save_dir=save_dir,
+                                    do2pi=cfg_geom.do2pi)
 
             # If we are saving the plotly_html, we also want to download stills
             # and transfer them to the appropriate save location.
@@ -597,7 +607,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
                              x_steps=cfg_geom.x_steps, y_steps=cfg_geom.y_steps,
-                             interpolate=cfg_geom.interpolate)
+                             interpolate=cfg_geom.interpolate, do2pi=cfg_geom.do2pi)
 
     seed = None
     if len(cfg_geom.bad_calibration) == 4:

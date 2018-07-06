@@ -371,103 +371,38 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
     Factory function that readies a potential fit function for a 3D magnetic field.
     This function creates a modified bessel function expression/
     '''
-    alpha = np.zeros((cns, cms))
-    beta = np.zeros((cns, cms))
-    gamma = np.zeros((cns, cms))
-
-    for cn in range(1, cns+1):
-        for cm in range(1, cms+1):
-            alpha[cn-1][cm-1] = cn/4000
-            beta[cn-1][cm-1] = cm/4000
-            gamma[cn-1][cm-1] = np.sqrt(beta[cn-1][cm-1]**2+alpha[cn-1][cm-1]**2)
-
     kms = []
     for n in range(ns):
         kms.append([])
         for m in range(ms):
             kms[-1].append((m+1)*np.pi/L)
     kms = np.asarray(kms)
-    iv = np.empty((ns, ms, r.shape[0], r.shape[1]))
-    ivp = np.empty((ns, ms, r.shape[0], r.shape[1]))
+    iv = np.empty((ns, ms, r.shape[0]))
+    ivp = np.empty((ns, ms, r.shape[0]))
     for n in range(ns):
         for m in range(ms):
             iv[n][m] = special.iv(n, kms[n][m]*np.abs(r))
             ivp[n][m] = special.ivp(n, kms[n][m]*np.abs(r))
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], int64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:])"],
-                 '(m), (m), (m), (), (), (), (), (m), (m), ()->(m), (m), (m)',
-                 nopython=True, target='parallel')
-    def calc_b_fields_cyl(z, phi, r, n, A, B, D, ivp, iv, kms, model_r, model_z, model_phi):
-        for i in range(z.shape[0]):
-            model_r[i] += np.cos(n[0]*phi[i]-D[0])*ivp[i]*kms[0] * \
-                (A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
-            model_z[i] += np.cos(n[0]*phi[i]-D[0])*iv[i]*kms[0] * \
-                (-A[0]*np.sin(kms[0]*z[i]) + B[0]*np.cos(kms[0]*z[i]))
-            model_phi[i] += n[0]*(-np.sin(n[0]*phi[i]-D[0])) * \
-                (1/np.abs(r[i]))*iv[i]*(A[0]*np.cos(kms[0]*z[i]) + B[0]*np.sin(kms[0]*z[i]))
+    @njit(parallel=True)
+    def calc_b_fields(z, phi, r, n, A, B, D, ivp, iv, kms, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                ivp[i]*kms*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                iv[i]*kms*(-A*np.sin(kms*z[i]) + B*np.cos(kms*z[i]))
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
+                (1/r[i])*iv[i]*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
 
-    @guvectorize(["void(float64[:], float64[:], float64[:], float64[:],"
-                  "float64[:], float64[:], float64[:], "
-                  "float64[:], float64[:], float64[:], "
-                  "float64[:], float64[:], float64[:], "
-                  "float64[:], float64[:], float64[:], float64[:])"],
-                 '(m), (m), (m), (m), (), (), (), (), (), (), (), (), (), ()->(m), (m), (m)',
-                 nopython=True, target='parallel')
+    @njit(parallel=True)
     def calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
                            model_r, model_phi, model_z):
-        for i in range(z.shape[0]):
-            # model_x = -alpha[0]*np.exp(-alpha[0]*x[i]) * \
-            #     np.exp(-beta[0]*y[i]) * \
-            #     (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
-            #     # k11[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
-            #     # k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
+        for i in prange(z.shape[0]):
+            model_x = k1 + k4*x[i] + k7*y[i] + k8*z[i] + k10*y[i]*z[i]
 
-            # model_y = np.exp(-alpha[0]*x[i]) * \
-            #     -beta[0]*np.exp(-beta[0]*y[i]) * \
-            #     (E[0]*np.sin(gamma[0]*z[i]) + F[0]*np.cos(gamma[0]*z[i]))
-            #     #k11[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
-            #     # k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
+            model_y = k2 + k5*y[i] + k7*x[i] + k9*z[i] + k10*x[i]*z[i]
 
-            # model_z[i] += np.exp(-alpha[0]*x[i]) * \
-            #     np.exp(-beta[0]*y[i]) * \
-            #     gamma[0]*(E[0]*np.cos(gamma[0]*z[i]) - F[0]*np.sin(gamma[0]*z[i]))
-            #     # k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
-
-            # model_x = alpha[0]*(E[0]*np.exp(alpha[0]*x[i]) - F[0]*np.exp(-alpha[0]*x[i])) * \
-            #     np.exp(beta[0]*y[i]) * \
-            #     np.sin(gamma[0]*z[i]) + \
-            #     k1[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
-
-            # model_y = (E[0]*np.exp(alpha[0]*x[i]) + F[0]*np.exp(-alpha[0]*x[i])) * \
-            #     beta[0]*np.exp(beta[0]*y[i]) * \
-            #     np.sin(gamma[0]*z[i]) + \
-            #     k1[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
-
-            # model_z[i] += (E[0]*np.exp(alpha[0]*x[i]) + F[0]*np.exp(-alpha[0]*x[i])) * \
-            #     np.exp(beta[0]*y[i]) * \
-            #     -gamma[0]*np.cos(gamma[0]*z[i])
-
-            # model_x = alpha[0]*np.cos(alpha[0]*x[i]) * \
-            #     np.sin(beta[0]*y[i]) * \
-            #     (E[0]*np.exp(gamma[0]*z[i]) + F[0]*np.exp(-gamma[0]*z[i])) + \
-            #     k1[0]*(x[i]+1175)/((x[i]+1175)**2 + (y[i]-200)**2)
-
-            # model_y = np.sin(alpha[0]*x[i]) * \
-            #     beta[0]*np.cos(beta[0]*y[i]) * \
-            #     (E[0]*np.exp(gamma[0]*z[i]) + F[0]*np.exp(-gamma[0]*z[i])) + \
-            #     k1[0]*(y[i]-200)/((x[i]+1175)**2 + (y[i]-200)**2)
-
-            # model_z[i] += np.sin(alpha[0]*x[i]) * \
-            #     np.sin(beta[0]*y[i]) * \
-            #     gamma[0]*(E[0]*np.exp(gamma[0]*z[i]) - F[0]*np.exp(-gamma[0]*z[i]))
-
-            model_x = k1[0] + k4[0]*x[i] + k7[0]*y[i] + k8[0]*z[i] + k10[0]*y[i]*z[i]
-
-            model_y = k2[0] + k5[0]*y[i] + k7[0]*x[i] + k9[0]*z[i] + k10[0]*x[i]*z[i]
-
-            model_z[i] += k3[0] + k6[0]*z[i] + k8[0]*x[i] + k9[0]*y[i] + k10[0]*x[i]*y[i]
+            model_z[i] += k3 + k6*z[i] + k8*x[i] + k9*y[i] + k10*x[i]*y[i]
 
             model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
             model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
@@ -484,40 +419,28 @@ def brzphi_3d_producer_modbessel_phase_ext(z, r, phi, L, ns, ms, cns, cms):
                                             x.split('_')[0])))
         Ds = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('D' in k)}, key=lambda x:
                     ','.join((x.split('_')[1].zfill(5), x.split('_')[0])))
-        # EFs = sorted({k: v for (k, v) in six.iteritems(AB_params) if ('E' in k or 'F' in k)})
 
         for n, d in enumerate(Ds):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*ms*2])):
 
-                A = np.array([AB_params[ab[0]]], dtype=np.float64)
-                B = np.array([AB_params[ab[1]]], dtype=np.float64)
-                D = np.array([AB_params[d]], dtype=np.float64)
+                A = AB_params[ab[0]]
+                B = AB_params[ab[1]]
+                D = AB_params[d]
                 _ivp = ivp[n][m]
                 _iv = iv[n][m]
-                _kms = np.array([kms[n][m]])
-                _n = np.array([n])
-                calc_b_fields_cyl(z, phi, r, _n, A, B, D, _ivp, _iv, _kms, model_r, model_z,
-                                  model_phi)
+                _kms = kms[n][m]
+                calc_b_fields(z, phi, r, n, A, B, D, _ivp, _iv, _kms, model_r, model_z, model_phi)
 
-        # for cn in range(cns):
-        #     for cm, ef in enumerate(pairwise(EFs[cn*cms*2:(cn+1)*cms*2])):
-
-                # _alpha = np.array(alpha[cn][cm], dtype=np.float64)
-                # _beta = np.array(beta[cn][cm], dtype=np.float64)
-                # _gamma = np.array(gamma[cn][cm], dtype=np.float64)
-                # E = np.array([AB_params[ef[0]]], dtype=np.float64)
-                # F = np.array([AB_params[ef[1]]], dtype=np.float64)
-        k1 = np.array(AB_params['k1'], dtype=np.float64)
-        k2 = np.array(AB_params['k2'], dtype=np.float64)
-        k3 = np.array(AB_params['k3'], dtype=np.float64)
-        k4 = np.array(AB_params['k4'], dtype=np.float64)
-        k5 = np.array(AB_params['k5'], dtype=np.float64)
-        k6 = np.array(AB_params['k6'], dtype=np.float64)
-        k7 = np.array(AB_params['k7'], dtype=np.float64)
-        k8 = np.array(AB_params['k8'], dtype=np.float64)
-        k9 = np.array(AB_params['k9'], dtype=np.float64)
-        k10 = np.array(AB_params['k10'], dtype=np.float64)
-
+        k1 = AB_params['k1']
+        k2 = AB_params['k2']
+        k3 = AB_params['k3']
+        k4 = AB_params['k4']
+        k5 = AB_params['k5']
+        k6 = AB_params['k6']
+        k7 = AB_params['k7']
+        k8 = AB_params['k8']
+        k9 = AB_params['k9']
+        k10 = AB_params['k10']
         calc_b_fields_cart(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
                            model_r, model_phi, model_z)
 

@@ -441,7 +441,7 @@ class FieldFitter:
             else:
                 self.params['k2'].vary = False
             if 'k3' not in self.params:
-                self.params.add('k3', value=1, vary=True)
+                self.params.add('k3', value=0, vary=True)
             else:
                 self.params['k3'].vary = True
             if 'k4' not in self.params:
@@ -540,20 +540,12 @@ class FieldFitter:
 
         if func_version in [6, 105]:
 
-            if 'cns' not in self.params:
-                self.params.add('cns', value=cns, vary=False)
-            else:
-                self.params['cns'].value = cns
-            if 'cms' not in self.params:
-                self.params.add('cms', value=cms, vary=False)
-            else:
-                self.params['cms'].value = cms
             if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=True)
+                self.params.add('k1', value=0, vary=False)
             else:
                 self.params['k1'].vary = True
             if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=True)
+                self.params.add('k2', value=0, vary=False)
             else:
                 self.params['k2'].vary = True
             if 'k3' not in self.params:
@@ -561,33 +553,33 @@ class FieldFitter:
             else:
                 self.params['k3'].vary = True
             if 'k4' not in self.params:
-                self.params.add('k4', value=0, vary=True)
+                self.params.add('k4', value=0, vary=False)
             else:
-                self.params['k4'].vary = True
+                self.params['k4'].vary = False
             if 'k5' not in self.params:
-                self.params.add('k5', value=0, vary=True)
+                self.params.add('k5', value=0, vary=False)
             else:
-                self.params['k5'].vary = True
+                self.params['k5'].vary = False
             if 'k6' not in self.params:
-                self.params.add('k6', value=0, vary=True)
+                self.params.add('k6', value=0, vary=False)
             else:
-                self.params['k6'].vary = True
+                self.params['k6'].vary = False
             if 'k7' not in self.params:
-                self.params.add('k7', value=0, vary=True)
+                self.params.add('k7', value=0, vary=False)
             else:
-                self.params['k7'].vary = True
+                self.params['k7'].vary = False
             if 'k8' not in self.params:
-                self.params.add('k8', value=0, vary=True)
+                self.params.add('k8', value=0, vary=False)
             else:
-                self.params['k8'].vary = True
+                self.params['k8'].vary = False
             if 'k9' not in self.params:
-                self.params.add('k9', value=0, vary=True)
+                self.params.add('k9', value=0, vary=False)
             else:
-                self.params['k9'].vary = True
+                self.params['k9'].vary = False
             if 'k10' not in self.params:
-                self.params.add('k10', value=0, vary=True)
+                self.params.add('k10', value=0, vary=False)
             else:
-                self.params['k10'].vary = True
+                self.params['k10'].vary = False
 
         if func_version in [106]:
             if 'k1' not in self.params:
@@ -668,12 +660,12 @@ class FieldFitter:
                 if 'Y' not in self.params:
                     self.params.add('Y', value=0, vary=True)
 
-        # if not cfg_pickle.recreate:
-        #     print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
-        # else:
-        #     print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
-        #         ns, ms, cns, cms, cfg_pickle.load_name))
-        # start_time = time()
+        if not cfg_pickle.recreate:
+            print('fitting with n={0}, m={1}, cn={2}, cm={3}'.format(ns, ms, cns, cms))
+        else:
+            print('recreating fit with n={0}, m={1}, cn={2}, cm={3}, pickle_file={4}'.format(
+                ns, ms, cns, cms, cfg_pickle.load_name))
+        start_time = time()
         if func_version not in [6, 8, 9] and func_version < 100:
             if cfg_pickle.recreate:
                 for param in self.params:
@@ -706,11 +698,14 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 20000})
             else:
-                print('fitting phase ext')
+                # print('fitting phase ext')
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                            # method='leastsq', fit_kws={'maxfev': 10000})
-                                           method='leastsq', fit_kws={'maxfev': 20000})
+                                           method='least_squares', fit_kws={'verbose': 0,
+                                                                            'gtol': 1e-12,
+                                                                            'ftol': 1e-12,
+                                                                            'xtol': 1e-12})
 
         elif func_version in [8, 9]:
             if cfg_pickle.recreate:
@@ -804,9 +799,9 @@ class FieldFitter:
                                                                             'xtol': 1e-12})
 
         self.params = self.result.params
-        # end_time = time()
-        # print(("Elapsed time was %g seconds" % (end_time - start_time)))
-        # report_fit(self.result, show_correl=False)
+        end_time = time()
+        print(("Elapsed time was %g seconds" % (end_time - start_time)))
+        report_fit(self.result, show_correl=False)
         if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 

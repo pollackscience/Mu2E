@@ -195,10 +195,15 @@ class DataFrameMaker(object):
                 self.file_name+'.table', header=None, names=header_names, delim_whitespace=True,
                 skiprows=4)
 
+        elif 'Cole' in self.field_map_version:
+            self.data_frame = pd.read_csv(
+                self.file_name+'.txt', header=None, names=header_names, delim_whitespace=True,
+                skiprows=5)
+
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
-    def do_basic_modifications(self, offset=None, helix=False, pitch=None):
+    def do_basic_modifications(self, offset=None, helix=False, pitch=None, reverse=False):
         """Perform the expected modifications to the input, needed for further analysis.
 
         Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
@@ -237,7 +242,9 @@ class DataFrameMaker(object):
                 ('MAX' in self.file_name) or
                 ('Only' in self.field_map_version) or
                 ('Glass' in self.field_map_version and ('v3' not in self.field_map_version and
-                                                        'v4' not in self.field_map_version)) or
+                                                        'v4' not in self.field_map_version and
+                                                        'v5' not in self.field_map_version and
+                                                        'v6' not in self.field_map_version)) or
                 ('Mau11' in self.field_map_version and '5096' not in self.file_name) or
                 ('Ideal' in self.field_map_version)):
 
@@ -249,30 +256,36 @@ class DataFrameMaker(object):
         if offset:
             self.data_frame.eval('X = X-{0}'.format(offset), inplace=True)
 
-        # Generate radial position column
-        self.data_frame.loc[:, 'R'] = rt.apply_make_r(self.data_frame['X'].values,
-                                                      self.data_frame['Y'].values)
+        if not reverse:
+            # Generate radial position column
+            self.data_frame.loc[:, 'R'] = rt.apply_make_r(self.data_frame['X'].values,
+                                                          self.data_frame['Y'].values)
 
-        # Generate negative Y-axis values for some hard-coded versions.
-        if (any([vers in self.field_map_version for vers in ['Mau9', 'Mau10', 'GA01']]) and
-           ('rand' not in self.file_name)):
+            # Generate negative Y-axis values for some hard-coded versions.
+            if (any([vers in self.field_map_version for vers in ['Mau9', 'Mau10', 'GA01']]) and
+               ('rand' not in self.file_name)):
 
-            data_frame_lower = self.data_frame.query('Y >0').copy()
-            data_frame_lower.eval('Y = Y*-1', inplace=True)
-            data_frame_lower.eval('By = By*-1', inplace=True)
-            self.data_frame = pd.concat([self.data_frame, data_frame_lower])
+                data_frame_lower = self.data_frame.query('Y >0').copy()
+                data_frame_lower.eval('Y = Y*-1', inplace=True)
+                data_frame_lower.eval('By = By*-1', inplace=True)
+                self.data_frame = pd.concat([self.data_frame, data_frame_lower])
 
-        # Generate phi position column
-        self.data_frame.loc[:, 'Phi'] = rt.apply_make_theta(self.data_frame['X'].values,
-                                                            self.data_frame['Y'].values)
-        # Generate Bphi field column
-        self.data_frame.loc[:, 'Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values,
+            # Generate phi position column
+            self.data_frame.loc[:, 'Phi'] = rt.apply_make_theta(self.data_frame['X'].values,
+                                                                self.data_frame['Y'].values)
+            # Generate Bphi field column
+            self.data_frame.loc[:, 'Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values,
+                                                                self.data_frame['Bx'].values,
+                                                                self.data_frame['By'].values)
+            # Generate Br field column
+            self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
                                                             self.data_frame['Bx'].values,
                                                             self.data_frame['By'].values)
-        # Generate Br field column
-        self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
-                                                        self.data_frame['Bx'].values,
-                                                        self.data_frame['By'].values)
+        else:
+            # self.data_frame.Phi = self.data_frame.Phi-np.pi
+            self.data_frame.eval('X = R*cos(Phi)', inplace=True)
+            self.data_frame.eval('Y = R*sin(Phi)', inplace=True)
+
         if helix:
             if not isinstance(pitch, float):
                 raise TypeError("If `helix` is True, pitch must be a float")
@@ -366,6 +379,7 @@ def g4root_to_df(input_name, make_pickle=False, do_basic_modifications=False,
         if do_part:
             df_ntpart.eval('x = x+3904', inplace=True)
             df_ntpart.eval('xstop = xstop+3904', inplace=True)
+            df_ntpart.eval('parent_x = parent_x+3904', inplace=True)
             # df_ntpart['runevt'] = (str(cluster)+df_ntpart.subrun.astype(int).astype(str) +
             #                        df_ntpart.evt.astype(int).astype(str)).astype(int)
         if do_tvd:
@@ -505,15 +519,36 @@ if __name__ == "__main__":
     #     input_type='csv', field_map_version='Mau13')
     # data_maker.do_basic_modifications(-3896)
 
-    data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/Mau13/DSMap_NoBus_V13',
-        input_type='csv', field_map_version='Mau13')
-    data_maker.do_basic_modifications(-3896)
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/Mau13/DSMap_NoBus_V13',
+    #     input_type='csv', field_map_version='Mau13')
+    # data_maker.do_basic_modifications(-3896)
 
     # data_maker = DataFrameMaker(
     #     mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_5L_detail',
     #     input_type='csv', field_map_version='Glass_Helix_v4')
     # data_maker.do_basic_modifications()
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_10cm_pitch',
+    #     input_type='csv', field_map_version='Glass_Helix_v5')
+    # data_maker.do_basic_modifications()
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsPure/test_helix_10cm_pitch_tol6',
+    #     input_type='csv', field_map_version='Glass_Helix_v6')
+    # data_maker.do_basic_modifications()
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_3453103pts_06-29_231454',
+    #     input_type='csv', field_map_version='Cole_v1')
+    # data_maker.do_basic_modifications()
+
+    data_maker = DataFrameMaker(
+        mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-03_145644',
+        input_type='csv', field_map_version='Cole_v3',
+        header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    data_maker.do_basic_modifications(reverse=True)
 
     data_maker.make_dump()
     # data_maker.make_dump('_noOffset')
