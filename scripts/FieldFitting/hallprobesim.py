@@ -726,7 +726,7 @@ cfg_pickle_Mau13                    = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Mau13',
                                                  save_name='Mau13', recreate=True)
 
-cfg_params_Cole_DS_Hel              = cfg_params(ns=8, ms=10, cns=0, cms=0, nms=0, Reff=13350,
+cfg_params_Cole_DS_Hel              = cfg_params(ns=8, ms=8, cns=0, cms=0, nms=0, Reff=13350,
                                                  n_scale=1, m_scale=1, func_version=115)
 cfg_pickle_Cole_Hel                 = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cole_Hel',

@@ -417,7 +417,7 @@ class FieldFitter:
                         self.params[f'D_{n}'].vary = True
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=False)
                     else:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
 

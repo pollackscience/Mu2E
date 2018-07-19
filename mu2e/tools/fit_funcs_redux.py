@@ -1309,8 +1309,12 @@ def brzphi_3d_producer_hel_v15(z, r, phi, L, ns, ms, n_scale):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*(ms)*2])):
                 A = AB_params[ab[0]]
                 B = AB_params[ab[1]]
+                # P = R
                 _iv1 = iv1[n][m]
                 _ivp1 = ivp1[n][m]
+                # _iv1 = special.iv(m, ((n*scale)/P)*r)
+                # _ivp1 = 0.5*(special.iv(-1+m, ((n*scale)/P)*r) +
+                #              special.iv(1+m, ((n*scale)/P)*r))
                 calc_b_fields(z, phi, r, P, m, n, scale, A, B, _iv1, _ivp1,
                               model_r, model_z, model_phi)
 
