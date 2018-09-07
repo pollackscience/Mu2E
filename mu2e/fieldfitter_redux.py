@@ -159,7 +159,7 @@ class FieldFitter:
         Bz = self.input_data.Bz.values
         Br = self.input_data.Br.values
         Bphi = self.input_data.Bphi.values
-        if func_version in [6, 105, 110, 115, 116, 117]:
+        if func_version in [6, 105, 110, 115, 116, 117, 118, 119]:
             XX = self.input_data.X.values
             YY = self.input_data.Y.values
         if func_version in [8, 9]:
@@ -224,11 +224,17 @@ class FieldFitter:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
         elif func_version == 117:
             brzphi_3d_fast = ff.brzphi_3d_producer_hel_v17(ZZ, RR, PP, Reff, ns, ms, n_scale)
+        elif func_version == 118:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v18(ZZ, RR, PP, Reff, ns, ms,
+                                                           cns, cms, n_scale)
+        elif func_version == 119:
+            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v19(ZZ, RR, PP, Reff, ns, ms,
+                                                           cns, cms, n_scale)
         else:
             raise KeyError('func version '+func_version+' does not exist')
 
         # Generate an lmfit Model
-        if func_version in [6, 105, 110, 115, 116, 117]:
+        if func_version in [6, 105, 110, 115, 116, 117, 118, 119]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
         elif func_version in [8, 9, 10]:
             self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
@@ -417,7 +423,7 @@ class FieldFitter:
                         self.params[f'D_{n}'].vary = True
                 for m in range(ms):
                     if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=False)
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
                     else:
                         self.params['A_{0}_{1}'.format(n, m)].vary = True
 
@@ -433,45 +439,45 @@ class FieldFitter:
                         self.params['B_{0}_{1}'.format(n, m)].value = 0
 
             if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=False)
+                self.params.add('k1', value=0, vary=True)
             else:
-                self.params['k1'].vary = False
+                self.params['k1'].vary = True
             if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=False)
+                self.params.add('k2', value=0, vary=True)
             else:
-                self.params['k2'].vary = False
+                self.params['k2'].vary = True
             if 'k3' not in self.params:
                 self.params.add('k3', value=0, vary=True)
             else:
                 self.params['k3'].vary = True
             if 'k4' not in self.params:
-                self.params.add('k4', value=0, vary=False)
+                self.params.add('k4', value=0, vary=True)
             else:
-                self.params['k4'].vary = False
+                self.params['k4'].vary = True
             if 'k5' not in self.params:
-                self.params.add('k5', value=0, vary=False)
+                self.params.add('k5', value=0, vary=True)
             else:
-                self.params['k5'].vary = False
+                self.params['k5'].vary = True
             if 'k6' not in self.params:
-                self.params.add('k6', value=0, vary=False)
+                self.params.add('k6', value=0, vary=True)
             else:
-                self.params['k6'].vary = False
+                self.params['k6'].vary = True
             if 'k7' not in self.params:
-                self.params.add('k7', value=0, vary=False)
+                self.params.add('k7', value=0, vary=True)
             else:
-                self.params['k7'].vary = False
+                self.params['k7'].vary = True
             if 'k8' not in self.params:
-                self.params.add('k8', value=0, vary=False)
+                self.params.add('k8', value=0, vary=True)
             else:
-                self.params['k8'].vary = False
+                self.params['k8'].vary = True
             if 'k9' not in self.params:
-                self.params.add('k9', value=0, vary=False)
+                self.params.add('k9', value=0, vary=True)
             else:
-                self.params['k9'].vary = False
+                self.params['k9'].vary = True
             if 'k10' not in self.params:
-                self.params.add('k10', value=0, vary=False)
+                self.params.add('k10', value=0, vary=True)
             else:
-                self.params['k10'].vary = False
+                self.params['k10'].vary = True
 
         elif func_version == 116:
             for n in range(ns):
@@ -524,6 +530,186 @@ class FieldFitter:
                 self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
             else:
                 self.params['zp2'].vary = True
+
+        elif func_version == 118:
+            for n in range(ns):
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+
+                    if n == 0:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+                        self.params['B_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].value = 0
+
+            if 'cns' not in self.params:
+                self.params.add('cns', value=cns, vary=False)
+            else:
+                self.params['cns'].value = cns
+            if 'cms' not in self.params:
+                self.params.add('cms', value=cms, vary=False)
+            else:
+                self.params['cms'].value = cms
+            for cn in range(cns):
+                for cm in range(cms):
+                    if f'C_{cn}_{cm}' not in self.params:
+                        self.params.add(f'C_{cn}_{cm}', value=0, vary=True)
+                    else:
+                        self.params[f'C_{cn}_{cm}'].vary = True
+
+                    if f'D_{cn}_{cm}' not in self.params:
+                        self.params.add(f'D_{cn}_{cm}', value=0, vary=True)
+                    else:
+                        self.params[f'D_{cn}_{cm}'].vary = True
+
+                    if cn == 0:
+                        self.params[f'C_{cn}_{cm}'].vary = False
+                        self.params[f'C_{cn}_{cm}'].value = 0
+                        self.params[f'D_{cn}_{cm}'].vary = False
+                        self.params[f'D_{cn}_{cm}'].value = 0
+
+            if 'k1' not in self.params:
+                self.params.add('k1', value=0, vary=True)
+            else:
+                self.params['k1'].vary = True
+            if 'k2' not in self.params:
+                self.params.add('k2', value=0, vary=True)
+            else:
+                self.params['k2'].vary = True
+            if 'k3' not in self.params:
+                self.params.add('k3', value=0, vary=True)
+            else:
+                self.params['k3'].vary = True
+            if 'k4' not in self.params:
+                self.params.add('k4', value=0, vary=True)
+            else:
+                self.params['k4'].vary = True
+            if 'k5' not in self.params:
+                self.params.add('k5', value=0, vary=True)
+            else:
+                self.params['k5'].vary = True
+            if 'k6' not in self.params:
+                self.params.add('k6', value=0, vary=True)
+            else:
+                self.params['k6'].vary = True
+            if 'k7' not in self.params:
+                self.params.add('k7', value=0, vary=True)
+            else:
+                self.params['k7'].vary = True
+            if 'k8' not in self.params:
+                self.params.add('k8', value=0, vary=True)
+            else:
+                self.params['k8'].vary = True
+            if 'k9' not in self.params:
+                self.params.add('k9', value=0, vary=True)
+            else:
+                self.params['k9'].vary = True
+            if 'k10' not in self.params:
+                self.params.add('k10', value=0, vary=True)
+            else:
+                self.params['k10'].vary = True
+
+        elif func_version == 119:
+            for n in range(ns):
+                for m in range(ms):
+                    if 'A_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+
+                    if 'B_{0}_{1}'.format(n, m) not in self.params:
+                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
+                    else:
+                        self.params['B_{0}_{1}'.format(n, m)].vary = True
+
+                    if n == 0:
+                        self.params['A_{0}_{1}'.format(n, m)].vary = False
+                        self.params['A_{0}_{1}'.format(n, m)].value = 0
+                        self.params['B_{0}_{1}'.format(n, m)].vary = False
+                        self.params['B_{0}_{1}'.format(n, m)].value = 0
+
+            if 'cns' not in self.params:
+                self.params.add('cns', value=cns, vary=False)
+            else:
+                self.params['cns'].value = cns
+            if 'cms' not in self.params:
+                self.params.add('cms', value=cms, vary=False)
+            else:
+                self.params['cms'].value = cms
+            for cn in range(cns):
+                for cm in range(cms):
+                    if f'C_{cn}_{cm}' not in self.params:
+                        self.params.add(f'C_{cn}_{cm}', value=0, vary=True)
+                    else:
+                        self.params[f'C_{cn}_{cm}'].vary = True
+
+                    if f'D_{cn}_{cm}' not in self.params:
+                        self.params.add(f'D_{cn}_{cm}', value=0, vary=True)
+                    else:
+                        self.params[f'D_{cn}_{cm}'].vary = True
+
+                    if cn == 0:
+                        self.params[f'C_{cn}_{cm}'].vary = False
+                        self.params[f'C_{cn}_{cm}'].value = 0
+                        self.params[f'D_{cn}_{cm}'].vary = False
+                        self.params[f'D_{cn}_{cm}'].value = 0
+
+            if 'x1' not in self.params:
+                self.params.add('x1', value=1, vary=True, min=0.9, max=1.1)
+            else:
+                self.params['x1'].vary = True
+            if 'y1' not in self.params:
+                self.params.add('y1', value=0, vary=True, min=-0.1, max=0.1)
+            else:
+                self.params['y1'].vary = True
+            if 'z1' not in self.params:
+                self.params.add('z1', value=-4.6, vary=True, min=-4.7, max=-4.5)
+            else:
+                self.params['z1'].vary = True
+            if 'vx1' not in self.params:
+                self.params.add('vx1', value=1, vary=True)
+            else:
+                self.params['vx1'].vary = True
+            if 'vy1' not in self.params:
+                self.params.add('vy1', value=1, vary=True)
+            else:
+                self.params['vy1'].vary = True
+            if 'vz1' not in self.params:
+                self.params.add('vz1', value=0, vary=True)
+            else:
+                self.params['vz1'].vary = True
+            if 'x2' not in self.params:
+                self.params.add('x2', value=1, vary=True, min=0.9, max=1.1)
+            else:
+                self.params['x2'].vary = True
+            if 'y2' not in self.params:
+                self.params.add('y2', value=0, vary=True, min=-0.1, max=0.1)
+            else:
+                self.params['y2'].vary = True
+            if 'z2' not in self.params:
+                self.params.add('z2', value=4.6, vary=True, min=4.5, max=4.7)
+            else:
+                self.params['z2'].vary = True
+            if 'vx2' not in self.params:
+                self.params.add('vx2', value=1, vary=True)
+            else:
+                self.params['vx2'].vary = True
+            if 'vy2' not in self.params:
+                self.params.add('vy2', value=1, vary=True)
+            else:
+                self.params['vy2'].vary = True
+            if 'vz2' not in self.params:
+                self.params.add('vz2', value=0, vary=True)
+            else:
+                self.params['vz2'].vary = True
 
         if func_version == 102:
             d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ms)
@@ -726,7 +912,7 @@ class FieldFitter:
                                            weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, rp=RRP, phip=PPP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 2000})
-        elif func_version >= 100 and func_version not in [105, 110, 111, 115, 116, 117]:
+        elif func_version >= 100 and func_version not in [105, 110, 111, 115, 116, 117, 118, 119]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -746,7 +932,7 @@ class FieldFitter:
                                            #      np.ones(Bphi.shape)*100000]).ravel(),
                                            r=np.abs(RR), z=ZZ, phi=PP, params=self.params,
                                            # method='leastsq', fit_kws={'maxfev': 10000})
-                                           method='least_squares', fit_kws={'max_nfev': 10000})
+                                           method='least_squares', fit_kws={'max_nfev': 100})
 
                 # 'loss': 'soft_l1'})
                 # 'ftol': 1e-11,
@@ -775,7 +961,7 @@ class FieldFitter:
                                                                             'loss': 'soft_l1'})
                 # 'xtol': 1e-11,
                 # 'gtol': 1e-11}, verbose=True)
-        elif func_version in [105, 110, 115, 116, 117]:
+        elif func_version in [105, 110, 115, 116, 117, 118, 119]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -793,7 +979,7 @@ class FieldFitter:
                 self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                            # weights=np.concatenate([mag, mag, mag]).ravel(),
                                            r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                           method='least_squares', fit_kws={'verbose': 0,
+                                           method='least_squares', fit_kws={'verbose': 1,
                                                                             'gtol': 1e-12,
                                                                             'ftol': 1e-12,
                                                                             'xtol': 1e-12})

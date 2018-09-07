@@ -806,7 +806,7 @@ def ptrap_layout(title=None, x='Z', y='X', z='Y', x_range=(3700, 17500), y_range
         title=title if title else 'Particle Trapping Time Exercise',
         titlefont=dict(size=30),
         autosize=False,
-        width=900,
+        width=1400,
         height=650,
         scene=dict(
             xaxis=dict(

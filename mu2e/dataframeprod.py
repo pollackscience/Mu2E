@@ -203,7 +203,8 @@ class DataFrameMaker(object):
         else:
             raise KeyError("'Mau' or 'GA' not found in field_map_version: "+self.field_map_version)
 
-    def do_basic_modifications(self, offset=None, helix=False, pitch=None, reverse=False):
+    def do_basic_modifications(self, offset=None, helix=False, pitch=None, reverse=False,
+                               descale=False):
         """Perform the expected modifications to the input, needed for further analysis.
 
         Modify the field map to add more columns, offset the X axis so it is re-centered to 0,
@@ -251,6 +252,11 @@ class DataFrameMaker(object):
             self.data_frame.eval('X = X*1000', inplace=True)
             self.data_frame.eval('Y = Y*1000', inplace=True)
             self.data_frame.eval('Z = Z*1000', inplace=True)
+
+        if descale:
+            self.data_frame.eval('X = X/1000', inplace=True)
+            self.data_frame.eval('Y = Y/1000', inplace=True)
+            self.data_frame.eval('Z = Z/1000', inplace=True)
 
         # Offset x-axis
         if offset:
@@ -544,11 +550,42 @@ if __name__ == "__main__":
     #     input_type='csv', field_map_version='Cole_v1')
     # data_maker.do_basic_modifications()
 
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-03_145644',
+    #     input_type='csv', field_map_version='Cole_v3',
+    #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    # data_maker.do_basic_modifications(reverse=True)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-06_160144',
+    #     input_type='csv', field_map_version='Cole_v4',
+    #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    # data_maker.do_basic_modifications(reverse=True)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_3453103pts_08-10_003436',
+    #     input_type='csv', field_map_version='Cole_v5')
+    # data_maker.do_basic_modifications()
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_1232173pts_08-10_094943',
+    #     input_type='csv', field_map_version='Cole_v6')
+    # data_maker.do_basic_modifications(descale=True)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/solcalc_map_3453103pts_08-24_092341_ends',
+    #     input_type='csv', field_map_version='Cole_SC_1m_b')
+    # data_maker.do_basic_modifications(descale=True)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_150638',
+    #     input_type='csv', field_map_version='Cole_endonly')
+    # data_maker.do_basic_modifications(descale=True)
+
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-03_145644',
-        input_type='csv', field_map_version='Cole_v3',
-        header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
-    data_maker.do_basic_modifications(reverse=True)
+        mu2e_ext_path+'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_184114',
+        input_type='csv', field_map_version='Cole_endonly_288')
+    data_maker.do_basic_modifications(descale=True)
 
     data_maker.make_dump()
     # data_maker.make_dump('_noOffset')

@@ -11,6 +11,7 @@ from six.moves import range
 ############################
 # defining the cfg structs #
 ############################
+
 cfg_data   = namedtuple('cfg_data', 'datatype magnet path conditions')
 cfg_geom   = namedtuple('cfg_geom', 'geom z_steps r_steps phi_steps x_steps y_steps '
                         'bad_calibration interpolate do2pi')
@@ -45,6 +46,12 @@ path_synth          = mu2e_ext_path+'datafiles/synth/synth3'
 path_DS_Hel_Only_Cole = mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_3453103pts_06-29_231454'
 path_DS_Hel_True_Cole = mu2e_ext_path +\
     'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-03_145644'
+path_DS_Hel_True_Cole2 = mu2e_ext_path +\
+    'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-06_160144'
+path_DS_Hel_Only_Cole2 = mu2e_ext_path +\
+    'datafiles/FieldMapsCole/bfield_map_1232173pts_08-10_094943'
+path_DS_Hel_Nubs = mu2e_ext_path +\
+    'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_184114'
 
 # PS
 cfg_data_PS_Mau10        = cfg_data('Mau10', 'PS', path_PS_Mau10,
@@ -109,8 +116,14 @@ cfg_data_synth  = cfg_data('synth', 'DS', path_synth,
 # Cole
 cfg_data_DS_Cole_Hel   = cfg_data('Cole', 'DS', path_DS_Hel_Only_Cole,
                                   ('Z>-3500', 'Z<3500', 'R!=0'))
+cfg_data_DS_Cole_Hel2  = cfg_data('Cole', 'DS', path_DS_Hel_Only_Cole2,
+                                  ('Z>-3500', 'Z<3500', 'R!=0'))
 cfg_data_DS_Cole_Hel_true   = cfg_data('Cole', 'DS', path_DS_Hel_True_Cole,
                                        ('Z>-3500', 'Z<3500', 'R!=0'))
+cfg_data_DS_Cole_Hel_descale = cfg_data('Cole', 'DS', path_DS_Hel_True_Cole2,
+                                        ('Z>-1.5', 'Z<1.5', 'R!=0'))
+cfg_data_DS_Cole_Nubs_descale = cfg_data('Cole', 'DS', path_DS_Hel_Nubs,
+                                         ('Z>-1.5', 'Z<1.5', 'R!=0'))
 
 # ('Z>6400', 'Z<11200', 'R!=0'))
 
@@ -138,6 +151,14 @@ pi2r_825mm_v2 = [25, 325, 500, 725, 825]
 pi8r_800mm = [55.90169944, 167.70509831, 335.41019663, 559.01699437, 782.62379213]
 pi4r_800mm = [35.35533906, 176.7766953, 353.55339059, 530.33008589, 813.17279836]
 pi2r_800mm = [25, 175, 375, 525, 800]
+
+pi8r_800mm_sml = [0.05590169944, 0.16770509831, 0.33541019663, 0.55901699437, 0.78262379213]
+pi4r_800mm_sml = [0.03535533906, 0.1767766953, 0.35355339059, 0.53033008589, 0.81317279836]
+pi2r_800mm_sml = [0.025, 0.175, 0.375, 0.525, 0.800]
+
+pi8r_250mm = [0.02795084972, 0.05590169944, 0.08385254916, 0.11180339887, 0.16770509831]
+pi4r_250mm = [0.01767766953, 0.05303300859, 0.08838834765, 0.10606601718, 0.15909902577]
+pi2r_250mm = [0.0125, 0.050, 0.0875, 0.125, 0.150]
 
 
 pi8r_fullsim = [55.90169944, 111.80339887, 167.70509831, 223.60679775, 279.50849719, 335.41019663,
@@ -171,6 +192,8 @@ pi2r_150mm = [25, 100, 150]
 
 r_steps_150mm = (pi2r_150mm, pi8r_150mm, pi4r_150mm, pi8r_150mm,
                  pi2r_150mm, pi8r_150mm, pi4r_150mm, pi8r_150mm)
+r_steps_250mm = (pi2r_250mm, pi8r_250mm, pi4r_250mm, pi8r_250mm,
+                 pi2r_250mm, pi8r_250mm, pi4r_250mm, pi8r_250mm)
 r_steps_600mm = (pi2r_600mm, pi8r_600mm, pi4r_600mm, pi8r_600mm,
                  pi2r_600mm, pi8r_600mm, pi4r_600mm, pi8r_600mm)
 r_steps_700mm = (pi2r_700mm, pi8r_700mm, pi4r_700mm, pi8r_700mm,
@@ -183,6 +206,9 @@ r_steps_825mm_v2 = (pi2r_825mm_v2, pi8r_825mm_v2, pi4r_825mm_v2, pi8r_825mm_v2,
 
 r_steps_800mm = (pi2r_800mm, pi8r_800mm, pi4r_800mm, pi8r_800mm,
                  pi2r_800mm, pi8r_800mm, pi4r_800mm, pi8r_800mm)
+
+r_steps_800mm_sml = (pi2r_800mm_sml, pi8r_800mm_sml, pi4r_800mm_sml, pi8r_800mm_sml,
+                     pi2r_800mm_sml, pi8r_800mm_sml, pi4r_800mm_sml, pi8r_800mm_sml)
 
 r_steps_fullsim = (pi2r_fullsim, pi8r_fullsim, pi4r_fullsim, pi8r_fullsim,
                    pi2r_fullsim, pi8r_fullsim, pi4r_fullsim, pi8r_fullsim)
@@ -214,8 +240,8 @@ z_steps_DS_seg_trk = list(range(8371, 12621, 50))
 z_steps_DS_seg_trk2 = list(range(9921, 11371, 50))
 z_steps_DS_glass = list(range(4021, 13521, 100))
 z_steps_DS_glass_hel = list(range(8121, 9521, 25))
-z_steps_DS_glass_test = list(range(-3500, 3500, 50))
-z_steps_DS_glass_small = list(range(500, 3500, 50))
+z_steps_DS_glass_test = list(range(-3500, 3500, 25))
+z_steps_DS_glass_small = [i*1e-3 for i in range(-1500, 1500, 25)]
 # z_steps_DS_glass_hel = list(range(6421, 11221, 25))
 
 x_steps_DS_glass = list(range(-800, 801, 200))
@@ -459,6 +485,17 @@ cfg_geom_hel_true               = cfg_geom('cyl', z_steps_DS_glass_test, r_steps
                                            phi_steps_true, x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False,
                                            do2pi=True)
+
+cfg_geom_hel_250mm              = cfg_geom('cyl', z_steps_DS_glass_small, r_steps_250mm,
+                                           phi_steps_8, x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False,
+                                           do2pi=False)
+
+cfg_geom_hel_nubs               = cfg_geom('cyl', z_steps_DS_glass_small, r_steps_800mm_sml,
+                                           phi_steps_8, x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False,
+                                           do2pi=False)
+
 # cfg_geom_set_cyl_800mm_interp   = [
 #     cfg_geom('cyl', z_steps_DS_interp, r_steps_interp,
 #              phi_steps_interp, xy_steps=None,
@@ -724,13 +761,25 @@ cfg_params_Mau13_DS                 = cfg_params(ns=5, ms=60, cns=0, cms=0, nms=
                                                  n_scale=1, m_scale=1, func_version=6)
 cfg_pickle_Mau13                    = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Mau13',
-                                                 save_name='Mau13', recreate=True)
+                                                 save_name='Mau13', recreate=False)
 
 cfg_params_Cole_DS_Hel              = cfg_params(ns=8, ms=8, cns=0, cms=0, nms=0, Reff=13350,
                                                  n_scale=1, m_scale=1, func_version=115)
 cfg_pickle_Cole_Hel                 = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cole_Hel',
                                                  save_name='Cole_Hel', recreate=False)
+
+cfg_params_Cole_DS_Hel250           = cfg_params(ns=10, ms=4, cns=5, cms=2, nms=0, Reff=0.5,
+                                                 n_scale=9, m_scale=1, func_version=119)
+cfg_pickle_Cole_Hel250              = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Cole_Hel250',
+                                                 save_name='Cole_Hel250', recreate=False)
+
+cfg_params_Cole_DS_Nubs             = cfg_params(ns=0, ms=0, cns=0, cms=0, nms=0, Reff=0.5,
+                                                 n_scale=9, m_scale=1, func_version=119)
+cfg_pickle_Cole_Nubs                = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Cole_Nubs',
+                                                 save_name='Cole_Nubs', recreate=False)
 nms = list(zip(range(1, 31), range(1, 31)))
 nms += list(zip(range(1, 31), range(2, 32)))
 nms += list(zip(range(1, 31), range(3, 33)))
@@ -1062,6 +1111,14 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_fullsim_trunc, cfg_params_Mau13_DS,
     #                              cfg_pickle_Mau13, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
-                                 cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
-                                 cfg_pickle_Cole_Hel, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
+    #                              cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
+    #                              cfg_pickle_Cole_Hel, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Cole_Hel250', cfg_data_DS_Cole_Hel2,
+    #                              cfg_geom_hel_250mm, cfg_params_Cole_DS_Hel250,
+    #                              cfg_pickle_Cole_Hel250, cfg_plot_mpl)
+
+    hmd, ff = field_map_analysis('halltoy_Cole_Nubs', cfg_data_DS_Cole_Nubs_descale,
+                                 cfg_geom_hel_nubs, cfg_params_Cole_DS_Nubs,
+                                 cfg_pickle_Cole_Nubs, cfg_plot_mpl)
