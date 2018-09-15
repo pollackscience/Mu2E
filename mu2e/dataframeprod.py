@@ -582,9 +582,14 @@ if __name__ == "__main__":
     #     input_type='csv', field_map_version='Cole_endonly')
     # data_maker.do_basic_modifications(descale=True)
 
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_184114',
+    #     input_type='csv', field_map_version='Cole_endonly_288')
+    # data_maker.do_basic_modifications(descale=True)
+
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_184114',
-        input_type='csv', field_map_version='Cole_endonly_288')
+        mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_r250mm_p10cm_lengthx10_1232173pts_09-07_160736',
+        input_type='csv', field_map_version='Cole_10x')
     data_maker.do_basic_modifications(descale=True)
 
     data_maker.make_dump()

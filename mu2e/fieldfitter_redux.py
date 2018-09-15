@@ -50,7 +50,6 @@ import pandas as pd
 from lmfit import Model, Parameters, report_fit
 from mu2e import mu2e_ext_path
 from mu2e.tools import fit_funcs_redux as ff
-# import tools.fit_func_class as ffc
 
 
 class FieldFitter:
@@ -93,17 +92,12 @@ class FieldFitter:
         self.pickle_path = mu2e_ext_path+'fit_params/'
         self.geom = cfg_geom.geom
 
-    def fit(self, geom, cfg_params, cfg_pickle, profile=False):
+    def fit(self, geom, cfg_params, cfg_pickle):
         """Helper function that chooses one of the subsequent fitting functions."""
 
-        if profile:
-            return self.fit_solenoid(cfg_params, cfg_pickle, profile)
-        if geom == 'cyl':
-            self.fit_solenoid(cfg_params, cfg_pickle, profile)
-        elif geom == 'cart':
-            self.fit_external(cfg_params, cfg_pickle)
+        self.fit_solenoid(cfg_params, cfg_pickle)
 
-    def fit_solenoid(self, cfg_params, cfg_pickle, profile=False):
+    def fit_solenoid(self, cfg_params, cfg_pickle):
         """Main fitting function for FieldFitter class.
 
         The typical magnetic field geometry for the Mu2E experiment is determined by one or more
@@ -121,19 +115,11 @@ class FieldFitter:
         Args:
            cfg_params (namedtuple): 'ns ms cns cms Reff func_version'
            cfg_pickle (namedtuple): 'use_pickle save_pickle load_name save_name recreate'
-           profile (Optional[bool]): True if you want to exit after the model is built, before
-               actual fitting is performed for profiling. Default is False.
 
         Returns:
             Nothing.  Generates class attributes after fitting, and saves parameter values, if
             saving is specified.
         """
-        Reff         = cfg_params.Reff
-        n_scale      = cfg_params.n_scale
-        m_scale      = cfg_params.m_scale
-        ns           = cfg_params.ns
-        ms           = cfg_params.ms
-        nms          = cfg_params.nms
         func_version = cfg_params.func_version
         Bz           = []
         Br           = []
@@ -143,105 +129,8 @@ class FieldFitter:
         PP           = []
         XX           = []
         YY           = []
-        cns = cfg_params.cns
-        cms = cfg_params.cms
-        if func_version in [8, 9]:
-            self.input_data.eval('Xp = X+1075', inplace=True)
-            self.input_data.eval('Yp = Y-440', inplace=True)
-            self.input_data.eval('Rp = sqrt(Xp**2+Yp**2)', inplace=True)
-            self.input_data.eval('Phip = arctan2(Yp,Xp)', inplace=True)
-            RRP = []
-            PPP = []
 
-        ZZ = self.input_data.Z.values
-        RR = self.input_data.R.values
-        PP = self.input_data.Phi.values
-        Bz = self.input_data.Bz.values
-        Br = self.input_data.Br.values
-        Bphi = self.input_data.Bphi.values
-        if func_version in [6, 105, 110, 115, 116, 117, 118, 119]:
-            XX = self.input_data.X.values
-            YY = self.input_data.Y.values
-        if func_version in [8, 9]:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        if profile:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-
-        # Choose the type of fitting function we'll be using.
-        if func_version == 1:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 2:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 3:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 4:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 5:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase(ZZ, RR, PP, Reff, ns, ms)
-        elif func_version == 6:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_ext(ZZ, RR, PP, Reff, ns, ms,
-                                                                       cns, cms)
-        elif func_version == 7:
-            brzphi_3d_fast = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, Reff, ns, ms,
-                                                                          cns, cms)
-        elif func_version == 8:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 9:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 100:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v0(ZZ, RR, PP, Reff, ns, ms)
-        elif func_version == 101:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 102:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 103:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 104:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 105:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 106:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 107:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 108:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 109:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 110:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 111:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 112:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 113:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 114:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v14(ZZ, RR, PP, Reff, ns, ms, n_scale)
-        elif func_version == 115:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v15(ZZ, RR, PP, Reff, ns, ms, n_scale)
-        elif func_version == 116:
-            raise NotImplementedError('Oh no! you got lazy during refactoring')
-        elif func_version == 117:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v17(ZZ, RR, PP, Reff, ns, ms, n_scale)
-        elif func_version == 118:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v18(ZZ, RR, PP, Reff, ns, ms,
-                                                           cns, cms, n_scale)
-        elif func_version == 119:
-            brzphi_3d_fast = ff.brzphi_3d_producer_hel_v19(ZZ, RR, PP, Reff, ns, ms,
-                                                           cns, cms, n_scale)
-        else:
-            raise KeyError('func version '+func_version+' does not exist')
-
-        # Generate an lmfit Model
-        if func_version in [6, 105, 110, 115, 116, 117, 118, 119]:
-            self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'x', 'y'])
-        elif func_version in [8, 9, 10]:
-            self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi', 'rp', 'phip'])
-        else:
-            self.mod = Model(brzphi_3d_fast, independent_vars=['r', 'z', 'phi'])
-
-        # Load pre-defined starting valyes for parameters, or make a new set
+        # Load pre-defined starting values for parameters, or start a new set
         if cfg_pickle.use_pickle or cfg_pickle.recreate:
             try:
                 self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
@@ -251,480 +140,94 @@ class FieldFitter:
                                             "rb"), encoding='latin1')
         else:
             self.params = Parameters()
+            self.add_params_default(cfg_params)
 
-        if 'R' not in self.params:
-            self.params.add('R', value=Reff, vary=False)
-        if 'ns' not in self.params:
-            self.params.add('ns', value=ns, vary=False)
-        else:
-            self.params['ns'].value = ns
-        if 'ms' not in self.params:
-            self.params.add('ms', value=ms, vary=False)
-        else:
-            self.params['ms'].value = ms
+        ZZ = self.input_data.Z.values
+        RR = self.input_data.R.values
+        PP = self.input_data.Phi.values
+        Bz = self.input_data.Bz.values
+        Br = self.input_data.Br.values
+        Bphi = self.input_data.Bphi.values
+        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119]:
+            XX = self.input_data.X.values
+            YY = self.input_data.Y.values
 
+        # Choose the type of fitting function we'll be using.
+        pvd = self.params.valuedict() # Quicker way to grab params and init the fit functions
+        if func_version in [1, 2, 3, 4, 9, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+                            112, 113, 114, 116]:
+            raise NotImplementedError('Oh no! you got lazy during refactoring')
+        elif func_version == 5:
+            fit_func = ff.brzphi_3d_producer_modbessel_phase(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms)
+        elif func_version == 6:
+            fit_func = ff.brzphi_3d_producer_modbessel_phase_ext(ZZ, RR, PP, pvd.Reff, pvd.ns,
+                                                                 pvd.ms, pvd.cns, pvd.cms)
+        elif func_version == 7:
+            fit_func = ff.brzphi_3d_producer_modbessel_phase_hybrid(ZZ, RR, PP, pvd.Reff, pvd.ns,
+                                                                    pvd.ms, pvd.cns, pvd.cms)
+        elif func_version == 8:
+            fit_func = ff.brzphi_3d_producer_modbessel_v8(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms,
+                                                          pvd.cns, pvd.cms)
+        elif func_version == 100:
+            fit_func = ff.brzphi_3d_producer_hel_v0(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms)
+        elif func_version == 115:
+            fit_func = ff.brzphi_3d_producer_hel_v15(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms,
+                                                     pvd.n_scale)
+        elif func_version == 117:
+            fit_func = ff.brzphi_3d_producer_hel_v17(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms,
+                                                     pvd.n_scale)
+        elif func_version == 118:
+            fit_func = ff.brzphi_3d_producer_hel_v18(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms, pvd.cns,
+                                                     pvd.cms, pvd.n_scale)
+        elif func_version == 119:
+            fit_func = ff.brzphi_3d_producer_hel_v19(ZZ, RR, PP, pvd.Reff, pvd.ns, pvd.ms, pvd.cns,
+                                                     pvd.cms, pvd.n_scale)
+        else:
+            raise KeyError('func version '+func_version+' does not exist')
+
+        # Generate an lmfit Model
+        if func_version in [6, 8, 110, 115, 116, 117, 118, 119]:
+            self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi', 'x', 'y'])
+        else:
+            self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi'])
+
+        # Start loading in additional parameters based on the function version.
+        # Functions with version < 100 are cyclindrical expansions.
+        # Functions with version > 100 are helical expansions.
         if func_version < 100:
-            for n in range(ns):
-                # If function version 5, `D` parameter is a delta offset for phi
-                if func_version in [5, 6, 7, 8, 9]:
-                    d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ns)
-                    if 'D_{0}'.format(n) not in self.params:
-                        # self.params.add('D_{0}'.format(n), value=d_starts[n], min=-np.pi*0.5,
-                        #                 max=np.pi*0.5, vary=True)
-                        self.params.add('D_{0}'.format(n), value=0.5, min=0,
-                                        max=1, vary=True)
-                    else:
-                        self.params['D_{0}'.format(n)].vary = False
-                # Otherwise `D` parameter is a scaling constant, along with a `C` parameter
-                else:
-                    if 'C_{0}'.format(n) not in self.params:
-                        self.params.add('C_{0}'.format(n), value=1)
-                    else:
-                        self.params['C_{0}'.format(n)].vary = True
-                    if 'D_{0}'.format(n) not in self.params:
-                        self.params.add('D_{0}'.format(n), value=0.001)
-                    else:
-                        self.params['D_{0}'.format(n)].vary = True
+            self.add_params_AB()
+            self.add_params_phase_shift()
 
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-                    # Additional terms used in func version 3
-                    if func_version == 3:
-                        if 'E_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('E_{0}_{1}'.format(n, m), value=0, vary=True)
-                        else:
-                            self.params['E_{0}_{1}'.format(n, m)].vary = True
-                        if 'F_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('F_{0}_{1}'.format(n, m), value=0, vary=True)
-                        else:
-                            self.params['F_{0}_{1}'.format(n, m)].vary = True
-                        if m > 3:
-                            self.params['E_{0}_{1}'.format(n, m)].vary = False
-                            self.params['F_{0}_{1}'.format(n, m)].vary = False
+        elif func_version == 100:
+            self.add_params_ABCD()
 
-        elif func_version < 111:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if func_version != 103:
-                        if 'C_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=False)
-                        else:
-                            self.params['C_{0}_{1}'.format(n, m)].vary = False
-
-                        if 'D_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=False)
-                        else:
-                            self.params['D_{0}_{1}'.format(n, m)].vary = False
-
-                    if func_version not in [108, 109] and (n*n_scale > m*m_scale) or n*n_scale == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-                        self.params['C_{0}_{1}'.format(n, m)].vary = False
-                        self.params['C_{0}_{1}'.format(n, m)].value = 0
-                        self.params['D_{0}_{1}'.format(n, m)].vary = False
-                        self.params['D_{0}_{1}'.format(n, m)].value = 0
-
-                    if func_version == 100 and (m-n == 1):
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-
-        elif func_version == 111:
-            for n, m in nms:
-                if f'A_{n}_{m}' not in self.params:
-                    self.params.add(f'A_{n}_{m}', value=1, vary=True)
-                else:
-                    self.params[f'A_{n}_{m}'].vary = True
-
-                if f'B_{n}_{m}' not in self.params:
-                    self.params.add(f'B_{n}_{m}', value=-1, vary=True)
-                else:
-                    self.params[f'B_{n}_{m}'].vary = True
-
-        elif func_version in [112, 113]:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'C_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('C_{0}_{1}'.format(n, m), value=0, vary=True,
-                                        min=-0.999, max=0.999)
-                    else:
-                        self.params['C_{0}_{1}'.format(n, m)].vary = True
-
-                    if func_version == 112:
-                        if 'D_{0}_{1}'.format(n, m) not in self.params:
-                            self.params.add('D_{0}_{1}'.format(n, m), value=0, vary=True)
-                        else:
-                            self.params['D_{0}_{1}'.format(n, m)].vary = True
-
-                    if (n*n_scale > m*m_scale) or n*n_scale == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-                        self.params['C_{0}_{1}'.format(n, m)].vary = False
-                        self.params['C_{0}_{1}'.format(n, m)].value = 0
-                        if func_version == 112:
-                            self.params['D_{0}_{1}'.format(n, m)].vary = False
-                            self.params['D_{0}_{1}'.format(n, m)].value = 0
-
-        elif func_version == 114:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if f'D_{m}' not in self.params:
-                        self.params.add(f'D_{m}', value=0, min=-np.pi*0.5,
-                                        max=np.pi*0.5, vary=False)
-                    else:
-                        self.params[f'D_{m}'].vary = False
-
-        elif func_version in [115, 117]:
-            for n in range(ns):
-                if func_version == 117:
-                    if f'D_{n}' not in self.params:
-                        self.params.add(f'D_{n}', value=0.5, vary=True, min=0, max=1)
-                    else:
-                        self.params[f'D_{n}'].vary = True
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if n == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-
-            if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=True)
-            else:
-                self.params['k1'].vary = True
-            if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=True)
-            else:
-                self.params['k2'].vary = True
-            if 'k3' not in self.params:
-                self.params.add('k3', value=0, vary=True)
-            else:
-                self.params['k3'].vary = True
-            if 'k4' not in self.params:
-                self.params.add('k4', value=0, vary=True)
-            else:
-                self.params['k4'].vary = True
-            if 'k5' not in self.params:
-                self.params.add('k5', value=0, vary=True)
-            else:
-                self.params['k5'].vary = True
-            if 'k6' not in self.params:
-                self.params.add('k6', value=0, vary=True)
-            else:
-                self.params['k6'].vary = True
-            if 'k7' not in self.params:
-                self.params.add('k7', value=0, vary=True)
-            else:
-                self.params['k7'].vary = True
-            if 'k8' not in self.params:
-                self.params.add('k8', value=0, vary=True)
-            else:
-                self.params['k8'].vary = True
-            if 'k9' not in self.params:
-                self.params.add('k9', value=0, vary=True)
-            else:
-                self.params['k9'].vary = True
-            if 'k10' not in self.params:
-                self.params.add('k10', value=0, vary=True)
-            else:
-                self.params['k10'].vary = True
+        elif func_version == 115:
+            self.add_params_AB(skip_zero_n=True)
+            self.add_params_cart_simple(all_on=True)
 
         elif func_version == 116:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+            self.add_params_AB(skip_zero_n=True)
+            self.add_params_finite_wire()
 
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if n == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-
-            if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=True)
-            else:
-                self.params['k1'].vary = True
-            if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=True)
-            else:
-                self.params['k2'].vary = True
-            if 'xp1' not in self.params:
-                self.params.add('xp1', value=1050, vary=False, min=900, max=1200)
-            else:
-                self.params['xp1'].vary = True
-            if 'xp2' not in self.params:
-                self.params.add('xp2', value=1050, vary=False, min=900, max=1200)
-            else:
-                self.params['xp2'].vary = True
-            if 'yp1' not in self.params:
-                self.params.add('yp1', value=0, vary=False, min=-100, max=100)
-            else:
-                self.params['yp1'].vary = True
-            if 'yp2' not in self.params:
-                self.params.add('yp2', value=0, vary=False, min=-100, max=100)
-            else:
-                self.params['yp2'].vary = True
-            if 'zp1' not in self.params:
-                self.params.add('zp1', value=4575, vary=False, min=4300, max=4700)
-            else:
-                self.params['zp1'].vary = True
-            if 'zp2' not in self.params:
-                self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
-            else:
-                self.params['zp2'].vary = True
+        elif func_version == 117:
+            self.add_params_AB(skip_zero_n=True)
+            self.add_params_cart_simple(all_on=True)
+            self.add_params_phase_shift()
 
         elif func_version == 118:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
-
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if n == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-
-            if 'cns' not in self.params:
-                self.params.add('cns', value=cns, vary=False)
-            else:
-                self.params['cns'].value = cns
-            if 'cms' not in self.params:
-                self.params.add('cms', value=cms, vary=False)
-            else:
-                self.params['cms'].value = cms
-            for cn in range(cns):
-                for cm in range(cms):
-                    if f'C_{cn}_{cm}' not in self.params:
-                        self.params.add(f'C_{cn}_{cm}', value=0, vary=True)
-                    else:
-                        self.params[f'C_{cn}_{cm}'].vary = True
-
-                    if f'D_{cn}_{cm}' not in self.params:
-                        self.params.add(f'D_{cn}_{cm}', value=0, vary=True)
-                    else:
-                        self.params[f'D_{cn}_{cm}'].vary = True
-
-                    if cn == 0:
-                        self.params[f'C_{cn}_{cm}'].vary = False
-                        self.params[f'C_{cn}_{cm}'].value = 0
-                        self.params[f'D_{cn}_{cm}'].vary = False
-                        self.params[f'D_{cn}_{cm}'].value = 0
-
-            if 'k1' not in self.params:
-                self.params.add('k1', value=0, vary=True)
-            else:
-                self.params['k1'].vary = True
-            if 'k2' not in self.params:
-                self.params.add('k2', value=0, vary=True)
-            else:
-                self.params['k2'].vary = True
-            if 'k3' not in self.params:
-                self.params.add('k3', value=0, vary=True)
-            else:
-                self.params['k3'].vary = True
-            if 'k4' not in self.params:
-                self.params.add('k4', value=0, vary=True)
-            else:
-                self.params['k4'].vary = True
-            if 'k5' not in self.params:
-                self.params.add('k5', value=0, vary=True)
-            else:
-                self.params['k5'].vary = True
-            if 'k6' not in self.params:
-                self.params.add('k6', value=0, vary=True)
-            else:
-                self.params['k6'].vary = True
-            if 'k7' not in self.params:
-                self.params.add('k7', value=0, vary=True)
-            else:
-                self.params['k7'].vary = True
-            if 'k8' not in self.params:
-                self.params.add('k8', value=0, vary=True)
-            else:
-                self.params['k8'].vary = True
-            if 'k9' not in self.params:
-                self.params.add('k9', value=0, vary=True)
-            else:
-                self.params['k9'].vary = True
-            if 'k10' not in self.params:
-                self.params.add('k10', value=0, vary=True)
-            else:
-                self.params['k10'].vary = True
+            self.add_params_AB(skip_zero_n=True)
+            self.add_params_CD(skip_zero_cn=True)
+            self.add_params_cart_simple(all_on=True)
 
         elif func_version == 119:
-            for n in range(ns):
-                for m in range(ms):
-                    if 'A_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('A_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = True
+            self.add_params_AB(skip_zero_n=True)
+            self.add_params_CD(skip_zero_cn=True)
+            self.add_params_cart_simple(on_list = ['k3'])
+            self.add_params_biot_savart(xyz_tuples=(
+                (1000, 0, -4600),
+                (1000, 0, 4600)))
 
-                    if 'B_{0}_{1}'.format(n, m) not in self.params:
-                        self.params.add('B_{0}_{1}'.format(n, m), value=0, vary=True)
-                    else:
-                        self.params['B_{0}_{1}'.format(n, m)].vary = True
-
-                    if n == 0:
-                        self.params['A_{0}_{1}'.format(n, m)].vary = False
-                        self.params['A_{0}_{1}'.format(n, m)].value = 0
-                        self.params['B_{0}_{1}'.format(n, m)].vary = False
-                        self.params['B_{0}_{1}'.format(n, m)].value = 0
-
-            if 'cns' not in self.params:
-                self.params.add('cns', value=cns, vary=False)
-            else:
-                self.params['cns'].value = cns
-            if 'cms' not in self.params:
-                self.params.add('cms', value=cms, vary=False)
-            else:
-                self.params['cms'].value = cms
-            for cn in range(cns):
-                for cm in range(cms):
-                    if f'C_{cn}_{cm}' not in self.params:
-                        self.params.add(f'C_{cn}_{cm}', value=0, vary=True)
-                    else:
-                        self.params[f'C_{cn}_{cm}'].vary = True
-
-                    if f'D_{cn}_{cm}' not in self.params:
-                        self.params.add(f'D_{cn}_{cm}', value=0, vary=True)
-                    else:
-                        self.params[f'D_{cn}_{cm}'].vary = True
-
-                    if cn == 0:
-                        self.params[f'C_{cn}_{cm}'].vary = False
-                        self.params[f'C_{cn}_{cm}'].value = 0
-                        self.params[f'D_{cn}_{cm}'].vary = False
-                        self.params[f'D_{cn}_{cm}'].value = 0
-
-            if 'x1' not in self.params:
-                self.params.add('x1', value=1, vary=True, min=0.9, max=1.1)
-            else:
-                self.params['x1'].vary = True
-            if 'y1' not in self.params:
-                self.params.add('y1', value=0, vary=True, min=-0.1, max=0.1)
-            else:
-                self.params['y1'].vary = True
-            if 'z1' not in self.params:
-                self.params.add('z1', value=-4.6, vary=True, min=-4.7, max=-4.5)
-            else:
-                self.params['z1'].vary = True
-            if 'vx1' not in self.params:
-                self.params.add('vx1', value=1, vary=True)
-            else:
-                self.params['vx1'].vary = True
-            if 'vy1' not in self.params:
-                self.params.add('vy1', value=1, vary=True)
-            else:
-                self.params['vy1'].vary = True
-            if 'vz1' not in self.params:
-                self.params.add('vz1', value=0, vary=True)
-            else:
-                self.params['vz1'].vary = True
-            if 'x2' not in self.params:
-                self.params.add('x2', value=1, vary=True, min=0.9, max=1.1)
-            else:
-                self.params['x2'].vary = True
-            if 'y2' not in self.params:
-                self.params.add('y2', value=0, vary=True, min=-0.1, max=0.1)
-            else:
-                self.params['y2'].vary = True
-            if 'z2' not in self.params:
-                self.params.add('z2', value=4.6, vary=True, min=4.5, max=4.7)
-            else:
-                self.params['z2'].vary = True
-            if 'vx2' not in self.params:
-                self.params.add('vx2', value=1, vary=True)
-            else:
-                self.params['vx2'].vary = True
-            if 'vy2' not in self.params:
-                self.params.add('vy2', value=1, vary=True)
-            else:
-                self.params['vy2'].vary = True
-            if 'vz2' not in self.params:
-                self.params.add('vz2', value=0, vary=True)
-            else:
-                self.params['vz2'].vary = True
-
-        if func_version == 102:
-            d_starts = np.linspace(-np.pi*0.5+0.1, np.pi*0.5-0.1, ms)
-            for m in range(ms):
-                # for m in range(ms):
-                if f'E_{m}' not in self.params:
-                    self.params.add(f'E_{m}', value=d_starts[m], min=-np.pi*0.5,
-                                    max=np.pi*0.5, vary=True)
-                else:
-                    self.params[f'E_{m}'].vary = True
-                # if n > m:
-                #     self.params['E_{0}_{1}'.format(n, m)].vary = False
-                #     self.params['E_{0}_{1}'.format(n, m)].value = 0
-
-        if func_version in [6, 105]:
+        if func_version in [6, 8, 105]:
 
             if 'k1' not in self.params:
                 self.params.add('k1', value=0, vary=False)
@@ -766,6 +269,56 @@ class FieldFitter:
                 self.params.add('k10', value=0, vary=False)
             else:
                 self.params['k10'].vary = False
+
+        if func_version in [8]:
+            if 'x1' not in self.params:
+                self.params.add('x1', value=1000, vary=True, min=900, max=1100)
+            else:
+                self.params['x1'].vary = True
+            if 'y1' not in self.params:
+                self.params.add('y1', value=0, vary=True, min=-100, max=100)
+            else:
+                self.params['y1'].vary = True
+            if 'z1' not in self.params:
+                self.params.add('z1', value=-4600, vary=True, min=-4700, max=-4500)
+            else:
+                self.params['z1'].vary = True
+            if 'vx1' not in self.params:
+                self.params.add('vx1', value=0.001, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vx1'].vary = True
+            if 'vy1' not in self.params:
+                self.params.add('vy1', value=0.001, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vy1'].vary = True
+            if 'vz1' not in self.params:
+                self.params.add('vz1', value=-0.001, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vz1'].vary = True
+            if 'x2' not in self.params:
+                self.params.add('x2', value=100, vary=True, min=900, max=1100)
+            else:
+                self.params['x2'].vary = True
+            if 'y2' not in self.params:
+                self.params.add('y2', value=0, vary=True, min=-100, max=100)
+            else:
+                self.params['y2'].vary = True
+            if 'z2' not in self.params:
+                self.params.add('z2', value=4600, vary=True, min=4500, max=4700)
+            else:
+                self.params['z2'].vary = True
+            if 'vx2' not in self.params:
+                self.params.add('vx2', value=-0.001, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vx2'].vary = True
+            if 'vy2' not in self.params:
+                self.params.add('vy2', value=0, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vy2'].vary = True
+            if 'vz2' not in self.params:
+                self.params.add('vz2', value=-0.001, vary=True, min=-0.2, max=0.2)
+            else:
+                self.params['vz2'].vary = True
 
         if func_version in [106]:
             if 'k1' not in self.params:
@@ -813,7 +366,7 @@ class FieldFitter:
             else:
                 self.params['zp2'].vary = True
 
-        if func_version in [7, 8, 9]:
+        if func_version in [7, 9]:
             if 'cns' not in self.params:
                 self.params.add('cns', value=cns, vary=False)
             else:
@@ -840,7 +393,7 @@ class FieldFitter:
                     else:
                         self.params['F_{0}_{1}'.format(cn, cm)].vary = True
 
-            if func_version in [8, 9]:
+            if func_version in [9]:
                 if 'X' not in self.params:
                     self.params.add('X', value=0, vary=True)
                 if 'Y' not in self.params:
@@ -872,7 +425,7 @@ class FieldFitter:
                                            r=RR, z=ZZ, phi=PP, params=self.params,
                                            method='leastsq', fit_kws={'maxfev': 10000})
                 # method='least_squares')
-        elif func_version == 6:
+        elif func_version in [6, 8]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -893,7 +446,7 @@ class FieldFitter:
                                                                             'ftol': 1e-12,
                                                                             'xtol': 1e-12})
 
-        elif func_version in [8, 9]:
+        elif func_version in [9]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -1011,3 +564,150 @@ class FieldFitter:
         self.input_data.loc[:, 'Br_fit'] = bf[0:len(bf)//3]
         self.input_data.loc[:, 'Bz_fit'] = bf[len(bf)//3:2*len(bf)//3]
         self.input_data.loc[:, 'Bphi_fit'] = bf[2*len(bf)//3:]
+
+    def add_params_default(self, cfg_params):
+        if 'R' not in self.params:
+            self.params.add('R', value=cfg_params.Reff, vary=False)
+        if 'ns' not in self.params:
+            self.params.add('ns', value=cfg_params.ns, vary=False)
+        if 'ms' not in self.params:
+            self.params.add('ms', value=cfg_params.ms, vary=False)
+        if 'n_scale' not in self.params:
+            self.params.add('n_scale', value=cfg_params.n_scale, vary=False)
+        if 'm_scale' not in self.params:
+            self.params.add('m_scale', value=cfg_params.m_scale, vary=False)
+        if 'cns' not in self.params:
+            self.params.add('cns', value=cfg_params.cns, vary=False)
+        if 'cms' not in self.params:
+            self.params.add('cms', value=cfg_params.cms, vary=False)
+
+    def add_params_AB(self, skip_zero_n=False):
+        if skip_zero_n:
+            ns_range = range(1, self.params['ns'].value)
+        else:
+            ns_range = range(self.params['ns'].value)
+        ms_range = range(self.params['ms'].value)
+
+        for n in ns_range:
+            for m in ms_range:
+                if f'A_{n}_{m}' not in self.params:
+                    self.params.add(f'A_{n}_{m}', value=0, vary=True)
+                if f'B_{n}_{m}' not in self.params:
+                    self.params.add(f'B_{n}_{m}', value=0, vary=True)
+
+    def add_params_CD(self, skip_zero_cn=False):
+        if skip_zero_cn:
+            cns_range = range(1, self.params['cns'].value)
+        else:
+            cns_range = range(1, self.params['cns'].value)
+        cms_range = range(self.params['cms'].value)
+
+        for cn in cns_range:
+            for cm in cms_range:
+                if f'C_{cn}_{cm}' not in self.params:
+                    self.params.add(f'C_{cn}_{cm}', value=0, vary=True)
+                if f'D_{cn}_{cm}' not in self.params:
+                    self.params.add(f'D_{cn}_{cm}', value=0, vary=True)
+
+    def add_params_phase_shift(self):
+        # `D` parameter is a scaling parameters that is equivalent to a phase shift.
+        # Instead of using a term like cos(phi+D), it is D*cos(phi)+(1-D)*sin(phi).
+        # This allows the free paramns to remain linear, and greatly decreases run time.
+
+        for n in range(self.params['ns'].value):
+            if f'D_{n}' not in self.params:
+                self.params.add(f'D_{n}', value=0.5, min=0, max=1, vary=True)
+
+    def add_params_ABCD(self):
+        # Add parameters A,B,C,D, and turn off the off-diagonals that are unphysical.
+        ns_range = range(self.params['ns'].value)
+        ms_range = range(self.params['ms'].value)
+        n_scale = self.params['n_scale'].value
+        m_scale = self.params['m_scale'].value
+
+        for n in ns_range:
+            for m in ms_range:
+                if f'A_{n}_{m}' not in self.params:
+                    self.params.add(f'A_{n}_{m}', value=0, vary=True)
+                if f'B_{n}_{m}' not in self.params:
+                    self.params.add(f'B_{n}_{m}', value=0, vary=True)
+                if f'C_{n}_{m}' not in self.params:
+                    self.params.add(f'C_{n}_{m}', value=0, vary=True)
+                if f'D_{n}_{m}' not in self.params:
+                    self.params.add(f'D_{n}_{m}', value=0, vary=True)
+
+                if (n*n_scale > m*m_scale) or n*n_scale == 0:
+                    self.params[f'A_{n}_{m}'].vary = False
+                    self.params[f'A_{n}_{m}'].value = 0
+                    self.params[f'B_{n}_{m}'].vary = False
+                    self.params[f'B_{n}_{m}'].value = 0
+                    self.params[f'C_{n}_{m}'].vary = False
+                    self.params[f'C_{n}_{m}'].value = 0
+                    self.params[f'D_{n}_{m}'].vary = False
+                    self.params[f'D_{n}_{m}'].value = 0
+
+    def add_params_cart_simple(self, all_on=False, on_list=None):
+        cart_names = [f'k{i}' for i in range(1, 11)]
+        if on_list is None:
+            on_list = []
+
+        for k in cart_names:
+            if all_on:
+                if k not in self.params:
+                    self.params.add(k, value=0, vary=True)
+            else:
+                if k not in self.params:
+                    self.params.add(k, value=0, vary=(k in on_list))
+
+    def add_params_finite_wire(self):
+        if 'k1' not in self.params:
+            self.params.add('k1', value=0, vary=True)
+        if 'k2' not in self.params:
+            self.params.add('k2', value=0, vary=True)
+        if 'xp1' not in self.params:
+            self.params.add('xp1', value=1050, vary=False, min=900, max=1200)
+        if 'xp2' not in self.params:
+            self.params.add('xp2', value=1050, vary=False, min=900, max=1200)
+        if 'yp1' not in self.params:
+            self.params.add('yp1', value=0, vary=False, min=-100, max=100)
+        if 'yp2' not in self.params:
+            self.params.add('yp2', value=0, vary=False, min=-100, max=100)
+        if 'zp1' not in self.params:
+            self.params.add('zp1', value=4575, vary=False, min=4300, max=4700)
+        if 'zp2' not in self.params:
+            self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
+
+    def add_params_biot_savart(self, xyz_tuples=None, v_tuples=None, xyz_bounds=100, v_bounds=100):
+        if v_tuples and len(v_tuples) != len(xyz_tuples):
+            raise AttributeError('If v_tuples is specified it must be same size as xyz_tuples')
+
+        for i in range(1, len(xyz_tuples)+1):
+            x, y, z = xyz_tuples[i-1]
+            if f'x{i}' not in self.params:
+                self.params.add(f'x{i}', value=x, vary=True,
+                                min=x-xyz_bounds, max=x+xyz_bounds)
+            if f'y{i}' not in self.params:
+                self.params.add(f'y{i}', value=y, vary=True,
+                                min=y-xyz_bounds, max=y+xyz_bounds)
+            if f'z{i}' not in self.params:
+                self.params.add(f'z{i}', value=z, vary=True,
+                                min=z-xyz_bounds, max=z+xyz_bounds)
+
+            if v_tuples:
+                vx, vy, vz = v_tuples[i-1]
+            else:
+                vx = vy = vz = 0
+            if f'vx{i}' not in self.params:
+                self.params.add(f'vx{i}', value=vx, vary=True,
+                                min=vx-v_bounds, max=vx+v_bounds)
+            if f'vy{i}' not in self.params:
+                self.params.add(f'vy{i}', value=vy, vary=True,
+                                min=vy-v_bounds, max=vy+v_bounds)
+            if f'vz{i}' not in self.params:
+                self.params.add(f'vz{i}', value=vz, vary=True,
+                                min=vz-v_bounds, max=vz+v_bounds)
+
+
+
+
+

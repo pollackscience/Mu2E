@@ -50,6 +50,8 @@ path_DS_Hel_True_Cole2 = mu2e_ext_path +\
     'datafiles/FieldMapsCole/bfield_map_cylin_845568pts_07-06_160144'
 path_DS_Hel_Only_Cole2 = mu2e_ext_path +\
     'datafiles/FieldMapsCole/bfield_map_1232173pts_08-10_094943'
+path_DS_Hel_Only_Cole3 = mu2e_ext_path +\
+    'datafiles/FieldMapsCole/bfield_map_r250mm_p10cm_lengthx10_1232173pts_09-07_160736'
 path_DS_Hel_Nubs = mu2e_ext_path +\
     'datafiles/FieldMapsCole/endsonly_both_3453103pts_08-28_184114'
 
@@ -116,7 +118,7 @@ cfg_data_synth  = cfg_data('synth', 'DS', path_synth,
 # Cole
 cfg_data_DS_Cole_Hel   = cfg_data('Cole', 'DS', path_DS_Hel_Only_Cole,
                                   ('Z>-3500', 'Z<3500', 'R!=0'))
-cfg_data_DS_Cole_Hel2  = cfg_data('Cole', 'DS', path_DS_Hel_Only_Cole2,
+cfg_data_DS_Cole_Hel2  = cfg_data('Cole', 'DS', path_DS_Hel_Only_Cole3,
                                   ('Z>-3500', 'Z<3500', 'R!=0'))
 cfg_data_DS_Cole_Hel_true   = cfg_data('Cole', 'DS', path_DS_Hel_True_Cole,
                                        ('Z>-3500', 'Z<3500', 'R!=0'))
@@ -763,14 +765,14 @@ cfg_pickle_Mau13                    = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Mau13',
                                                  save_name='Mau13', recreate=False)
 
-cfg_params_Cole_DS_Hel              = cfg_params(ns=8, ms=8, cns=0, cms=0, nms=0, Reff=13350,
-                                                 n_scale=1, m_scale=1, func_version=115)
+cfg_params_Cole_DS_Hel              = cfg_params(ns=10, ms=4, cns=0, cms=0, nms=0, Reff=13350,
+                                                 n_scale=1, m_scale=1, func_version=119)
 cfg_pickle_Cole_Hel                 = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cole_Hel',
                                                  save_name='Cole_Hel', recreate=False)
 
-cfg_params_Cole_DS_Hel250           = cfg_params(ns=10, ms=4, cns=5, cms=2, nms=0, Reff=0.5,
-                                                 n_scale=9, m_scale=1, func_version=119)
+cfg_params_Cole_DS_Hel250           = cfg_params(ns=2, ms=4, cns=0, cms=0, nms=0, Reff=0.1,
+                                                 n_scale=20, m_scale=1, func_version=119)
 cfg_pickle_Cole_Hel250              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cole_Hel250',
                                                  save_name='Cole_Hel250', recreate=False)
@@ -1111,14 +1113,14 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_fullsim_trunc, cfg_params_Mau13_DS,
     #                              cfg_pickle_Mau13, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
-    #                              cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
-    #                              cfg_pickle_Cole_Hel, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
+                                 cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
+                                 cfg_pickle_Cole_Hel, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Cole_Hel250', cfg_data_DS_Cole_Hel2,
     #                              cfg_geom_hel_250mm, cfg_params_Cole_DS_Hel250,
     #                              cfg_pickle_Cole_Hel250, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Cole_Nubs', cfg_data_DS_Cole_Nubs_descale,
-                                 cfg_geom_hel_nubs, cfg_params_Cole_DS_Nubs,
-                                 cfg_pickle_Cole_Nubs, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Cole_Nubs', cfg_data_DS_Cole_Nubs_descale,
+    #                              cfg_geom_hel_nubs, cfg_params_Cole_DS_Nubs,
+    #                              cfg_pickle_Cole_Nubs, cfg_plot_mpl)
