@@ -629,7 +629,7 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
         ZZ, RR, PP, Bz, Br, Bphi = ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile=profile)
         return ZZ, RR, PP, Bz, Br, Bphi
     else:
-        ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile=profile)
+        ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
 
     ff.merge_data_fit_res()
 

@@ -130,7 +130,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
 
 def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=None, save_name=None,
                 df_fit=None, ptype='3d', aspect='square', cmin=None, cmax=None, ax=None,
-                do_title=True, title_simp=None, do2pi=False):
+                do_title=True, title_simp=None, do2pi=False, units='mm'):
     """Generate 3D plots, x and y vs z.
 
     Generate a 3D surface plot for a given DF and three columns. An optional selection string is
@@ -218,8 +218,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         else:
             raise KeyError(ptype+' is an invalid type!, must be "heat" or "3D"')
 
-        plt.xlabel(x+' (mm)', fontsize=18)
-        plt.ylabel(y+' (mm)', fontsize=18)
+        plt.xlabel(f'{x} ({units})', fontsize=18)
+        plt.ylabel(f'{y} ({units})', fontsize=18)
         if ptype.lower() == '3d':
             fig.set_zlabel(z+' (T)', fontsize=18)
             fig.ticklabel_format(style='sci', axis='z')
@@ -268,8 +268,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
                       fontsize=20)
             cb.set_label('Data-Fit (G)', fontsize=18)
-            ax2.set_xlabel(x+' (mm)', fontsize=18)
-            ax2.set_ylabel(y+' (mm)', fontsize=18)
+            ax2.set_xlabel(f'{x} ({units})', fontsize=18)
+            ax2.set_ylabel(f'{y} ({units})', fontsize=18)
             # datacursor(heat, hover=True, bbox=dict(alpha=1, fc='w'))
             if save_dir:
                 plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
@@ -296,12 +296,12 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 height=650,
                 autosize=False,
                 xaxis=dict(
-                    title='{} (mm)'.format(x),
+                    title=f'{x} ({units})',
                     titlefont=dict(size=axis_title_size, family='Arial Black'),
                     tickfont=dict(size=axis_tick_size),
                 ),
                 yaxis=dict(
-                    title='{} (mm)'.format(y),
+                    title=f'{y} ({units})',
                     titlefont=dict(size=axis_title_size, family='Arial Black'),
                     tickfont=dict(size=axis_tick_size),
                 ),
@@ -316,7 +316,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 height=650,
                 scene=dict(
                     xaxis=dict(
-                        title='{} (mm)'.format(x),
+                        title=f'{x} ({units})',
                         titlefont=dict(size=axis_title_size, family='Arial Black'),
                         tickfont=dict(size=axis_tick_size),
                         # dtick=400,
@@ -326,7 +326,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                         backgroundcolor='rgb(230, 230,230)',
                     ),
                     yaxis=dict(
-                        title='{} (mm)'.format(y),
+                        title=f'{y} ({units})',
                         titlefont=dict(size=axis_title_size, family='Arial Black'),
                         tickfont=dict(size=axis_tick_size),
                         gridcolor='rgb(255, 255, 255)',

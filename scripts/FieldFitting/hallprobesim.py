@@ -225,6 +225,7 @@ phi_steps_true = (0, np.pi/8, np.pi/4, 3*np.pi/8, np.pi/2, 5*np.pi/8, 3*np.pi/4,
 
 z_steps_DS = list(range(5021, 13021, 50))
 z_steps_DS_long = list(range(4221, 13921, 50))
+z_steps_DS_trk = list(range(9021, 11021, 50))
 z_steps_DS_grad = list(range(4221, 6921, 100))
 z_steps_DS_interp = list(range(4220, 13900, 100))
 z_steps_DS_interp_fullsim = list(range(4200, 14000, 25))
@@ -285,6 +286,11 @@ cfg_geom_cyl_800mm              = cfg_geom('cyl', z_steps_DS, r_steps_800mm, phi
                                            do2pi=False)
 
 cfg_geom_cyl_800mm_long         = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
+                                           x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False], interpolate=False,
+                                           do2pi=False)
+
+cfg_geom_cyl_800mm_trk          = cfg_geom('cyl', z_steps_DS_trk, r_steps_800mm, phi_steps_8,
                                            x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False,
                                            do2pi=False)
@@ -488,8 +494,8 @@ cfg_geom_hel_true               = cfg_geom('cyl', z_steps_DS_glass_test, r_steps
                                            bad_calibration=[False, False, False], interpolate=False,
                                            do2pi=True)
 
-cfg_geom_hel_250mm              = cfg_geom('cyl', z_steps_DS_glass_small, r_steps_250mm,
-                                           phi_steps_8, x_steps=None, y_steps=None,
+cfg_geom_hel_250mm              = cfg_geom('cyl', z_steps_DS_glass_small, r_steps_250mm[0:],
+                                           phi_steps_8[0:], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False], interpolate=False,
                                            do2pi=False)
 
@@ -771,8 +777,14 @@ cfg_pickle_Cole_Hel                 = cfg_pickle(use_pickle=False, save_pickle=T
                                                  load_name='Cole_Hel',
                                                  save_name='Cole_Hel', recreate=False)
 
-cfg_params_Cole_DS_Hel250           = cfg_params(ns=2, ms=4, cns=0, cms=0, nms=0, Reff=0.1,
-                                                 n_scale=20, m_scale=1, func_version=119)
+cfg_params_Cole_DS_Mau13            = cfg_params(ns=20, ms=2, cns=0, cms=0, nms=0, Reff=13350,
+                                                 n_scale=1, m_scale=1, func_version=119)
+cfg_pickle_Cole_Mau13               = cfg_pickle(use_pickle=False, save_pickle=True,
+                                                 load_name='Cole_Hel',
+                                                 save_name='Cole_Hel', recreate=False)
+
+cfg_params_Cole_DS_Hel250           = cfg_params(ns=5, ms=3, cns=0, cms=0, nms=0, Reff=0.1,
+                                                 n_scale=20, m_scale=1, func_version=120)
 cfg_pickle_Cole_Hel250              = cfg_pickle(use_pickle=False, save_pickle=True,
                                                  load_name='Cole_Hel250',
                                                  save_name='Cole_Hel250', recreate=False)
@@ -1113,14 +1125,18 @@ if __name__ == "__main__":
     #                              cfg_geom_cyl_fullsim_trunc, cfg_params_Mau13_DS,
     #                              cfg_pickle_Mau13, cfg_plot_mpl)
 
-    hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
-                                 cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
-                                 cfg_pickle_Cole_Hel, cfg_plot_mpl)
+    # hmd, ff = field_map_analysis('halltoy_Cole_Hel', cfg_data_DS_Cole_Hel_true,
+    #                              cfg_geom_hel_true, cfg_params_Cole_DS_Hel,
+    #                              cfg_pickle_Cole_Hel, cfg_plot_mpl)
 
-    # hmd, ff = field_map_analysis('halltoy_Cole_Hel250', cfg_data_DS_Cole_Hel2,
-    #                              cfg_geom_hel_250mm, cfg_params_Cole_DS_Hel250,
-    #                              cfg_pickle_Cole_Hel250, cfg_plot_mpl)
+    hmd, ff = field_map_analysis('halltoy_Cole_Hel250', cfg_data_DS_Cole_Hel2,
+                                 cfg_geom_hel_250mm, cfg_params_Cole_DS_Hel250,
+                                 cfg_pickle_Cole_Hel250, cfg_plot_mpl)
 
     # hmd, ff = field_map_analysis('halltoy_Cole_Nubs', cfg_data_DS_Cole_Nubs_descale,
     #                              cfg_geom_hel_nubs, cfg_params_Cole_DS_Nubs,
     #                              cfg_pickle_Cole_Nubs, cfg_plot_mpl)
+
+    # hmd, ff = field_map_analysis('halltoy_Mau13', cfg_data_DS_Mau13,
+    #                              cfg_geom_cyl_800mm_trk, cfg_params_Cole_DS_Mau13,
+    #                              cfg_pickle_Cole_Mau13, cfg_plot_mpl)
