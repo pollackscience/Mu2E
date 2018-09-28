@@ -148,7 +148,7 @@ class FieldFitter:
         Bz = self.input_data.Bz.values
         Br = self.input_data.Br.values
         Bphi = self.input_data.Bphi.values
-        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120]:
+        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120, 121]:
             XX = self.input_data.X.values
             YY = self.input_data.Y.values
 
@@ -185,12 +185,17 @@ class FieldFitter:
                                                      pvd['cns'], pvd['cms'], pvd['n_scale'])
         elif func_version == 120:
             fit_func = ff.brzphi_3d_producer_hel_v20(ZZ, RR, PP, pvd['R'], pvd['ns'], pvd['ms'],
-                                                     pvd['cns'], pvd['cms'], pvd['n_scale'])
+                                                     pvd['cns'], pvd['cms'], pvd['n_scale'],
+                                                     pvd['m_scale'])
+        elif func_version == 121:
+            fit_func = ff.brzphi_3d_producer_hel_v21(ZZ, RR, PP, pvd['R'], pvd['ns'], pvd['ms'],
+                                                     pvd['cns'], pvd['cms'], pvd['n_scale'],
+                                                     pvd['m_scale'])
         else:
             raise NotImplementedError(f'Function version={func_version} not implemented.')
 
         # Generate an lmfit Model
-        if func_version in [6, 8, 110, 115, 116, 117, 118, 119, 120]:
+        if func_version in [6, 8, 110, 115, 116, 117, 118, 119, 120, 121]:
             self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi', 'x', 'y'])
         else:
             self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi'])
@@ -248,39 +253,55 @@ class FieldFitter:
             # self.add_params_biot_savart(xyz_tuples=(
             #     (1000, 0, -4600),
             #     (1000, 0, 4600)))
-            self.add_params_biot_savart(
-                xyz_tuples=(
-                    # (0, 0, 3532.85),
-                    # (0, 1000, 3963.66),
-                    # (0, 0, 4393.47),
-                    # (0, 0, 5034.67),
-                    # (0, 0, 5691.88),
-                    # (0, 0, 6382.01),
-                    # (0, 0, 7208.56),
-                    # (-100, -100, 7868.01),
-                    # (-500, 1150, 7868.01),
-                    # (-400, 1050, 7868.01),
-                    # (100, 100, 9710.86),
-                    # (-500, 1150, 9710.86),
-                    # (-400, 1050, 9710.86),
-                    # (-200, 1000, 10000),
-                    # (-500, 1150, 11553.71),
-                    # (-400, 1050, 11553.71),
-                    # (-200, 1000, 13454.53),
-                    # (200, -1000, 7868.01),
-                    # (200, -1000, 9710.86),
-                    # (200, -1000, 11553.71),
-                    # (200, -1000, 13454.53),
-                ),
-                xy_bounds=500, z_bounds=20, v_bounds=100)
+            # self.add_params_biot_savart(xyz_tuples=(
+            #     (0.25, 0, -46),
+            #     (0.25, 0, 46)),
+            #     xy_bounds=0.05, z_bounds=0.05, v_bounds=100)
+            # self.add_params_biot_savart(
+            #     xyz_tuples=(
+            #         # (0, 0, 3532.85),
+            #         # (0, 1000, 3963.66),
+            #         # (0, 0, 4393.47),
+            #         # (0, 0, 5034.67),
+            #         # (0, 0, 5691.88),
+            #         # (0, 0, 6382.01),
+            #         # (0, 0, 7208.56),
+            #         # (-100, -100, 7868.01),
+            #         # (-500, 1150, 7868.01),
+            #         # (-400, 1050, 7868.01),
+            #         # (100, 100, 9710.86),
+            #         # (-500, 1150, 9710.86),
+            #         # (-400, 1050, 9710.86),
+            #         # (-200, 1000, 10000),
+            #         # (-500, 1150, 11553.71),
+            #         # (-400, 1050, 11553.71),
+            #         # (-200, 1000, 13454.53),
+            #         # (200, -1000, 7868.01),
+            #         # (200, -1000, 9710.86),
+            #         # (200, -1000, 11553.71),
+            #         # (200, -1000, 13454.53),
+            #     ),
+            #     xy_bounds=500, z_bounds=20, v_bounds=100)
 
         elif func_version == 120:
-            self.add_params_AB(skip_zero_n=False)
+            self.add_params_AB(skip_zero_n=False, skip_zero_m=False)
             self.add_params_CD(skip_zero_cn=True)
             self.add_params_cart_simple(on_list=['k3'])
-            # self.add_params_biot_savart(xyz_tuples=(
-            #     (1, 0, -46),
-            #     (1, 0, 46)))
+            # self.add_params_cart_simple(all_on=True)
+            self.add_params_biot_savart(xyz_tuples=(
+                (0.25, 0, -46),
+                (0.25, 0, 46)),
+                xy_bounds=0.1, z_bounds=0.1, v_bounds=100)
+
+        elif func_version == 121:
+            self.add_params_AB(skip_zero_n=False, skip_zero_m=False)
+            self.add_params_phase_shift()
+            self.add_params_cart_simple(on_list=['k3'])
+            # self.add_params_cart_simple(all_on=True)
+            self.add_params_biot_savart(xyz_tuples=(
+                (0.25, 0, -46),
+                (0.25, 0, 46)),
+                xy_bounds=0.1, z_bounds=0.1, v_bounds=100)
 
         if not cfg_pickle.recreate:
             print(f'fitting with func_version={func_version},\n'
@@ -314,7 +335,7 @@ class FieldFitter:
                                            method='least_squares', fit_kws={'max_nfev': 100})
 
         # Functions with r, z, phi, x, y dependence
-        elif func_version in [6, 8, 105, 115, 116, 117, 118, 119, 120]:
+        elif func_version in [6, 8, 105, 115, 116, 117, 118, 119, 120, 121]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
@@ -337,9 +358,9 @@ class FieldFitter:
                                                                             'gtol': 1e-15,
                                                                             'ftol': 1e-15,
                                                                             'xtol': 1e-15,
-                                                                            'tr_solver': 'lsmr',
-                                                                            'tr_options':
-                                                                            {'regularize': True}
+                                                                            # 'tr_solver': 'lsmr',
+                                                                            # 'tr_options':
+                                                                            # {'regularize': True}
                                                                             })
 
         self.params = self.result.params
@@ -386,19 +407,28 @@ class FieldFitter:
         if 'cms' not in self.params:
             self.params.add('cms', value=cfg_params.cms, vary=False)
 
-    def add_params_AB(self, skip_zero_n=False):
+    def add_params_AB(self, skip_zero_n=False, skip_zero_m=False):
         if skip_zero_n:
             ns_range = range(1, self.params['ns'].value)
         else:
             ns_range = range(self.params['ns'].value)
-        ms_range = range(self.params['ms'].value)
+        if skip_zero_m:
+            ms_range = range(1, self.params['ms'].value)
+        else:
+            ms_range = range(self.params['ms'].value)
 
         for n in ns_range:
             for m in ms_range:
-                if f'A_{n}_{m}' not in self.params:
-                    self.params.add(f'A_{n}_{m}', value=0, vary=True)
-                if f'B_{n}_{m}' not in self.params:
-                    self.params.add(f'B_{n}_{m}', value=0, vary=True)
+                if n == m == 0:
+                    if f'A_{n}_{m}' not in self.params:
+                        self.params.add(f'A_{n}_{m}', value=0, vary=False)
+                    if f'B_{n}_{m}' not in self.params:
+                        self.params.add(f'B_{n}_{m}', value=0, vary=False)
+                else:
+                    if f'A_{n}_{m}' not in self.params:
+                        self.params.add(f'A_{n}_{m}', value=0, vary=True)
+                    if f'B_{n}_{m}' not in self.params:
+                        self.params.add(f'B_{n}_{m}', value=0, vary=True)
 
     def add_params_CD(self, skip_zero_cn=False):
         if skip_zero_cn:
