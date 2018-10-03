@@ -148,7 +148,7 @@ class FieldFitter:
         Bz = self.input_data.Bz.values
         Br = self.input_data.Br.values
         Bphi = self.input_data.Bphi.values
-        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120, 121]:
+        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120, 121, 122]:
             XX = self.input_data.X.values
             YY = self.input_data.Y.values
 
@@ -191,11 +191,15 @@ class FieldFitter:
             fit_func = ff.brzphi_3d_producer_hel_v21(ZZ, RR, PP, pvd['R'], pvd['ns'], pvd['ms'],
                                                      pvd['cns'], pvd['cms'], pvd['n_scale'],
                                                      pvd['m_scale'])
+        elif func_version == 122:
+            fit_func = ff.brzphi_3d_producer_hel_v22(ZZ, RR, PP, pvd['R'], pvd['ns'], pvd['ms'],
+                                                     pvd['cns'], pvd['cms'], pvd['n_scale'],
+                                                     pvd['m_scale'])
         else:
             raise NotImplementedError(f'Function version={func_version} not implemented.')
 
         # Generate an lmfit Model
-        if func_version in [6, 8, 110, 115, 116, 117, 118, 119, 120, 121]:
+        if func_version in [6, 8, 110, 115, 116, 117, 118, 119, 120, 121, 122]:
             self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi', 'x', 'y'])
         else:
             self.mod = Model(fit_func, independent_vars=['r', 'z', 'phi'])
@@ -303,6 +307,16 @@ class FieldFitter:
                 (0.25, 0, 46)),
                 xy_bounds=0.1, z_bounds=0.1, v_bounds=100)
 
+        elif func_version == 122:
+            self.add_params_AB(skip_zero_n=False, skip_zero_m=False)
+            self.add_params_CD(skip_zero_cn=False)
+            self.add_params_cart_simple(on_list=['k3'])
+            # self.add_params_cart_simple(all_on=True)
+            self.add_params_biot_savart(xyz_tuples=(
+                (0.25, 0, -46),
+                (0.25, 0, 46)),
+                xy_bounds=0.01, z_bounds=0.01, v_bounds=100)
+
         if not cfg_pickle.recreate:
             print(f'fitting with func_version={func_version},\n'
                   f'n={cfg_params.ns}, m={cfg_params.ms}, cn={cfg_params.cns}, cm={cfg_params.cms}')
@@ -335,7 +349,7 @@ class FieldFitter:
                                            method='least_squares', fit_kws={'max_nfev': 100})
 
         # Functions with r, z, phi, x, y dependence
-        elif func_version in [6, 8, 105, 115, 116, 117, 118, 119, 120, 121]:
+        elif func_version in [6, 8, 105, 115, 116, 117, 118, 119, 120, 121, 122]:
             if cfg_pickle.recreate:
                 for param in self.params:
                     self.params[param].vary = False
