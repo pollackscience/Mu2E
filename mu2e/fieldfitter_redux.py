@@ -148,7 +148,7 @@ class FieldFitter:
         Bz = self.input_data.Bz.values
         Br = self.input_data.Br.values
         Bphi = self.input_data.Bphi.values
-        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120, 121, 122]:
+        if func_version in [6, 8, 105, 110, 115, 116, 117, 118, 119, 120, 121, 122, 1000]:
             XX = self.input_data.X.values
             YY = self.input_data.Y.values
 
@@ -295,7 +295,9 @@ class FieldFitter:
             self.add_params_biot_savart(xyz_tuples=(
                 (0.25, 0, -46),
                 (0.25, 0, 46)),
-                xy_bounds=0.1, z_bounds=0.1, v_bounds=100)
+                # (0.25, 0, -4.6),
+                # (0.25, 0, 4.6)),
+                xy_bounds=0.1, z_bounds=46, v_bounds=100)
 
         elif func_version == 121:
             self.add_params_AB(skip_zero_n=False, skip_zero_m=False)
@@ -305,7 +307,7 @@ class FieldFitter:
             self.add_params_biot_savart(xyz_tuples=(
                 (0.25, 0, -46),
                 (0.25, 0, 46)),
-                xy_bounds=0.1, z_bounds=0.1, v_bounds=100)
+                xy_bounds=0.1, z_bounds=46, v_bounds=100)
 
         elif func_version == 122:
             self.add_params_AB(skip_zero_n=False, skip_zero_m=False)

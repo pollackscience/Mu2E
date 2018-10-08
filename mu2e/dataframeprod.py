@@ -598,9 +598,15 @@ if __name__ == "__main__":
     #     input_type='csv', field_map_version='Cole_10x')
     # data_maker.do_basic_modifications(descale=True)
 
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/10x_bfield_map_cylin_985152pts_09-20_162454',
+    #     input_type='csv', field_map_version='Cole_10x_v2',
+    #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    # data_maker.do_basic_modifications(descale=True, reverse=True)
+
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsCole/10x_bfield_map_cylin_985152pts_09-20_162454',
-        input_type='csv', field_map_version='Cole_10x_v2',
+        mu2e_ext_path+'datafiles/FieldMapsCole/bfield_map_cylin_985152pts_10-03_150151',
+        input_type='csv', field_map_version='Cole_250mm_v2',
         header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
     data_maker.do_basic_modifications(descale=True, reverse=True)
 

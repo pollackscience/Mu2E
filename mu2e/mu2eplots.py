@@ -112,7 +112,7 @@ def mu2e_plot(df, x, y, conditions=None, mode='mpl', info=None, savename=None, a
         py_fig['layout']['showlegend'] = True
 
         if mode == 'plotly_nb':
-            init_notebook_mode()
+            # init_notebook_mode()
             iplot(py_fig)
         elif mode == 'plotly_html':
             if savename:
@@ -175,12 +175,12 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     piv = df.pivot(x, y, z)
     X = piv.index.values
     Y = piv.columns.values
-    Z = np.transpose(piv.values)
+    Z = np.transpose(piv.values)*10000
     Xi, Yi = np.meshgrid(X, Y)
     if df_fit:
         piv_fit = df.pivot(x, y, z+'_fit')
-        Z_fit = np.transpose(piv_fit.values)
-        data_fit_diff = (Z - Z_fit)*10000
+        Z_fit = np.transpose(piv_fit.values)*10000
+        data_fit_diff = (Z - Z_fit)
         Xa = np.concatenate(([X[0]], 0.5*(X[1:]+X[:-1]), [X[-1]]))
         Ya = np.concatenate(([Y[0]], 0.5*(Y[1:]+Y[:-1]), [Y[-1]]))
 
@@ -199,17 +199,23 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     # Start plotting
     if 'mpl' in mode:
         if not ax:
-            if ptype.lower() == '3d':
+            if ptype.lower() == '3d' and not df_fit:
                 fig = plt.figure().gca(projection='3d')
-            else:
+            elif ptype.lower() == 'heat':
                 fig = plt.figure()
+            else:
+                fig = plt.figure(figsize=plt.figaspect(0.4), constrained_layout=True)
+                fig.set_constrained_layout_pads(hspace=0., wspace=0.15)
 
         if df_fit:
-            fig.plot(Xi.ravel(), Yi.ravel(), Z.ravel(), 'ko', markersize=2)
-            fig.plot_wireframe(Xi, Yi, Z_fit, color='green')
+            ax = fig.add_subplot(1, 2, 1, projection='3d')
+            ax.plot(Xi.ravel(), Yi.ravel(), Z.ravel(), 'ko', markersize=2)
+            ax.plot_wireframe(Xi, Yi, Z_fit, color='green')
         elif ptype.lower() == '3d':
-            fig.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
-                             linewidth=0, antialiased=False)
+            if not ax:
+                ax = fig.gca()
+            ax.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
+                            linewidth=0, antialiased=False)
         elif ptype.lower() == 'heat':
             if ax:
                 pcm = ax.pcolormesh(Xi, Yi, Z, cmap=plt.get_cmap('viridis'))
@@ -221,18 +227,18 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
         plt.xlabel(f'{x} ({units})', fontsize=18)
         plt.ylabel(f'{y} ({units})', fontsize=18)
         if ptype.lower() == '3d':
-            fig.set_zlabel(z+' (T)', fontsize=18)
-            fig.ticklabel_format(style='sci', axis='z')
-            fig.zaxis.labelpad = 20
-            fig.zaxis.set_tick_params(direction='out', pad=10)
-            fig.xaxis.labelpad = 20
-            fig.yaxis.labelpad = 20
+            ax.set_zlabel(z+' (G)', fontsize=18)
+            ax.ticklabel_format(style='sci', axis='z')
+            ax.zaxis.labelpad = 20
+            ax.zaxis.set_tick_params(direction='out', pad=10)
+            ax.xaxis.labelpad = 20
+            ax.yaxis.labelpad = 20
         elif do_title:
             if ax:
                 cb = plt.colorbar(pcm)
             else:
                 cb = plt.colorbar()
-            cb.set_label(z+' (T)', fontsize=18)
+            cb.set_label(z+' (G)', fontsize=18)
         if do_title:
             if title_simp:
                 plt.title(title_simp)
@@ -243,13 +249,12 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
                           fontsize=20)
         if ptype.lower() == '3d':
-            fig.view_init(elev=35., azim=30)
-        if save_dir:
-            plt.savefig(save_dir+'/'+save_name+'.png')
+            ax.view_init(elev=35., azim=30)
+        # if save_dir:
+        #     plt.savefig(save_dir+'/'+save_name+'.png')
 
         if df_fit:
-            fig2 = plt.figure()
-            ax2 = fig2.add_subplot(111)
+            ax2 = fig.add_subplot(1, 2, 2)
             max_val = np.max(data_fit_diff)
             min_val = np.min(data_fit_diff)
             abs_max_val = max(abs(max_val), abs(min_val))
@@ -264,9 +269,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             # else:
             heat = ax2.pcolormesh(Xa, Ya, data_fit_diff, cmap=plt.get_cmap('viridis'),
                                   vmin=-abs_max_val, vmax=abs_max_val)
-            cb = plt.colorbar(heat, aspect=7)
-            plt.title('{0} vs {1} and {2} for DS\n{3}'.format(z, x, y, conditions_title),
-                      fontsize=20)
+            cb = plt.colorbar(heat, aspect=20)
+            plt.title('Residual, Data-Fit', fontsize=20)
             cb.set_label('Data-Fit (G)', fontsize=18)
             ax2.set_xlabel(f'{x} ({units})', fontsize=18)
             ax2.set_ylabel(f'{y} ({units})', fontsize=18)
@@ -275,11 +279,23 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 plt.savefig(save_dir+'/'+save_name+'_heat.pdf')
 
     elif 'plotly' in mode:
+        if z == 'Bz':
+            z_fancy = '$B_z$'
+        elif z == 'Br':
+            z_fancy = '$B_r$'
+        elif z == 'Bphi':
+            z_fancy = r'$B_{\theta}$'
         if aspect == 'square':
             ar = dict(x=1, y=1, z=1)
+            width = 800
+            height = 650
         elif aspect == 'rect':
             ar = dict(x=1, y=4, z=1)
-        axis_title_size = 20
+        elif aspect == 'rect2':
+            ar = dict(x=1, y=2, z=1)
+            width = 900
+            height = 750
+        axis_title_size = 25
         axis_tick_size = 16
         if title_simp:
             title = title_simp
@@ -292,8 +308,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             layout = go.Layout(
                 title=title,
                 # ticksuffix is a workaround to add a bit of padding
-                width=800,
-                height=650,
+                width=height,
+                height=width,
                 autosize=False,
                 xaxis=dict(
                     title=f'{x} ({units})',
@@ -312,8 +328,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                 title=title,
                 titlefont=dict(size=30),
                 autosize=False,
-                width=800,
-                height=650,
+                width=width,
+                height=height,
                 scene=dict(
                     xaxis=dict(
                         title=f'{x} ({units})',
@@ -335,24 +351,27 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
                         backgroundcolor='rgb(230, 230,230)',
                     ),
                     zaxis=dict(
-                        title='{} (T)'.format(z),
+                        # title='B (G)',
+                        title='',
                         titlefont=dict(size=axis_title_size, family='Arial Black'),
                         tickfont=dict(size=axis_tick_size),
                         gridcolor='rgb(255, 255, 255)',
                         zerolinecolor='rgb(255, 255, 255)',
                         showbackground=True,
                         backgroundcolor='rgb(230, 230,230)',
+                        showticklabels=False,
+                        showaxeslabels=False,
                     ),
                     aspectratio=ar,
                     aspectmode='manual',
-                    # camera=dict(
-                    #     center=dict(x=0.3418127574641789,
-                    #                 y=0.12671099315843098,
-                    #                 z=-0.586843601396289),
-                    #     eye=dict(x=2.4496546255787175,
-                    #              y=2.4876029142395506,
-                    #              z=1.0875472335683052)
-                    # ),
+                    camera=dict(
+                        center=dict(x=0,
+                                    y=0,
+                                    z=-0.3),
+                        eye=dict(x=2.4496546255787175/1.6,
+                                 y=2.4876029142395506/1.6,
+                                 z=2.5875472335683052/1.6)
+                    ),
 
                 ),
                 showlegend=True,
@@ -416,9 +435,9 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             if ptype == '3d':
                 surface = go.Surface(
                     x=Xi, y=Yi, z=Z,
-                    colorbar=go.ColorBar(title='Tesla',
+                    colorbar=go.ColorBar(title='Gauss',
                                          titleside='right',
-                                         titlefont=dict(size=20),
+                                         titlefont=dict(size=25),
                                          tickfont=dict(size=18),
                                          ),
                     colorscale='Viridis')
@@ -426,7 +445,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             elif ptype == 'heat':
                 heat = go.Heatmap(x=X, y=Y, z=Z,
                                   colorbar=go.ColorBar(
-                                      title='{0} (T)'.format(z),
+                                      title='{0} (G)'.format(z),
                                       titleside='top',
                                       titlefont=dict(size=18),
                                       tickfont=dict(size=20),
@@ -453,7 +472,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             else:
                 plot(fig)
 
-    return save_name
+    # return save_name
+    return fig
 
 
 def mu2e_plot3d_ptrap(df, x, y, z, save_name=None, color=None, df_xray=None, x_range=None,

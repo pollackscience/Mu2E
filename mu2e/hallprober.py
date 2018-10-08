@@ -86,7 +86,7 @@ from tqdm import tqdm
 from scipy.interpolate import Rbf
 import mu2e
 from mu2e.dataframeprod import DataFrameMaker
-from mu2e.fieldfitter_redux import FieldFitter
+from mu2e.fieldfitter_redux2 import FieldFitter
 from mu2e.mu2eplots import mu2e_plot3d
 from mu2e import mu2e_ext_path
 import imp
@@ -178,6 +178,9 @@ class HallProbeGenerator(object):
         else:
             # complicated indexing
             # (because phi values must be "close", but R and Z can be exact matches)
+            # print(self.sparse_field.Phi)
+            # print(self.phi_nphi_steps)
+            # print(np.ravel(self.r_steps))
             self.sparse_field = self.sparse_field[
                 (np.isclose(self.sparse_field.Phi.values[:, None],
                             self.phi_nphi_steps).any(axis=1)) &

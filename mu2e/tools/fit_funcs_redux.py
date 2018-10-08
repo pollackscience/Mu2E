@@ -1865,21 +1865,21 @@ def brzphi_3d_producer_hel_v20(z, r, phi, L, ns, ms, cns, cms, n_scale, m_scale)
     def calc_b_fields(z, phi, r, P, m, n, A, B,
                       iv, ivp, model_r, model_z, model_phi):
         for i in prange(z.shape[0]):
-            AA = A*np.sin(-2*phi[i]-0.07348025)
-            BB = B*np.cos(2*phi[i]+0.07348025)
-            # AA = A
-            # BB = B
+            # AA = A*np.sin(-2*phi[i]-0.07348025)
+            # BB = B*np.cos(2*phi[i]+0.07348025)
+            AA = A
+            BB = B
             model_r[i] += (n/P) * \
-                (ivp[i]*(AA*np.cos(n*z[i]/P+m*phi[i]) +
-                         BB*np.sin(n*z[i]/P+m*phi[i])))
+                (ivp[i]*(AA*np.cos(-n*z[i]/P+m*phi[i]) +
+                         BB*np.sin(-n*z[i]/P+m*phi[i])))
 
-            model_z[i] += (n/P) * \
-                (iv[i]*(-AA*np.sin(n*z[i]/P+m*phi[i]) +
-                        BB*np.cos(n*z[i]/P+m*phi[i])))
+            model_z[i] += (-n/P) * \
+                (iv[i]*(-AA*np.sin(-n*z[i]/P+m*phi[i]) +
+                        BB*np.cos(-n*z[i]/P+m*phi[i])))
 
             model_phi[i] += (1.0/r[i]) * \
-                (m*iv[i]*(AA*np.sin(n*z[i]/P+m*phi[i]) -
-                          BB*np.cos(n*z[i]/P+m*phi[i])))
+                -(m*iv[i]*(AA*np.sin(-n*z[i]/P+m*phi[i]) -
+                           BB*np.cos(-n*z[i]/P+m*phi[i])))
 
     @njit(parallel=True)
     def calc_b_fields_cart(x, y, z, phi, vx, vy, vz, x0, y0, z0,
@@ -2194,8 +2194,8 @@ def brzphi_3d_producer_hel_v22(z, r, phi, L, ns, ms, cns, cms, n_scale, m_scale)
 
         for n in range(ns):
             for m, ab in enumerate(pairwise(ABs[n*ms*2:(n+1)*(ms)*2])):
-                A = AB_params[ab[0]]
-                B = AB_params[ab[1]]
+                # A = AB_params[ab[0]]
+                # B = AB_params[ab[1]]
                 _iv1 = iv1[n][m]
                 _ivp1 = ivp1[n][m]
                 # calc_b_fields(z, phi, r, P, skip_ms[m], fine_ns[n], A, B, _iv1, _ivp1,
@@ -2204,6 +2204,223 @@ def brzphi_3d_producer_hel_v22(z, r, phi, L, ns, ms, cns, cms, n_scale, m_scale)
                 D = AB_params[f'D_{n}_{m}']
                 calc_b_fields2(z, phi, r, P, skip_ms[m], fine_ns[n], C, D, _iv1, _ivp1,
                                model_r, model_z, model_phi)
+
+        n_bs = len([bs for bs in AB_params.keys() if 'vx' in bs])
+        for i in range(1, n_bs+1):
+            vx = AB_params[f'vx{i}']
+            vy = AB_params[f'vy{i}']
+            vz = AB_params[f'vz{i}']
+            x0 = AB_params[f'x{i}']
+            y0 = AB_params[f'y{i}']
+            z0 = AB_params[f'z{i}']
+            calc_b_fields_cart(x, y, z, phi, vx, vy, vz, x0, y0, z0,
+                               model_r, model_phi, model_z)
+
+        k1 = AB_params['k1']
+        k2 = AB_params['k2']
+        k3 = AB_params['k3']
+        k4 = AB_params['k4']
+        k5 = AB_params['k5']
+        k6 = AB_params['k6']
+        k7 = AB_params['k7']
+        k8 = AB_params['k8']
+        k9 = AB_params['k9']
+        k10 = AB_params['k10']
+        calc_b_fields_cart2(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                            model_r, model_phi, model_z)
+
+        return np.concatenate([model_r, model_z, model_phi]).ravel()
+    return brzphi_3d_fast
+
+
+def brzphi_3d_producer_giant_function(z, r, phi,
+                                      pitch1, ms_h1, ns_h1,
+                                      pitch2, ms_h2, ns_h2,
+                                      length1, ms_c1, ns_c1,
+                                      length2, ms_c2, ns_c2):
+    '''
+    Factory function that readies a potential fit function for a 3D magnetic field.
+    This function includes:
+        2 copies of the cylindrical expansion.
+        2 copies of the helical expansion (with both left and right handed sol'n).
+        The BS functions.
+        The trivial cartesian functions.
+
+    The reasoning behind doubling up on series expansions is to hit both the high frequency
+    (helically induced) and low frequency (finite-length induced) components of a mag field without
+    forcing a series expansion to collect terms forever.
+
+    Ms and Ns are redefined: Ms now always correspond to z-related frequencies, and Ns correspond to
+    phi-related frequencies.  Coefficients are now A_m_n instead of A_n_m (which was a dyslexic
+    oversight to begin with).
+
+    Ms always have a +1, Ns always start at 0 (The m=0 term is always 0)
+
+    Left and right handed helical solutions are coupled for ease of use (expanded to same number of
+    terms).  This is not a requirement and could be decoupled if you add more starting parameters.
+    '''
+
+    # Set up helical bessels
+    pitch1b = pitch1/(2*np.pi)
+    pitch2b = pitch2/(2*np.pi)
+
+    iv_h1 = np.zeros((ms_h1, ns_h1, len(r)))
+    ivp_h1 = np.zeros((ms_h1, ns_h1, len(r)))
+    hms1 = np.zeros(ms_h1)
+
+    iv_h2 = np.zeros((ms_h2, ns_h2, len(r)))
+    ivp_h2 = np.zeros((ms_h2, ns_h2, len(r)))
+    hms2 = np.zeros(ms_h2)
+
+    for m_h1 in range(ms_h1):
+        hms1[m_h1] = (m_h1+1)/pitch1b
+        for n_h1 in range(ns_h1):
+                iv_h1[m_h1][n_h1] = special.iv(n_h1, hms1[m_h1]*r)
+                ivp_h1[m_h1][n_h1] = special.ivp(n_h1, hms1[m_h1]*r)
+
+    for m_h2 in range(ms_h2):
+        hms2[m_h2] = (m_h2+1)/pitch2b
+        for n_h2 in range(ns_h2):
+                iv_h2[m_h2][n_h2] = special.iv(n_h2, hms2[m_h2]*r)
+                ivp_h2[m_h2][n_h2] = special.ivp(n_h2, hms2[m_h2]*r)
+
+    # Set up cylindrical bessels
+    iv_c1 = np.zeros((ms_c1, ns_c1, len(r)))
+    ivp_c1 = np.zeros((ms_c1, ns_c1, len(r)))
+    cms1 = np.zeros(ms_c1)
+
+    iv_c2 = np.zeros((ms_c2, ns_c2, len(r)))
+    ivp_c2 = np.zeros((ms_c2, ns_c2, len(r)))
+    cms2 = np.zeros(ms_c2)
+
+    for m_c1 in range(ms_c1):
+        cms1[m_c1] = (m_c1+1)*np.pi/length1
+        for n_c1 in range(ns_c1):
+            iv_c1[m_c1][n_c1] = special.iv(n_c1, cms1[m_c1]*r)
+            ivp_c1[m_c1][n_c1] = special.ivp(n_c1, cms1[m_c1]*r)
+
+    for m_c2 in range(ms_c2):
+        cms2[m_c2] = (m_c2+1)*np.pi/length2
+        for n_c2 in range(ns_c2):
+            iv_c2[m_c2][n_c2] = special.iv(n_c2, cms2[m_c2]*r)
+            ivp_c2[m_c2][n_c2] = special.ivp(n_c2, cms2[m_c2]*r)
+
+    @njit(parallel=True)
+    def calc_b_fields_helR(z, phi, r, hms, n, A, B, iv, ivp, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += hms * \
+                (ivp[i]*(A*np.cos(hms*z[i]+n*phi[i]) +
+                         B*np.sin(hms*z[i]+n*phi[i])))
+
+            model_z[i] += hms * \
+                (iv[i]*(-A*np.sin(hms*z[i]+n*phi[i]) +
+                        B*np.cos(hms*z[i]+n*phi[i])))
+
+            model_phi[i] += (1.0/r[i]) * \
+                -(n*iv[i]*(A*np.sin(hms*z[i]+n*phi[i]) -
+                           B*np.cos(hms*z[i]+n*phi[i])))
+
+    @njit(parallel=True)
+    def calc_b_fields_helL(z, phi, r, hms, n, C, D, iv, ivp, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += hms * \
+                (ivp[i]*(C*np.cos(-hms*z[i]+n*phi[i]) +
+                         D*np.sin(-hms*z[i]+n*phi[i])))
+
+            model_z[i] += -hms * \
+                (iv[i]*(-C*np.sin(-hms*z[i]+n*phi[i]) +
+                        D*np.cos(-hms*z[i]+n*phi[i])))
+
+            model_phi[i] += (1.0/r[i]) * \
+                -(n*iv[i]*(C*np.sin(-hms*z[i]+n*phi[i]) -
+                           D*np.cos(-hms*z[i]+n*phi[i])))
+
+    @njit(parallel=True)
+    def calc_b_fields_cyl(z, phi, r, cms, n, A, B, D, ivp, iv, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                ivp[i]*cms*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
+
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                iv[i]*cms*(-A*np.sin(cms*z[i]) + B*np.cos(cms*z[i]))
+
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
+                (1/r[i])*iv[i]*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
+
+    @njit(parallel=True)
+    def calc_b_fields_cart(x, y, z, phi, vx, vy, vz, x0, y0, z0,
+                           model_r, model_phi, model_z):
+        for i in prange(z.shape[0]):
+            v = np.array([vx, vy, vz])
+            r = np.array([x[i]-x0, y[i]-y0, z[i]-z0])
+            rsq = np.linalg.norm(r)**2
+            res = np.array([v[1]*r[2]-v[2]*r[1], v[2]*r[0]-v[0]*r[2],
+                            v[0]*r[1]-v[1]*r[0]])/rsq
+            model_xt, model_yt, model_zt = res
+
+            model_z[i] += model_zt
+            model_r[i] += model_xt*np.cos(phi[i]) + model_yt*np.sin(phi[i])
+            model_phi[i] += -model_xt*np.sin(phi[i]) + model_yt*np.cos(phi[i])
+
+    @njit(parallel=True)
+    def calc_b_fields_cart2(x, y, z, phi, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
+                            model_r, model_phi, model_z):
+        for i in prange(z.shape[0]):
+            model_x = k1 + k4*x[i] + k7*y[i] + k8*z[i] + k10*y[i]*z[i]
+
+            model_y = k2 + k5*y[i] + k7*x[i] + k9*z[i] + k10*x[i]*z[i]
+
+            model_z[i] += k3 + k6*z[i] + k8*x[i] + k9*y[i] + k10*x[i]*y[i]
+
+            model_r[i] += model_x*np.cos(phi[i]) + model_y*np.sin(phi[i])
+            model_phi[i] += -model_x*np.sin(phi[i]) + model_y*np.cos(phi[i])
+
+    def brzphi_3d_fast(z, r, phi, x, y, **AB_params):
+        """ 3D model for Bz Br and Bphi vs Z and R. Can take any number of AnBn terms."""
+
+        model_r = np.zeros(z.shape, dtype=np.float64)
+        model_z = np.zeros(z.shape, dtype=np.float64)
+        model_phi = np.zeros(z.shape, dtype=np.float64)
+
+        for m in range(ms_h1):
+            for n in range(ns_h1):
+                A = AB_params[f'Ah1_{m}_{n}']
+                B = AB_params[f'Bh1_{m}_{n}']
+                C = AB_params[f'Ch1_{m}_{n}']
+                D = AB_params[f'Dh1_{m}_{n}']
+                calc_b_fields_helR(z, phi, r, hms1[m], n, A, B, iv_h1[m][n], ivp_h1[m][n],
+                                   model_r, model_z, model_phi)
+
+                calc_b_fields_helL(z, phi, r, hms1[m], n, C, D, iv_h1[m][n], ivp_h1[m][n],
+                                   model_r, model_z, model_phi)
+
+        for m in range(ms_h2):
+            for n in range(ns_h2):
+                A = AB_params[f'Ah2_{m}_{n}']
+                B = AB_params[f'Bh2_{m}_{n}']
+                C = AB_params[f'Ch2_{m}_{n}']
+                D = AB_params[f'Dh2_{m}_{n}']
+                calc_b_fields_helR(z, phi, r, hms2[m], n, A, B, iv_h2[m][n], ivp_h2[m][n],
+                                   model_r, model_z, model_phi)
+
+                calc_b_fields_helL(z, phi, r, hms2[m], n, C, D, iv_h2[m][n], ivp_h2[m][n],
+                                   model_r, model_z, model_phi)
+
+        for m in range(ms_c1):
+            for n in range(ns_c1):
+                A = AB_params[f'Ac1_{m}_{n}']
+                B = AB_params[f'Bc1_{m}_{n}']
+                D = AB_params[f'Dc1_{n}']
+                calc_b_fields_cyl(z, phi, r, cms1[m], n, A, B, D, iv_c1[m][n], ivp_c1[m][n],
+                                  model_r, model_z, model_phi)
+
+        for m in range(ms_c2):
+            for n in range(ns_c2):
+                A = AB_params[f'Ac2_{m}_{n}']
+                B = AB_params[f'Bc2_{m}_{n}']
+                D = AB_params[f'Dc2_{n}']
+                calc_b_fields_cyl(z, phi, r, cms2[m], n, A, B, D, iv_c2[m][n], ivp_c2[m][n],
+                                  model_r, model_z, model_phi)
 
         n_bs = len([bs for bs in AB_params.keys() if 'vx' in bs])
         for i in range(1, n_bs+1):
