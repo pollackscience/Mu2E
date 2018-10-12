@@ -131,13 +131,21 @@ class FieldFitter:
         YY           = []
 
         # Load pre-defined starting values for parameters, or start a new set
-        if cfg_pickle.use_pickle or cfg_pickle.recreate:
+        if cfg_pickle.recreate:
             try:
                 self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
                                             "rb"))
             except UnicodeDecodeError:
                 self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
                                             "rb"), encoding='latin1')
+        elif cfg_pickle.use_pickle:
+            try:
+                self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
+                                            "rb"))
+            except UnicodeDecodeError:
+                self.params = pkl.load(open(self.pickle_path+cfg_pickle.load_name+'_results.p',
+                                            "rb"), encoding='latin1')
+            self.add_params_default(cfg_params)
         else:
             self.params = Parameters()
             self.add_params_default(cfg_params)
@@ -180,9 +188,7 @@ class FieldFitter:
             self.add_params_biot_savart(xyz_tuples=(
                 (0.25, 0, -46),
                 (0.25, 0, 46)),
-                # (0.25, 0, -4.6),
-                # (0.25, 0, 4.6)),
-                xy_bounds=0.1, z_bounds=46, v_bounds=100)
+                xy_bounds=0.1, z_bounds=1, v_bounds=5)
 
         if not cfg_pickle.recreate:
             print(f'fitting with func_version={func_version},')
@@ -205,20 +211,21 @@ class FieldFitter:
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                        method='leastsq', fit_kws={'maxfev': 10000})
+                                       # method='least_squares')
         else:
             # mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       # method='leastsq', fit_kws={'maxfev': 10000})
-                                       method='least_squares', fit_kws={'verbose': 1,
-                                                                        'gtol': 1e-15,
-                                                                        'ftol': 1e-15,
-                                                                        'xtol': 1e-15,
-                                                                        # 'tr_solver': 'lsmr',
-                                                                        # 'tr_options':
-                                                                        # {'regularize': True}
-                                                                        })
+                                       method='leastsq', fit_kws={'maxfev': 10000})
+                                       #method='least_squares', fit_kws={'verbose': 1,
+                                       #                                 'gtol': 1e-16,
+                                       #                                 'ftol': 1e-16,
+                                       #                                 'xtol': 1e-16,
+                                       ##                                   # 'tr_solver': 'lsmr',
+                                       ##                                   # 'tr_options':
+                                       ##                                   # {'regularize': True}
+                                       #                                })
 
         self.params = self.result.params
         end_time = time()
@@ -251,28 +258,52 @@ class FieldFitter:
     def add_params_default(self, cfg_params):
         if 'pitch1' not in self.params:
             self.params.add('pitch1', value=cfg_params.pitch1, vary=False)
+        else:
+            self.params['pitch1'].value = cfg_params.pitch1
         if 'ms_h1' not in self.params:
             self.params.add('ms_h1', value=cfg_params.ms_h1, vary=False)
+        else:
+            self.params['ms_h1'].value = cfg_params.ms_h1
         if 'ns_h1' not in self.params:
             self.params.add('ns_h1', value=cfg_params.ns_h1, vary=False)
+        else:
+            self.params['ns_h1'].value = cfg_params.ns_h1
         if 'pitch2' not in self.params:
             self.params.add('pitch2', value=cfg_params.pitch2, vary=False)
+        else:
+            self.params['pitch2'].value = cfg_params.pitch2
         if 'ms_h2' not in self.params:
             self.params.add('ms_h2', value=cfg_params.ms_h2, vary=False)
+        else:
+            self.params['ms_h2'].value = cfg_params.ms_h2
         if 'ns_h2' not in self.params:
             self.params.add('ns_h2', value=cfg_params.ns_h2, vary=False)
+        else:
+            self.params['ns_h2'].value = cfg_params.ns_h2
         if 'length1' not in self.params:
             self.params.add('length1', value=cfg_params.length1, vary=False)
+        else:
+            self.params['length1'].value = cfg_params.length1
         if 'ms_c1' not in self.params:
             self.params.add('ms_c1', value=cfg_params.ms_c1, vary=False)
+        else:
+            self.params['ms_c1'].value = cfg_params.ms_c1
         if 'ns_c1' not in self.params:
             self.params.add('ns_c1', value=cfg_params.ns_c1, vary=False)
+        else:
+            self.params['ns_c1'].value = cfg_params.ns_c1
         if 'length2' not in self.params:
             self.params.add('length2', value=cfg_params.length2, vary=False)
+        else:
+            self.params['length2'].value = cfg_params.length2
         if 'ms_c2' not in self.params:
             self.params.add('ms_c2', value=cfg_params.ms_c2, vary=False)
+        else:
+            self.params['ms_c2'].value = cfg_params.ms_c2
         if 'ns_c2' not in self.params:
             self.params.add('ns_c2', value=cfg_params.ns_c2, vary=False)
+        else:
+            self.params['ns_c2'].value = cfg_params.ns_c2
 
     def add_params_hel(self, num):
         ms_range = range(self.params[f'ms_h{num}'].value)
@@ -281,9 +312,9 @@ class FieldFitter:
         for m in ms_range:
             for n in ns_range:
                 if f'Ah{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Ah{num}_{m}_{n}', value=0, vary=True)
+                    self.params.add(f'Ah{num}_{m}_{n}', value=0, vary=False)
                 if f'Bh{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Bh{num}_{m}_{n}', value=0, vary=True)
+                    self.params.add(f'Bh{num}_{m}_{n}', value=0, vary=False)
                 if f'Ch{num}_{m}_{n}' not in self.params:
                     self.params.add(f'Ch{num}_{m}_{n}', value=0, vary=True)
                 if f'Dh{num}_{m}_{n}' not in self.params:
@@ -292,15 +323,26 @@ class FieldFitter:
     def add_params_cyl(self, num):
         ms_range = range(self.params[f'ms_c{num}'].value)
         ns_range = range(self.params[f'ns_c{num}'].value)
+        np.random.seed(101)
+        d_vals = np.linspace(-np.pi, np.pi, len(ns_range))
 
         for m in ms_range:
             for n in ns_range:
-                if f'Ac{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=True)
-                if f'Bc{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=True)
-                if f'Dc{num}_{n}' not in self.params:
-                    self.params.add(f'Dc{num}_{n}', value=0.5, min=0, max=1, vary=True)
+                # if (n-1) % 4!= 0:
+                if n == 0:
+                    if f'Ac{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=False)
+                    if f'Bc{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=False)
+                    if f'Dc{num}_{n}' not in self.params:
+                        self.params.add(f'Dc{num}_{n}', value=0, min=-1, max=1, vary=False)
+                else:
+                    if f'Ac{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=True)
+                    if f'Bc{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=True)
+                    if f'Dc{num}_{n}' not in self.params:
+                        self.params.add(f'Dc{num}_{n}', value=d_vals[n], min=-np.pi, max=np.pi, vary=True)
 
     def add_params_cart_simple(self, all_on=False, on_list=None):
         cart_names = [f'k{i}' for i in range(1, 11)]
@@ -313,7 +355,10 @@ class FieldFitter:
                     self.params.add(k, value=0, vary=True)
             else:
                 if k not in self.params:
-                    self.params.add(k, value=0, vary=(k in on_list))
+                    if k == 'k3':
+                        self.params.add(k, value=768, vary=(k in on_list))
+                    else:
+                        self.params.add(k, value=0, vary=(k in on_list))
 
     def add_params_finite_wire(self):
         if 'k1' not in self.params:
@@ -334,7 +379,7 @@ class FieldFitter:
             self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
 
     def add_params_biot_savart(self, xyz_tuples=None, v_tuples=None, xy_bounds=100, z_bounds=100,
-                               v_bounds=100):
+                               v_bounds=2):
         if v_tuples and len(v_tuples) != len(xyz_tuples):
             raise AttributeError('If v_tuples is specified it must be same size as xyz_tuples')
 
@@ -343,12 +388,18 @@ class FieldFitter:
             if f'x{i}' not in self.params:
                 self.params.add(f'x{i}', value=x, vary=True,
                                 min=x-xy_bounds, max=x+xy_bounds)
+            else:
+                self.params[f'x{i}'].vary = False
             if f'y{i}' not in self.params:
                 self.params.add(f'y{i}', value=y, vary=True,
                                 min=y-xy_bounds, max=y+xy_bounds)
+            else:
+                self.params[f'y{i}'].vary = False
             if f'z{i}' not in self.params:
                 self.params.add(f'z{i}', value=z, vary=True,
                                 min=z-z_bounds, max=z+z_bounds)
+            else:
+                self.params[f'z{i}'].vary = False
 
             if v_tuples:
                 vx, vy, vz = v_tuples[i-1]
@@ -357,9 +408,15 @@ class FieldFitter:
             if f'vx{i}' not in self.params:
                 self.params.add(f'vx{i}', value=vx, vary=True,
                                 min=vx-v_bounds, max=vx+v_bounds)
+            else:
+                self.params[f'vx{i}'].vary = False
             if f'vy{i}' not in self.params:
                 self.params.add(f'vy{i}', value=vy, vary=True,
                                 min=vy-v_bounds, max=vy+v_bounds)
+            else:
+                self.params[f'vy{i}'].vary = False
             if f'vz{i}' not in self.params:
                 self.params.add(f'vz{i}', value=vz, vary=True,
                                 min=vz-v_bounds, max=vz+v_bounds)
+            else:
+                self.params[f'vz{i}'].vary = False

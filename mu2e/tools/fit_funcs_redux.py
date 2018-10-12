@@ -2338,13 +2338,13 @@ def brzphi_3d_producer_giant_function(z, r, phi,
     @njit(parallel=True)
     def calc_b_fields_cyl(z, phi, r, cms, n, A, B, D, ivp, iv, model_r, model_z, model_phi):
         for i in prange(z.shape[0]):
-            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+            model_r[i] += (np.cos(D)*np.sin(n*phi[i]) + np.sin(D)*np.cos(n*phi[i])) * \
                 ivp[i]*cms*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
 
-            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+            model_z[i] += (np.cos(D)*np.sin(n*phi[i]) + np.sin(D)*np.cos(n*phi[i])) * \
                 iv[i]*cms*(-A*np.sin(cms*z[i]) + B*np.cos(cms*z[i]))
 
-            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
+            model_phi[i] += n*(np.cos(D)*np.cos(n*phi[i]) - np.sin(D)*np.sin(n*phi[i])) * \
                 (1/r[i])*iv[i]*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
 
     @njit(parallel=True)

@@ -175,11 +175,11 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     piv = df.pivot(x, y, z)
     X = piv.index.values
     Y = piv.columns.values
-    Z = np.transpose(piv.values)*10000
+    Z = np.transpose(piv.values)
     Xi, Yi = np.meshgrid(X, Y)
     if df_fit:
         piv_fit = df.pivot(x, y, z+'_fit')
-        Z_fit = np.transpose(piv_fit.values)*10000
+        Z_fit = np.transpose(piv_fit.values)
         data_fit_diff = (Z - Z_fit)
         Xa = np.concatenate(([X[0]], 0.5*(X[1:]+X[:-1]), [X[-1]]))
         Ya = np.concatenate(([Y[0]], 0.5*(Y[1:]+Y[:-1]), [Y[-1]]))
