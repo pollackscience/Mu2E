@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """Module for implementing the functional forms used for fitting the magnetic field.
 
 This module contains an assortment of factory functions used to produce mathematical expressions
@@ -332,8 +332,10 @@ def brzphi_3d_producer_modbessel_phase(z, r, phi, L, ns, ms):
         for i in prange(z.shape[0]):
             model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
                 ivp[i]*kms*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
+
             model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
                 iv[i]*kms*(-A*np.sin(kms*z[i]) + B*np.cos(kms*z[i]))
+
             model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
                 (1/r[i])*iv[i]*(A*np.cos(kms*z[i]) + B*np.sin(kms*z[i]))
 
@@ -2285,25 +2287,31 @@ def brzphi_3d_producer_giant_function(z, r, phi,
                 ivp_h2[m_h2][n_h2] = special.ivp(n_h2, hms2[m_h2]*r)
 
     # Set up cylindrical bessels
+    cms1 = np.zeros(ms_c1)
     iv_c1 = np.zeros((ms_c1, ns_c1, len(r)))
     ivp_c1 = np.zeros((ms_c1, ns_c1, len(r)))
-    cms1 = np.zeros(ms_c1)
 
-    iv_c2 = np.zeros((ms_c2, ns_c2, len(r)))
-    ivp_c2 = np.zeros((ms_c2, ns_c2, len(r)))
-    cms2 = np.zeros(ms_c2)
+    for m in range(ms_c1):
+        cms1[m] = ((m+1)*np.pi/length1)
+        for n in range(ns_c1):
+            iv_c1[m][n] = special.iv(n, cms1[m]*r)
+            ivp_c1[m][n] = special.ivp(n, cms1[m]*r)
 
-    for m_c1 in range(ms_c1):
-        cms1[m_c1] = (m_c1+1)*np.pi/length1
-        for n_c1 in range(ns_c1):
-            iv_c1[m_c1][n_c1] = special.iv(n_c1, cms1[m_c1]*r)
-            ivp_c1[m_c1][n_c1] = special.ivp(n_c1, cms1[m_c1]*r)
+    jv_c2 = np.zeros((ms_c2, ns_c2, len(r)))
+    jvp_c2 = np.zeros((ms_c2, ns_c2, len(r)))
 
+    b_zeros = []
+    for n_c2 in range(ns_c2):
+        b_zeros.append(special.jn_zeros(n_c2, ms_c2))
+    cms2 = np.asarray([b/length2 for b in b_zeros])
+    # cms2 = np.zeros(ms_c2)
     for m_c2 in range(ms_c2):
-        cms2[m_c2] = (m_c2+1)*np.pi/length2
+        # cms2[m_c2] = ((m_c2+1)*length2)
         for n_c2 in range(ns_c2):
-            iv_c2[m_c2][n_c2] = special.iv(n_c2, cms2[m_c2]*r)
-            ivp_c2[m_c2][n_c2] = special.ivp(n_c2, cms2[m_c2]*r)
+            jv_c2[m_c2][n_c2] = special.jv(n_c2, cms2[n_c2][m_c2]*r)
+            jvp_c2[m_c2][n_c2] = special.jvp(n_c2, cms2[n_c2][m_c2]*r)
+            # jv_c2[m_c2][n_c2] = special.jv(n_c2, cms2[m_c2]*r)
+            # jvp_c2[m_c2][n_c2] = special.jvp(n_c2, cms2[m_c2]*r)
 
     @njit(parallel=True)
     def calc_b_fields_helR(z, phi, r, hms, n, A, B, iv, ivp, model_r, model_z, model_phi):
@@ -2336,16 +2344,28 @@ def brzphi_3d_producer_giant_function(z, r, phi,
                            D*np.cos(-hms*z[i]+n*phi[i])))
 
     @njit(parallel=True)
-    def calc_b_fields_cyl(z, phi, r, cms, n, A, B, D, ivp, iv, model_r, model_z, model_phi):
+    def calc_b_fields_cyl(z, phi, r, cms, n, A, B, D, iv, ivp, model_r, model_z, model_phi):
         for i in prange(z.shape[0]):
-            model_r[i] += (np.cos(D)*np.sin(n*phi[i]) + np.sin(D)*np.cos(n*phi[i])) * \
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
                 ivp[i]*cms*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
 
-            model_z[i] += (np.cos(D)*np.sin(n*phi[i]) + np.sin(D)*np.cos(n*phi[i])) * \
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
                 iv[i]*cms*(-A*np.sin(cms*z[i]) + B*np.cos(cms*z[i]))
 
-            model_phi[i] += n*(np.cos(D)*np.cos(n*phi[i]) - np.sin(D)*np.sin(n*phi[i])) * \
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
                 (1/r[i])*iv[i]*(A*np.cos(cms*z[i]) + B*np.sin(cms*z[i]))
+
+    @njit(parallel=True)
+    def calc_b_fields_cyl2(z, phi, r, cms, n, A, B, D, jv, jvp, model_r, model_z, model_phi):
+        for i in prange(z.shape[0]):
+            model_r[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                jvp[i]*cms*(A*np.sinh(cms*z[i]) + B*np.cosh(cms*z[i]))
+
+            model_z[i] += (D*np.sin(n*phi[i]) + (1-D)*np.cos(n*phi[i])) * \
+                jv[i]*cms*(A*np.cosh(cms*z[i]) + B*np.sinh(cms*z[i]))
+
+            model_phi[i] += n*(D*np.cos(n*phi[i]) - (1-D)*np.sin(n*phi[i])) * \
+                (1/r[i])*jv[i]*(A*np.sinh(cms*z[i]) + B*np.cosh(cms*z[i]))
 
     @njit(parallel=True)
     def calc_b_fields_cart(x, y, z, phi, vx, vy, vz, x0, y0, z0,
@@ -2419,8 +2439,8 @@ def brzphi_3d_producer_giant_function(z, r, phi,
                 A = AB_params[f'Ac2_{m}_{n}']
                 B = AB_params[f'Bc2_{m}_{n}']
                 D = AB_params[f'Dc2_{n}']
-                calc_b_fields_cyl(z, phi, r, cms2[m], n, A, B, D, iv_c2[m][n], ivp_c2[m][n],
-                                  model_r, model_z, model_phi)
+                calc_b_fields_cyl2(z, phi, r, cms2[n][m], n, A, B, D, jv_c2[m][n], jvp_c2[m][n],
+                                   model_r, model_z, model_phi)
 
         n_bs = len([bs for bs in AB_params.keys() if 'vx' in bs])
         for i in range(1, n_bs+1):
@@ -2447,5 +2467,4 @@ def brzphi_3d_producer_giant_function(z, r, phi,
                             model_r, model_phi, model_z)
 
         return np.concatenate([model_r, model_z, model_phi]).ravel()
-    return brzphi_3d_fast
     return brzphi_3d_fast

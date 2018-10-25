@@ -602,9 +602,21 @@ if __name__ == "__main__":
     #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
     # data_maker.do_basic_modifications(descale=True, reverse=True)
 
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/10x_high_granularity_cylin_3846784pts_r250mm_p10cm_10-06_004607',
+    #     input_type='csv', field_map_version='Cole_10x_v2_hg',
+    #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    # data_maker.do_basic_modifications(descale=True, reverse=True)
+
+    # data_maker = DataFrameMaker(
+    #     mu2e_ext_path+'datafiles/FieldMapsCole/high_granularity_bfield_map_cylin_r250mm_p10cm_3846784pts_10-09_085027',
+    #     input_type='csv', field_map_version='Cole_250mm_short_hg',
+    #     header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
+    # data_maker.do_basic_modifications(descale=True, reverse=True)
+
     data_maker = DataFrameMaker(
-        mu2e_ext_path+'datafiles/FieldMapsCole/10x_high_granularity_cylin_3846784pts_r250mm_p10cm_10-06_004607',
-        input_type='csv', field_map_version='Cole_10x_v2_hg',
+        mu2e_ext_path+'datafiles/FieldMapsCole/high_granularity_bfield_map_r1m_p10cm_3711104pts_10-07_120052',
+        input_type='csv', field_map_version='Cole_1m_hg',
         header_names=['R', 'Phi', 'Z', 'Br', 'Bphi', 'Bz'])
     data_maker.do_basic_modifications(descale=True, reverse=True)
 

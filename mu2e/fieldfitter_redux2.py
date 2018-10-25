@@ -183,12 +183,8 @@ class FieldFitter:
             self.add_params_hel(2)
             self.add_params_cyl(1)
             self.add_params_cyl(2)
-            self.add_params_cart_simple(on_list=['k3'])
-            # self.add_params_cart_simple(all_on=True)
-            self.add_params_biot_savart(xyz_tuples=(
-                (0.25, 0, -46),
-                (0.25, 0, 46)),
-                xy_bounds=0.1, z_bounds=1, v_bounds=5)
+            self.add_params_cart_simple(cfg_params)
+            self.add_params_biot_savart(cfg_params, cfg_pickle.recreate)
 
         if not cfg_pickle.recreate:
             print(f'fitting with func_version={func_version},')
@@ -210,28 +206,33 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       method='leastsq', fit_kws={'maxfev': 10000})
-                                       # method='least_squares')
+                                       # method='leastsq', fit_kws={'maxfev': 1000})
+                                       method='least_squares', fit_kws={'verbose': 1,
+                                                                        'gtol': 1e-10,
+                                                                        'ftol': 1e-10,
+                                                                        'xtol': 1e-10,
+                                                                        })
         else:
             # mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
+                                       # method='ampgo')
                                        method='leastsq', fit_kws={'maxfev': 10000})
-                                       #method='least_squares', fit_kws={'verbose': 1,
-                                       #                                 'gtol': 1e-16,
-                                       #                                 'ftol': 1e-16,
-                                       #                                 'xtol': 1e-16,
+                                       # method='least_squares', fit_kws={'verbose': 1,
+                                       #                                  'gtol': 1e-14,
+                                       #                                  'ftol': 1e-14,
+                                       #                                  'xtol': 1e-14,
+                                       #                                  })
                                        ##                                   # 'tr_solver': 'lsmr',
                                        ##                                   # 'tr_options':
                                        ##                                   # {'regularize': True}
-                                       #                                })
 
         self.params = self.result.params
         end_time = time()
         print(("Elapsed time was %g seconds" % (end_time - start_time)))
         report_fit(self.result, show_correl=False)
-        if cfg_pickle.save_pickle:  # and not cfg_pickle.recreate:
+        if cfg_pickle.save_pickle and not cfg_pickle.recreate:
             self.pickle_results(self.pickle_path+cfg_pickle.save_name)
 
     def fit_external(self, cfg_params, cfg_pickle, profile=False):
@@ -313,52 +314,62 @@ class FieldFitter:
             for n in ns_range:
                 if f'Ah{num}_{m}_{n}' not in self.params:
                     self.params.add(f'Ah{num}_{m}_{n}', value=0, vary=False)
+                else:
+                    self.params[f'Ah{num}_{m}_{n}'].vary = False
+
                 if f'Bh{num}_{m}_{n}' not in self.params:
                     self.params.add(f'Bh{num}_{m}_{n}', value=0, vary=False)
+                else:
+                    self.params[f'Bh{num}_{m}_{n}'].vary = False
+
                 if f'Ch{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Ch{num}_{m}_{n}', value=0, vary=True)
+                    self.params.add(f'Ch{num}_{m}_{n}', value=-1e-6, vary=True)
+                else:
+                    self.params[f'Ch{num}_{m}_{n}'].vary = False
+
                 if f'Dh{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Dh{num}_{m}_{n}', value=0, vary=True)
+                    self.params.add(f'Dh{num}_{m}_{n}', value=-1e-6, vary=True)
+                else:
+                    self.params[f'Dh{num}_{m}_{n}'].vary = False
 
     def add_params_cyl(self, num):
         ms_range = range(self.params[f'ms_c{num}'].value)
         ns_range = range(self.params[f'ns_c{num}'].value)
-        np.random.seed(101)
-        d_vals = np.linspace(-np.pi, np.pi, len(ns_range))
+        # np.random.seed(101)
+        d_vals = np.linspace(0, 1, len(ns_range))[::-1]
 
         for m in ms_range:
             for n in ns_range:
                 # if (n-1) % 4!= 0:
-                if n == 0:
+                if n == -1:
                     if f'Ac{num}_{m}_{n}' not in self.params:
                         self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=False)
                     if f'Bc{num}_{m}_{n}' not in self.params:
                         self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=False)
                     if f'Dc{num}_{n}' not in self.params:
-                        self.params.add(f'Dc{num}_{n}', value=0, min=-1, max=1, vary=False)
+                        self.params.add(f'Dc{num}_{n}', value=0, min=0, max=1, vary=False)
                 else:
                     if f'Ac{num}_{m}_{n}' not in self.params:
-                        self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=True)
+                        # self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=True)
+                        self.params.add(f'Ac{num}_{m}_{n}', value=1*(-1)**m, vary=True)
                     if f'Bc{num}_{m}_{n}' not in self.params:
-                        self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=True)
+                        # self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=True)
+                        self.params.add(f'Bc{num}_{m}_{n}', value=1*(-1)**m, vary=True)
                     if f'Dc{num}_{n}' not in self.params:
-                        self.params.add(f'Dc{num}_{n}', value=d_vals[n], min=-np.pi, max=np.pi, vary=True)
+                        self.params.add(f'Dc{num}_{n}', value=d_vals[n],
+                                        min=0, max=1, vary=True)
 
-    def add_params_cart_simple(self, all_on=False, on_list=None):
+    def add_params_cart_simple(self, cfg_params):
+        ks_dict = cfg_params.ks_dict
+        if ks_dict is None:
+            ks_dict = {}
         cart_names = [f'k{i}' for i in range(1, 11)]
-        if on_list is None:
-            on_list = []
 
         for k in cart_names:
-            if all_on:
-                if k not in self.params:
-                    self.params.add(k, value=0, vary=True)
-            else:
-                if k not in self.params:
-                    if k == 'k3':
-                        self.params.add(k, value=768, vary=(k in on_list))
-                    else:
-                        self.params.add(k, value=0, vary=(k in on_list))
+            if k not in self.params and k in ks_dict:
+                self.params.add(k, value=ks_dict[k], vary=True)
+            elif k not in self.params:
+                self.params.add(k, value=0, vary=False)
 
     def add_params_finite_wire(self):
         if 'k1' not in self.params:
@@ -378,45 +389,61 @@ class FieldFitter:
         if 'zp2' not in self.params:
             self.params.add('zp2', value=-4575, vary=False, min=-4700, max=-4300)
 
-    def add_params_biot_savart(self, xyz_tuples=None, v_tuples=None, xy_bounds=100, z_bounds=100,
-                               v_bounds=2):
-        if v_tuples and len(v_tuples) != len(xyz_tuples):
-            raise AttributeError('If v_tuples is specified it must be same size as xyz_tuples')
+    def add_params_biot_savart(self, cfg_params, recreate=False):
+        xyz_tuples = cfg_params.bs_tuples
+        bounds = cfg_params.bs_bounds
+        if xyz_tuples is None:
+            return
+        if bounds is None:
+            bounds = (0.1, 0.1, 5)
 
         for i in range(1, len(xyz_tuples)+1):
             x, y, z = xyz_tuples[i-1]
             if f'x{i}' not in self.params:
                 self.params.add(f'x{i}', value=x, vary=True,
-                                min=x-xy_bounds, max=x+xy_bounds)
-            else:
-                self.params[f'x{i}'].vary = False
+                                min=x-bounds[0], max=x+bounds[0])
+            elif not recreate:
+                self.params[f'x{i}'].value = x
+                self.params[f'x{i}'].min = x-bounds[0]
+                self.params[f'x{i}'].max = x+bounds[0]
+
             if f'y{i}' not in self.params:
                 self.params.add(f'y{i}', value=y, vary=True,
-                                min=y-xy_bounds, max=y+xy_bounds)
-            else:
-                self.params[f'y{i}'].vary = False
+                                min=y-bounds[0], max=y+bounds[0])
+            elif not recreate:
+                self.params[f'y{i}'].value = y
+                self.params[f'y{i}'].min = y-bounds[0]
+                self.params[f'y{i}'].max = y+bounds[0]
+
             if f'z{i}' not in self.params:
                 self.params.add(f'z{i}', value=z, vary=True,
-                                min=z-z_bounds, max=z+z_bounds)
-            else:
-                self.params[f'z{i}'].vary = False
+                                min=z-bounds[1], max=z+bounds[1])
+            elif not recreate:
+                self.params[f'z{i}'].value = z
+                self.params[f'z{i}'].min = z-bounds[1]
+                self.params[f'z{i}'].max = z+bounds[1]
 
-            if v_tuples:
-                vx, vy, vz = v_tuples[i-1]
-            else:
-                vx = vy = vz = 0
+            vx = vy = vz = 0
             if f'vx{i}' not in self.params:
                 self.params.add(f'vx{i}', value=vx, vary=True,
-                                min=vx-v_bounds, max=vx+v_bounds)
-            else:
-                self.params[f'vx{i}'].vary = False
+                                min=-bounds[2], max=bounds[2])
+            elif not recreate:
+                self.params[f'vx{i}'].value = vx
+                self.params[f'vx{i}'].min = -bounds[2]
+                self.params[f'vx{i}'].max = bounds[2]
+
             if f'vy{i}' not in self.params:
                 self.params.add(f'vy{i}', value=vy, vary=True,
-                                min=vy-v_bounds, max=vy+v_bounds)
-            else:
-                self.params[f'vy{i}'].vary = False
+                                min=-bounds[2], max=bounds[2])
+            elif not recreate:
+                self.params[f'vy{i}'].value = vy
+                self.params[f'vy{i}'].min = -bounds[2]
+                self.params[f'vy{i}'].max = bounds[2]
+
             if f'vz{i}' not in self.params:
                 self.params.add(f'vz{i}', value=vz, vary=True,
-                                min=vz-v_bounds, max=vz+v_bounds)
-            else:
-                self.params[f'vz{i}'].vary = False
+                                min=-bounds[2], max=bounds[2])
+            elif not recreate:
+                self.params[f'vz{i}'].value = vz
+                self.params[f'vz{i}'].min = -bounds[2]
+                self.params[f'vz{i}'].max = bounds[2]
