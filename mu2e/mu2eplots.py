@@ -200,7 +200,8 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
     if 'mpl' in mode:
         if not ax:
             if ptype.lower() == '3d' and not df_fit:
-                fig = plt.figure().gca(projection='3d')
+                # fig = plt.figure().gca(projection='3d')
+                fig = plt.figure()
             elif ptype.lower() == 'heat':
                 fig = plt.figure()
             else:
@@ -213,7 +214,7 @@ def mu2e_plot3d(df, x, y, z, conditions=None, mode='mpl', info=None, save_dir=No
             ax.plot_wireframe(Xi, Yi, Z_fit, color='green')
         elif ptype.lower() == '3d':
             if not ax:
-                ax = fig.gca()
+                ax = fig.gca(projection='3d')
             ax.plot_surface(Xi, Yi, Z, rstride=1, cstride=1, cmap=plt.get_cmap('viridis'),
                             linewidth=0, antialiased=False)
         elif ptype.lower() == 'heat':

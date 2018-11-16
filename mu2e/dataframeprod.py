@@ -53,7 +53,7 @@ import re
 import six.moves.cPickle as pkl
 import numpy as np
 import pandas as pd
-import mu2e.src.RowTransformations as rt
+# import mu2e.src.RowTransformations as rt
 from tqdm import tqdm
 from six.moves import range
 
@@ -264,8 +264,9 @@ class DataFrameMaker(object):
 
         if not reverse:
             # Generate radial position column
-            self.data_frame.loc[:, 'R'] = rt.apply_make_r(self.data_frame['X'].values,
-                                                          self.data_frame['Y'].values)
+            # self.data_frame.loc[:, 'R'] = rt.apply_make_r(self.data_frame['X'].values,
+            #                                               self.data_frame['Y'].values)
+            self.data_frame.eval('R = sqrt(A**2+B**2)', inplace=True)
 
             # Generate negative Y-axis values for some hard-coded versions.
             if (any([vers in self.field_map_version for vers in ['Mau9', 'Mau10', 'GA01']]) and
@@ -277,16 +278,19 @@ class DataFrameMaker(object):
                 self.data_frame = pd.concat([self.data_frame, data_frame_lower])
 
             # Generate phi position column
-            self.data_frame.loc[:, 'Phi'] = rt.apply_make_theta(self.data_frame['X'].values,
-                                                                self.data_frame['Y'].values)
+            # self.data_frame.loc[:, 'Phi'] = rt.apply_make_theta(self.data_frame['X'].values,
+            #                                                     self.data_frame['Y'].values)
+            self.data_frame.eval('Phi = arctan2(Y,X)', inplace=True)
             # Generate Bphi field column
-            self.data_frame.loc[:, 'Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values,
-                                                                self.data_frame['Bx'].values,
-                                                                self.data_frame['By'].values)
+            # self.data_frame.loc[:, 'Bphi'] = rt.apply_make_bphi(self.data_frame['Phi'].values,
+            #                                                     self.data_frame['Bx'].values,
+            #                                                     self.data_frame['By'].values)
+            self.data_frame.eval('Bphi = -Bx*sin(Phi)+By*cos(Phi)', inplace=True)
             # Generate Br field column
-            self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
-                                                            self.data_frame['Bx'].values,
-                                                            self.data_frame['By'].values)
+            # self.data_frame.loc[:, 'Br'] = rt.apply_make_br(self.data_frame['Phi'].values,
+            #                                                 self.data_frame['Bx'].values,
+            #                                                 self.data_frame['By'].values)
+            self.data_frame.query('Br = Bx*cos(Phi)+By*sin(Phi)', inplace=True)
         elif reverse and not descale:
             # self.data_frame.Phi = self.data_frame.Phi-np.pi
             self.data_frame.eval('X = R*cos(Phi)', inplace=True)
@@ -304,20 +308,21 @@ class DataFrameMaker(object):
         if helix:
             if not isinstance(pitch, float):
                 raise TypeError("If `helix` is True, pitch must be a float")
+            raise NotImplementedError('`helix` option disabled')
 
-            self.data_frame.loc[:, 'Zeta'] = rt.apply_make_zeta(self.data_frame['Z'].values,
-                                                                self.data_frame['Phi'].values,
-                                                                pitch)
+            # self.data_frame.loc[:, 'Zeta'] = rt.apply_make_zeta(self.data_frame['Z'].values,
+            #                                                     self.data_frame['Phi'].values,
+            #                                                     pitch)
 
-            self.data_frame.loc[:, 'Bphi_wald'] = rt.apply_make_bphi_wald(
-                self.data_frame['Phi'].values, self.data_frame['R'].values,
-                self.data_frame['Bx'].values, self.data_frame['By'].values, pitch)
+            # self.data_frame.loc[:, 'Bphi_wald'] = rt.apply_make_bphi_wald(
+            #     self.data_frame['Phi'].values, self.data_frame['R'].values,
+            #     self.data_frame['Bx'].values, self.data_frame['By'].values, pitch)
 
-            self.data_frame.loc[:, 'Bzeta'] = rt.apply_make_bzeta(
-                self.data_frame['Phi'].values, self.data_frame['R'].values,
-                self.data_frame['Bx'].values, self.data_frame['By'].values,
-                self.data_frame['Bz'].values,
-                pitch)
+            # self.data_frame.loc[:, 'Bzeta'] = rt.apply_make_bzeta(
+            #     self.data_frame['Phi'].values, self.data_frame['R'].values,
+            #     self.data_frame['Bx'].values, self.data_frame['By'].values,
+            #     self.data_frame['Bz'].values,
+            #     pitch)
 
         # Clean up, sort, round off.
         self.data_frame.sort_values(['X', 'Y', 'Z'], inplace=True)

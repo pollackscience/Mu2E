@@ -206,7 +206,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       # method='leastsq', fit_kws={'maxfev': 1000})
+                                       # method='leastsq', fit_kws={'maxfev': 10000})
                                        method='least_squares', fit_kws={'verbose': 1,
                                                                         'gtol': 1e-10,
                                                                         'ftol': 1e-10,
@@ -217,13 +217,12 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       # method='ampgo')
-                                       method='leastsq', fit_kws={'maxfev': 10000})
-                                       # method='least_squares', fit_kws={'verbose': 1,
-                                       #                                  'gtol': 1e-14,
-                                       #                                  'ftol': 1e-14,
-                                       #                                  'xtol': 1e-14,
-                                       #                                  })
+                                       # method='leastsq', fit_kws={'maxfev': 10000})
+                                       method='least_squares', fit_kws={'verbose': 1,
+                                                                        'gtol': 1e-16,
+                                                                        'ftol': 1e-16,
+                                                                        'xtol': 1e-16,
+                                                                        })
                                        ##                                   # 'tr_solver': 'lsmr',
                                        ##                                   # 'tr_options':
                                        ##                                   # {'regularize': True}
@@ -350,11 +349,11 @@ class FieldFitter:
                         self.params.add(f'Dc{num}_{n}', value=0, min=0, max=1, vary=False)
                 else:
                     if f'Ac{num}_{m}_{n}' not in self.params:
-                        # self.params.add(f'Ac{num}_{m}_{n}', value=0, vary=True)
-                        self.params.add(f'Ac{num}_{m}_{n}', value=1*(-1)**m, vary=True)
+                        # self.params.add(f'Ac{num}_{m}_{n}', value=1e-6, vary=True)
+                        self.params.add(f'Ac{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
                     if f'Bc{num}_{m}_{n}' not in self.params:
-                        # self.params.add(f'Bc{num}_{m}_{n}', value=0, vary=True)
-                        self.params.add(f'Bc{num}_{m}_{n}', value=1*(-1)**m, vary=True)
+                        # self.params.add(f'Bc{num}_{m}_{n}', value=-1e-6, vary=True)
+                        self.params.add(f'Bc{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
                     if f'Dc{num}_{n}' not in self.params:
                         self.params.add(f'Dc{num}_{n}', value=d_vals[n],
                                         min=0, max=1, vary=True)
@@ -398,9 +397,16 @@ class FieldFitter:
             bounds = (0.1, 0.1, 5)
 
         for i in range(1, len(xyz_tuples)+1):
-            x, y, z = xyz_tuples[i-1]
+            if len(xyz_tuples[i-1]) == 3:
+                x, y, z = xyz_tuples[i-1]
+                vx = vy = vz = 0
+                do_vary = True
+            else:
+                x, y, z, vx, vy, vz = xyz_tuples[i-1]
+                do_vary = False
+
             if f'x{i}' not in self.params:
-                self.params.add(f'x{i}', value=x, vary=True,
+                self.params.add(f'x{i}', value=x, vary=do_vary,
                                 min=x-bounds[0], max=x+bounds[0])
             elif not recreate:
                 self.params[f'x{i}'].value = x
@@ -408,7 +414,7 @@ class FieldFitter:
                 self.params[f'x{i}'].max = x+bounds[0]
 
             if f'y{i}' not in self.params:
-                self.params.add(f'y{i}', value=y, vary=True,
+                self.params.add(f'y{i}', value=y, vary=do_vary,
                                 min=y-bounds[0], max=y+bounds[0])
             elif not recreate:
                 self.params[f'y{i}'].value = y
@@ -416,16 +422,15 @@ class FieldFitter:
                 self.params[f'y{i}'].max = y+bounds[0]
 
             if f'z{i}' not in self.params:
-                self.params.add(f'z{i}', value=z, vary=True,
+                self.params.add(f'z{i}', value=z, vary=do_vary,
                                 min=z-bounds[1], max=z+bounds[1])
             elif not recreate:
                 self.params[f'z{i}'].value = z
                 self.params[f'z{i}'].min = z-bounds[1]
                 self.params[f'z{i}'].max = z+bounds[1]
 
-            vx = vy = vz = 0
             if f'vx{i}' not in self.params:
-                self.params.add(f'vx{i}', value=vx, vary=True,
+                self.params.add(f'vx{i}', value=vx, vary=do_vary,
                                 min=-bounds[2], max=bounds[2])
             elif not recreate:
                 self.params[f'vx{i}'].value = vx
@@ -433,7 +438,7 @@ class FieldFitter:
                 self.params[f'vx{i}'].max = bounds[2]
 
             if f'vy{i}' not in self.params:
-                self.params.add(f'vy{i}', value=vy, vary=True,
+                self.params.add(f'vy{i}', value=vy, vary=do_vary,
                                 min=-bounds[2], max=bounds[2])
             elif not recreate:
                 self.params[f'vy{i}'].value = vy
@@ -441,7 +446,7 @@ class FieldFitter:
                 self.params[f'vy{i}'].max = bounds[2]
 
             if f'vz{i}' not in self.params:
-                self.params.add(f'vz{i}', value=vz, vary=True,
+                self.params.add(f'vz{i}', value=vz, vary=do_vary,
                                 min=-bounds[2], max=bounds[2])
             elif not recreate:
                 self.params[f'vz{i}'].value = vz

@@ -37,7 +37,6 @@ cpdef np.ndarray[double] apply_make_r(np.ndarray col_x, np.ndarray col_y):
 cdef double make_theta(double x, double y):
     return atan2(y,x)
 
-
 cpdef np.ndarray[double] apply_make_theta(np.ndarray col_x, np.ndarray col_y):
     assert (col_x.dtype == np.float and col_y.dtype == np.float)
     cdef Py_ssize_t i, n = len(col_x)
