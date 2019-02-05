@@ -217,7 +217,7 @@ class FieldFitter:
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
                                        # weights=np.concatenate([mag, mag, mag]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       # method='leastsq', fit_kws={'maxfev': 10000})
+                                       #method='leastsq', fit_kws={'maxfev': 10000})
                                        method='least_squares', fit_kws={'verbose': 1,
                                                                         'gtol': 1e-16,
                                                                         'ftol': 1e-16,
@@ -311,25 +311,46 @@ class FieldFitter:
 
         for m in ms_range:
             for n in ns_range:
-                if f'Ah{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Ah{num}_{m}_{n}', value=0, vary=False)
-                else:
-                    self.params[f'Ah{num}_{m}_{n}'].vary = False
+                if num == 1:
+                    if f'Ah{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ah{num}_{m}_{n}', value=0, vary=False)
+                    else:
+                        self.params[f'Ah{num}_{m}_{n}'].vary = False
 
-                if f'Bh{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Bh{num}_{m}_{n}', value=0, vary=False)
-                else:
-                    self.params[f'Bh{num}_{m}_{n}'].vary = False
+                    if f'Bh{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Bh{num}_{m}_{n}', value=0, vary=False)
+                    else:
+                        self.params[f'Bh{num}_{m}_{n}'].vary = False
 
-                if f'Ch{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Ch{num}_{m}_{n}', value=-1e-6, vary=True)
-                else:
-                    self.params[f'Ch{num}_{m}_{n}'].vary = False
+                    if f'Ch{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ch{num}_{m}_{n}', value=-1e-6, vary=True)
+                    else:
+                        self.params[f'Ch{num}_{m}_{n}'].vary = False
 
-                if f'Dh{num}_{m}_{n}' not in self.params:
-                    self.params.add(f'Dh{num}_{m}_{n}', value=-1e-6, vary=True)
+                    if f'Dh{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Dh{num}_{m}_{n}', value=-1e-6, vary=True)
+                    else:
+                        self.params[f'Dh{num}_{m}_{n}'].vary = False
                 else:
-                    self.params[f'Dh{num}_{m}_{n}'].vary = False
+                    if f'Ah{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ah{num}_{m}_{n}', value=-1e-6, vary=True)
+                    else:
+                        self.params[f'Ah{num}_{m}_{n}'].vary = False
+
+                    if f'Bh{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Bh{num}_{m}_{n}', value=1e-6, vary=True)
+                    else:
+                        self.params[f'Bh{num}_{m}_{n}'].vary = False
+
+                    if f'Ch{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Ch{num}_{m}_{n}', value=0, vary=False)
+                    else:
+                        self.params[f'Ch{num}_{m}_{n}'].vary = False
+
+                    if f'Dh{num}_{m}_{n}' not in self.params:
+                        self.params.add(f'Dh{num}_{m}_{n}', value=0, vary=False)
+                    else:
+                        self.params[f'Dh{num}_{m}_{n}'].vary = False
 
     def add_params_cyl(self, num):
         ms_range = range(self.params[f'ms_c{num}'].value)
