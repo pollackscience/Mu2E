@@ -70,6 +70,7 @@ scripts/*.png
 scripts/*.pdf
 scripts/*/*.png
 scripts/*/*.pdf
+*.pkl
 
 # MSFT Files
 *.doc*
