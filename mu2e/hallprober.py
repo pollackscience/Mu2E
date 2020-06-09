@@ -150,6 +150,7 @@ class HallProbeGenerator(object):
 
     def __init__(self, input_data, z_steps=None, x_steps=None,
                  y_steps=None, r_steps=None, phi_steps=None, interpolate=False, do2pi=False):
+        print('init hpg')
         self.full_field = input_data
         self.sparse_field = self.full_field
         self.r_steps = r_steps
@@ -173,20 +174,36 @@ class HallProbeGenerator(object):
         if self.x_steps or self.y_steps:
             raise NotImplementedError('Oh no! you got lazy during refactoring')
 
+        print('interpolate?')
         if interpolate is not False:
+            print('yes')
             self.interpolate_points(interpolate)
         else:
+            print('no')
             # complicated indexing
             # (because phi values must be "close", but R and Z can be exact matches)
             # print(self.sparse_field.Phi)
             # print(self.phi_nphi_steps)
             # print(np.ravel(self.r_steps))
+            print(self.sparse_field)
+            # raise ValueError('quick break')
+            # self.sparse_field = self.sparse_field[
+            #     (np.isclose(self.sparse_field.Phi.values[:, None],
+            #                 self.phi_nphi_steps).any(axis=1)) &
+            #     (np.isclose(self.sparse_field.R.values[:, None],
+            #                 np.ravel(self.r_steps)).any(axis=1)) &
+            #     (self.sparse_field.Z.isin(self.z_steps))]
+
+            self.sparse_field = self.sparse_field[
+                (self.sparse_field.Z.isin(self.z_steps))]
+            self.sparse_field = self.sparse_field[
+                (np.isclose(self.sparse_field.R.values[:, None],
+                            np.ravel(self.r_steps)).any(axis=1))]
             self.sparse_field = self.sparse_field[
                 (np.isclose(self.sparse_field.Phi.values[:, None],
-                            self.phi_nphi_steps).any(axis=1)) &
-                (np.isclose(self.sparse_field.R.values[:, None],
-                            np.ravel(self.r_steps)).any(axis=1)) &
-                (self.sparse_field.Z.isin(self.z_steps))]
+                            self.phi_nphi_steps).any(axis=1))]
+
+            print('sorting sparse field')
             self.sparse_field = self.sparse_field.sort_values(['Z', 'R', 'Phi'])
             # print(self.z_steps)
             # print(self.phi_nphi_steps)
@@ -287,6 +304,29 @@ class HallProbeGenerator(object):
         warnings.warn(("`get_toy()` is deprecated, please use the `sparse_field` class member"),
                       DeprecationWarning)
         return self.sparse_field
+
+    def add_error(self, amount=0.01, seed=None):
+        """
+        Add gaussian smearing to the `sparse_field` measurement values
+
+        Args:
+            amount (float, optional): Percentage amount of smearing.
+            seed (int, optional): Input a seed value to generate a replicable set of error
+                values.
+
+        Returns:
+            Nothing, modifies `sparse_field` class member.
+        """
+        if seed is not None:
+            np.random.seed(seed)
+        bz = self.sparse_field['Bz']
+        br = self.sparse_field['Br']
+        bphi = self.sparse_field['Bphi']
+
+        self.sparse_field['Bz'] = np.random.normal(loc=bz, scale=abs(bz)*amount)
+        self.sparse_field['Br'] = np.random.normal(loc=br, scale=abs(br)*amount)
+        self.sparse_field['Bphi'] = np.random.normal(loc=bphi, scale=abs(bphi)*amount)
+
 
     def bad_calibration(self, measure=False, position=False, rotation=False, seed=None):
         print(seed)
@@ -604,41 +644,56 @@ def field_map_analysis(name, cfg_data, cfg_geom, cfg_params, cfg_pickle, cfg_plo
         `profile==True`, returns field components and position values.
     """
 
+    print('starting')
     plt.close('all')
     input_data = DataFrameMaker(cfg_data.path, input_type='pkl').data_frame
     input_data.query(' and '.join(cfg_data.conditions))
+    print('hpg')
     hpg = HallProbeGenerator(input_data, z_steps=cfg_geom.z_steps,
                              r_steps=cfg_geom.r_steps, phi_steps=cfg_geom.phi_steps,
                              x_steps=cfg_geom.x_steps, y_steps=cfg_geom.y_steps,
                              interpolate=cfg_geom.interpolate, do2pi=cfg_geom.do2pi)
+    print('hpg done')
+    print(cfg_geom.bad_calibration)
 
     seed = None
-    if len(cfg_geom.bad_calibration) == 4:
-        seed = cfg_geom.bad_calibration[3]
+    if type(cfg_geom.bad_calibration) in [float, int]:
+        print('doing error!')
+        hpg.add_error(cfg_geom.bad_calibration)
+    elif len(cfg_geom.bad_calibration) == 2:
+        print('doing error!')
+        hpg.add_error(cfg_geom.bad_calibration[0], seed=cfg_geom.bad_calibration[1])
+    else:
+        if len(cfg_geom.bad_calibration) == 4:
+            seed = cfg_geom.bad_calibration[3]
 
-    if cfg_geom.bad_calibration[0]:
-        hpg.bad_calibration(measure=True, position=False, rotation=False, seed=seed)
-    if cfg_geom.bad_calibration[1]:
-        hpg.bad_calibration(measure=False, position=True, rotation=False, seed=seed)
-    if cfg_geom.bad_calibration[2]:
-        hpg.bad_calibration(measure=False, position=False, rotation=True, seed=seed)
+        if cfg_geom.bad_calibration[0]:
+            hpg.bad_calibration(measure=True, position=False, rotation=False, seed=seed)
+        if cfg_geom.bad_calibration[1]:
+            hpg.bad_calibration(measure=False, position=True, rotation=False, seed=seed)
+        if cfg_geom.bad_calibration[2]:
+            hpg.bad_calibration(measure=False, position=False, rotation=True, seed=seed)
 
     hall_measure_data = hpg.sparse_field
     # print hall_measure_data.head()
     # raw_input()
 
+    print('ff gen')
     ff = FieldFitter(hall_measure_data, cfg_geom)
     if profile:
         ZZ, RR, PP, Bz, Br, Bphi = ff.fit(cfg_geom.geom, cfg_params, cfg_pickle, profile=profile)
         return ZZ, RR, PP, Bz, Br, Bphi
     else:
         ff.fit(cfg_geom.geom, cfg_params, cfg_pickle)
+    print('ff fit')
 
+    print('ff merge')
     ff.merge_data_fit_res()
 
     if cfg_plot.plot_type != 'none':
         make_fit_plots(ff.input_data, cfg_data, cfg_geom, cfg_plot, name)
 
+    print('done')
     return hall_measure_data, ff
 
 

@@ -204,24 +204,28 @@ class FieldFitter:
         elif cfg_pickle.use_pickle:
             # mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                       # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                       weights=np.concatenate([1/(Br)*1e-0,
+                                                               1/(Bz)*1e-0,
+                                                               1/(Bphi)*1e-0]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
                                        # method='leastsq', fit_kws={'maxfev': 10000})
                                        method='least_squares', fit_kws={'verbose': 1,
-                                                                        'gtol': 1e-10,
-                                                                        'ftol': 1e-10,
-                                                                        'xtol': 1e-10,
+                                                                        'gtol': 1e-15,
+                                                                        'ftol': 1e-15,
+                                                                        'xtol': 1e-20,
                                                                         })
         else:
-            # mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
+            mag = 1/np.sqrt(Br**2+Bz**2+Bphi**2)
             self.result = self.mod.fit(np.concatenate([Br, Bz, Bphi]).ravel(),
-                                       # weights=np.concatenate([mag, mag, mag]).ravel(),
+                                       # weights=np.concatenate([1/(Br)*1e-0,
+                                       #                         1/(Bz)*1e-0,
+                                       #                         1/(Bphi)*1e-0]).ravel(),
                                        r=RR, z=ZZ, phi=PP, x=XX, y=YY, params=self.params,
-                                       #method='leastsq', fit_kws={'maxfev': 10000})
+                                       # method='leastsq', fit_kws={'maxfev': 10000})
                                        method='least_squares', fit_kws={'verbose': 1,
-                                                                        'gtol': 1e-16,
-                                                                        'ftol': 1e-16,
-                                                                        'xtol': 1e-16,
+                                                                        'gtol': 1e-15,
+                                                                        'ftol': 1e-15,
+                                                                        'xtol': 1e-20,
                                                                         })
                                        ##                                   # 'tr_solver': 'lsmr',
                                        ##                                   # 'tr_options':
@@ -308,6 +312,7 @@ class FieldFitter:
     def add_params_hel(self, num):
         ms_range = range(self.params[f'ms_h{num}'].value)
         ns_range = range(self.params[f'ns_h{num}'].value)
+        # np.random.seed(66)
 
         for m in ms_range:
             for n in ns_range:
@@ -323,24 +328,24 @@ class FieldFitter:
                         self.params[f'Bh{num}_{m}_{n}'].vary = False
 
                     if f'Ch{num}_{m}_{n}' not in self.params:
-                        self.params.add(f'Ch{num}_{m}_{n}', value=-1e-6, vary=True)
+                        self.params.add(f'Ch{num}_{m}_{n}', value=np.random.uniform(-1e-3, 1e-3), vary=True)
                     else:
-                        self.params[f'Ch{num}_{m}_{n}'].vary = False
+                        self.params[f'Ch{num}_{m}_{n}'].vary = True
 
                     if f'Dh{num}_{m}_{n}' not in self.params:
-                        self.params.add(f'Dh{num}_{m}_{n}', value=-1e-6, vary=True)
+                        self.params.add(f'Dh{num}_{m}_{n}', value=np.random.uniform(-1e-3, 1e-3), vary=True)
                     else:
-                        self.params[f'Dh{num}_{m}_{n}'].vary = False
+                        self.params[f'Dh{num}_{m}_{n}'].vary = True
                 else:
                     if f'Ah{num}_{m}_{n}' not in self.params:
                         self.params.add(f'Ah{num}_{m}_{n}', value=-1e-6, vary=True)
                     else:
-                        self.params[f'Ah{num}_{m}_{n}'].vary = False
+                        self.params[f'Ah{num}_{m}_{n}'].vary = True
 
                     if f'Bh{num}_{m}_{n}' not in self.params:
                         self.params.add(f'Bh{num}_{m}_{n}', value=1e-6, vary=True)
                     else:
-                        self.params[f'Bh{num}_{m}_{n}'].vary = False
+                        self.params[f'Bh{num}_{m}_{n}'].vary = True
 
                     if f'Ch{num}_{m}_{n}' not in self.params:
                         self.params.add(f'Ch{num}_{m}_{n}', value=0, vary=False)
@@ -355,7 +360,7 @@ class FieldFitter:
     def add_params_cyl(self, num):
         ms_range = range(self.params[f'ms_c{num}'].value)
         ns_range = range(self.params[f'ns_c{num}'].value)
-        # np.random.seed(101)
+        # np.random.seed(66)
         d_vals = np.linspace(0, 1, len(ns_range))[::-1]
 
         for m in ms_range:
@@ -371,10 +376,12 @@ class FieldFitter:
                 else:
                     if f'Ac{num}_{m}_{n}' not in self.params:
                         # self.params.add(f'Ac{num}_{m}_{n}', value=1e-6, vary=True)
-                        self.params.add(f'Ac{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
+                        # self.params.add(f'Ac{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
+                        self.params.add(f'Ac{num}_{m}_{n}', value=np.random.uniform(-1e-1, 1e-1), vary=True)
                     if f'Bc{num}_{m}_{n}' not in self.params:
                         # self.params.add(f'Bc{num}_{m}_{n}', value=-1e-6, vary=True)
-                        self.params.add(f'Bc{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
+                        # self.params.add(f'Bc{num}_{m}_{n}', value=-1*(-1)**m, vary=True)
+                        self.params.add(f'Bc{num}_{m}_{n}', value=np.random.uniform(-1e-1, 1e-1), vary=True)
                     if f'Dc{num}_{n}' not in self.params:
                         self.params.add(f'Dc{num}_{n}', value=d_vals[n],
                                         min=0, max=1, vary=True)

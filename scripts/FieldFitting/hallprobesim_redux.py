@@ -67,6 +67,9 @@ r_steps_800mm = (pi2r_800mm, pi8r_800mm, pi4r_800mm, pi8r_800mm,
 piall_250mm = [0.0125, 0.0375, 0.0625, 0.0875, 0.1125, 0.150]
 r_steps_250mm_true = (piall_250mm,)*8
 
+piall_250mm_g8 = [0.0125, 0.0875, 0.150]
+r_steps_250mm_g8 = (piall_250mm_g8,)*4
+
 piall_250mm_hg = [0.00625, 0.0125, 0.01875, 0.025, 0.03125, 0.0375, 0.04375,
                   0.05, 0.05625, 0.0625, 0.06875, 0.075, 0.08125, 0.0875,
                   0.09375, 0.1, 0.10625, 0.1125, 0.11875, 0.125, 0.13125,
@@ -86,6 +89,7 @@ r_steps_1m_true_hg = (piall_1m_hg,)*64
 # For all maps
 phi_steps_8 = (0, 0.463648, np.pi/4, 1.107149, np.pi/2, 2.034444, 3*np.pi/4, 2.677945)
 phi_steps_true = (0, np.pi/8, np.pi/4, 3*np.pi/8, np.pi/2, 5*np.pi/8, 3*np.pi/4, 7*np.pi/8)
+phi_steps_true_g8 = (0, np.pi/4, np.pi/2, 3*np.pi/4)
 phi_steps_true_hg = [0., 0.0491, 0.0982, 0.1473, 0.1963, 0.2454, 0.2945, 0.3436,
                      0.3927, 0.4418, 0.4909, 0.54, 0.589, 0.6381, 0.6872, 0.7363,
                      0.7854, 0.8345, 0.8836, 0.9327, 0.9817, 1.0308, 1.0799, 1.129,
@@ -99,6 +103,9 @@ phi_steps_true_hg = [0., 0.0491, 0.0982, 0.1473, 0.1963, 0.2454, 0.2945, 0.3436,
 z_steps_DS_long = [i/1000 for i in range(4221, 13921, 50)]
 z_steps_cole_small = [i/1000 for i in range(-1500, 1500, 50)]
 z_steps_cole_hg = [i/1000 for i in range(-1500, 1500, 25)]
+z_steps_cole_hg_g8 = [i/1000 for i in range(-1400, 1400, 25)]
+z_steps_cole_hg_gz3 = [i/1000 for i in range(-1350, 1350, 25)]
+z_steps_cole_hg_gz9 = [i/1000 for i in range(-1200, 1200, 25)]
 
 # Actual configs
 cfg_geom_cyl_800mm_long         = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm, phi_steps_8,
@@ -107,6 +114,22 @@ cfg_geom_cyl_800mm_long         = cfg_geom('cyl', z_steps_DS_long, r_steps_800mm
                                            do2pi=False)
 
 cfg_geom_Cole_250mm_cyl         = cfg_geom('cyl', z_steps_cole_small, r_steps_250mm_true[0:],
+                                           phi_steps_true[0:], x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False],
+                                           interpolate=False, do2pi=True)
+cfg_geom_Cole_250mm_cyl_g8      = cfg_geom('cyl', z_steps_cole_small[::2], r_steps_250mm_g8,
+                                           phi_steps_true_g8, x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False],
+                                           interpolate=False, do2pi=True)
+cfg_geom_Cole_250mm_cyl_gz2     = cfg_geom('cyl', z_steps_cole_small[::2], r_steps_250mm_true,
+                                           phi_steps_true[0:], x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False],
+                                           interpolate=False, do2pi=True)
+cfg_geom_Cole_250mm_cyl_gz3     = cfg_geom('cyl', z_steps_cole_small[::3], r_steps_250mm_true,
+                                           phi_steps_true[0:], x_steps=None, y_steps=None,
+                                           bad_calibration=[False, False, False],
+                                           interpolate=False, do2pi=True)
+cfg_geom_Cole_250mm_cyl_gz9     = cfg_geom('cyl', z_steps_cole_small[::9], r_steps_250mm_true[0:],
                                            phi_steps_true[0:], x_steps=None, y_steps=None,
                                            bad_calibration=[False, False, False],
                                            interpolate=False, do2pi=True)
